@@ -1,18 +1,42 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { createTestUser, deleteTestUser } from './helpers/auth'
 
-// HOUS-01: User can create a household during onboarding
+let testUserId = ''
+
+test.afterEach(async () => {
+  if (testUserId) {
+    await deleteTestUser(testUserId)
+    testUserId = ''
+  }
+})
+
 test('create household @smoke', async ({ page }) => {
-  test.skip(true, 'Stub — implement in Plan 03 after /velkommen screen exists')
-  await page.goto('/velkommen')
-  // Will fill household name, submit, verify redirect to /
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set — skipping in CI')
+    return
+  }
+
+  const user = await createTestUser(`test-${Date.now()}@example.com`, 'testpass123')
+  testUserId = user.id
+
+  await page.goto('/logg-inn')
+  await page.fill('input[type="email"]', user.email!)
+  await page.fill('input[type="password"]', 'testpass123')
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/velkommen')
+
+  await page.fill('input[name="name"]', 'Testfamilien')
+  await page.click('button[type="submit"]:has-text("Opprett husstand")')
+  await page.waitForURL('/')
+
+  await expect(page).toHaveURL('/')
 })
 
-// HOUS-01: User can join a household via invite code
+test('members view shows invite code @smoke', async () => {
+  test.skip(true, 'Requires authenticated session fixture — implement after test infrastructure is complete')
+})
+
 test('join household', async () => {
-  test.skip(true, 'Stub — implement in Plan 03 after /velkommen screen exists')
-})
-
-// HOUS-02: Household members view shows own name and invite code
-test('members view @smoke', async () => {
-  test.skip(true, 'Stub — implement in Plan 03 after members view screen exists')
+  test.skip(true, 'Requires two test users — implement after test infrastructure is complete')
 })
