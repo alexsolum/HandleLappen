@@ -1,6 +1,6 @@
-import { createServerClient } from '@''supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public'
-import type { Cookies } from '@''sveltejs/kit'
+import type { Cookies } from '@sveltejs/kit'
 import type { Database } from '$lib/types/database'
 
 export function createSupabaseServerClient(cookies: Cookies) {
