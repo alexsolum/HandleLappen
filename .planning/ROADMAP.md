@@ -31,12 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User session persists across browser tab close, refresh, and app reopen without being asked to sign in again
   4. User can create a household during onboarding and see their own name listed as a member
   5. The `my_household_id()` SECURITY DEFINER function exists in the database and all RLS policies on household-scoped tables use it without recursion errors
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: SvelteKit project scaffold, Supabase project setup, database schema baseline, SECURITY DEFINER RLS foundation
-- [ ] 01-02: Email/password auth + Google OAuth, SvelteKit hooks + server-side sessions, protected route guards
-- [ ] 01-03: Household creation flow, profile table, household members view, onboarding UX
+- [ ] 01-01-PLAN.md — Scaffold SvelteKit + Supabase wiring, database migration (households/profiles/my_household_id()/RLS), Playwright setup
+- [ ] 01-02-PLAN.md — Auth screens (/logg-inn, /registrer), hooks.server.ts, root layouts, /auth/callback, protected route guard
+- [ ] 01-03-PLAN.md — /velkommen onboarding (create/join household), household members view (/husstand) with invite code
 
 ### Phase 2: Shopping Lists and Core Loop
 **Goal**: Family members can create shopping lists, add items, check them off while shopping, and see changes appear on all devices within a few seconds — with every check-off written to the history log
@@ -48,7 +48,7 @@ Plans:
   3. User can check off an item while shopping; the item is visually marked done and a row is written to `item_history`
   4. A change made on one device (add, remove, check off) appears on a second logged-in device within 3 seconds without a page refresh
   5. Optimistic UI updates show the change instantly; if the write fails, the UI rolls back and shows an error
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 02-01: `lists` and `list_items` schema + RLS, TanStack Query setup, list CRUD UI
@@ -66,7 +66,7 @@ Plans:
   3. When a list is linked to a store, its categories appear in that store's custom order; lists not linked to a store use the default order
   4. Any family member can add, rename, or delete a category; changes propagate to all devices via Realtime
   5. User can manually change an item's category from a list view; the item moves to the correct group immediately
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 03-01: `categories` table seeded with 13 default Norwegian categories (fractional position, gaps of 1000), `stores` and `store_layouts` schema + RLS
@@ -84,7 +84,7 @@ Plans:
   3. When Kassal.app does not find the EAN, the app silently retries via Open Food Facts; the user sees one result or a clear "not found" message — never two separate results
   4. Barcode scanning works in iOS Safari PWA standalone mode using the WASM polyfill; no native BarcodeDetector API is required
   5. The Kassal.app Bearer token is never visible in browser DevTools network requests; all external API calls go through the Edge Function
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 04-01: Supabase Edge Function `/barcode/{ean}` — Kassal.app primary, Open Food Facts fallback, `product_cache` DB table with 30-day TTL, Gemini AI category/name extraction
@@ -101,7 +101,7 @@ Plans:
   3. Items added, removed, or checked off while offline are queued locally and automatically synced when connectivity returns — without the user taking any action
   4. On Safari (where Background Sync is unsupported), queued mutations are replayed the next time the user opens the app; a visible indicator shows how many changes are pending sync
   5. Two devices that check off the same item while both offline do not produce a conflict error when they sync; the item stays checked
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 05-01: `@vite-pwa/sveltekit` configuration, PWA manifest (icons, display: standalone, theme color), app shell CacheFirst precache, Supabase REST NetworkFirst strategy
@@ -118,7 +118,7 @@ Plans:
   3. When items are already on the active list, the recommendations section shows items frequently bought in the same shopping session (co-purchase, single SQL JOIN on session time window)
   4. Before enough history exists (fewer than 10 sessions), the recommendations tab shows only the history view with a message explaining when suggestions will appear
   5. User can tap any history item or recommendation to add it to the current active list in one action
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 06-01: History view UI — query `item_history` grouped by date/list, per-member attribution, household-scoped RLS verified
