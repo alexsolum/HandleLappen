@@ -105,6 +105,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIST-04 | Phase 2 | Pending |
 | LIST-05 | Phase 2 | Pending |
 | LIST-06 | Phase 2 | Pending |
+| HIST-01 | Phase 2 | Pending |
 | CATG-01 | Phase 3 | Pending |
 | CATG-02 | Phase 3 | Pending |
 | CATG-03 | Phase 3 | Pending |
@@ -114,19 +115,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BARC-02 | Phase 4 | Pending |
 | BARC-03 | Phase 4 | Pending |
 | BARC-04 | Phase 4 | Pending |
-| HIST-01 | Phase 5 | Pending |
-| HIST-02 | Phase 5 | Pending |
+| PWAF-01 | Phase 5 | Pending |
+| PWAF-02 | Phase 5 | Pending |
+| HIST-02 | Phase 6 | Pending |
 | RECD-01 | Phase 6 | Pending |
 | RECD-02 | Phase 6 | Pending |
 | RECD-03 | Phase 6 | Pending |
-| PWAF-01 | Phase 7 | Pending |
-| PWAF-02 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
 - Mapped to phases: 27
-- Unmapped: 0 ✓
+- Unmapped: 0
+
+**Phase change notes (vs. initial draft):**
+- HIST-01 moved from Phase 5 to Phase 2: history logging must start when check-off is built to avoid cold-start data loss
+- HIST-02 separated from HIST-01: the history VIEW requires data to be useful; placed in Phase 6 alongside recommendations
+- PWAF-01 and PWAF-02 moved from Phase 7 to Phase 5: offline support is its own coherent phase; no Phase 7 needed
+- Phase 5 (PWA/Offline) is now the correct home for both PWAF requirements; Phase 6 is the final phase
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation (traceability updated to 6-phase structure)*
