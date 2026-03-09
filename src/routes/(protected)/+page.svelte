@@ -2,8 +2,34 @@
   import { createListsQuery, createCreateListMutation, createDeleteListMutation } from '$lib/queries/lists'
   import ListRow from '$lib/components/lists/ListRow.svelte'
   import ListCreateRow from '$lib/components/lists/ListCreateRow.svelte'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { onDestroy } from 'svelte'
 
   let { data } = $props()
+
+  const queryClient = useQueryClient()
+
+  // Realtime: subscribe to lists changes so the home screen updates when
+  // another device creates or deletes a list.
+  // RLS (WALRUS) enforces household isolation server-side — no client-side filter needed.
+  const listsChannel = data.supabase
+    .channel('household-lists')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'lists',
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: ['lists'] })
+      }
+    )
+    .subscribe()
+
+  onDestroy(() => {
+    data.supabase.removeChannel(listsChannel)
+  })
 
   const listsQuery = createListsQuery(data.supabase)
   const createListMutation = createCreateListMutation(data.supabase)

@@ -4,12 +4,39 @@
     createAddItemMutation,
     createDeleteItemMutation,
     createCheckOffMutation,
+    itemsQueryKey,
   } from '$lib/queries/items'
   import ItemRow from '$lib/components/items/ItemRow.svelte'
   import ItemInput from '$lib/components/items/ItemInput.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { onDestroy } from 'svelte'
 
   let { data } = $props()
+
+  const queryClient = useQueryClient()
+
+  // Realtime: subscribe to list_items changes for this specific list.
+  // The filter is server-side — only events for data.listId reach this client.
+  const itemsChannel = data.supabase
+    .channel(`list-items-${data.listId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'list_items',
+        filter: `list_id=eq.${data.listId}`,
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: itemsQueryKey(data.listId) })
+      }
+    )
+    .subscribe()
+
+  onDestroy(() => {
+    data.supabase.removeChannel(itemsChannel)
+  })
 
   const itemsQuery = createItemsQuery(data.supabase, data.listId)
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
