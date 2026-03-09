@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+
   let { data } = $props()
   let copied = $state(false)
 
@@ -9,6 +11,11 @@
     setTimeout(() => {
       copied = false
     }, 2000)
+  }
+
+  async function logout() {
+    await data.supabase.auth.signOut()
+    goto('/logg-inn')
   }
 </script>
 
@@ -59,4 +66,13 @@
       </section>
     {/if}
   </main>
+
+  <footer class="mt-6 pt-4 border-t border-gray-200">
+    <button
+      onclick={logout}
+      class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors w-full"
+    >
+      Logg ut
+    </button>
+  </footer>
 </div>

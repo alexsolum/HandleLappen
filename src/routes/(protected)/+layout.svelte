@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
+  import BottomNav from '$lib/components/lists/BottomNav.svelte'
 
   let { data, children } = $props()
 
@@ -26,5 +27,7 @@
     <main class="pb-16">
       {@render children()}
     </main>
+
+    <BottomNav />
   </div>
 </QueryClientProvider>

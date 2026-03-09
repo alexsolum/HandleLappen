@@ -18,5 +18,5 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
     throw redirect(303, '/velkommen')
   }
 
-  return { user }
+  return { user, householdId: profile.household_id }
 }

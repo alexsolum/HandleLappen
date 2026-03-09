@@ -1,7 +1,37 @@
-<div class="flex min-h-[calc(100vh-65px)] items-center justify-center px-4">
-  <div class="text-center">
-    <h1 class="text-2xl font-bold text-green-700 mb-2">HandleAppen</h1>
-    <p class="text-gray-500">Handlelister kommer i neste fase.</p>
-    <a href="/husstand" class="mt-6 inline-block text-sm text-green-600 hover:underline">Se husstand</a>
-  </div>
+<script lang="ts">
+  import { createListsQuery, createCreateListMutation, createDeleteListMutation } from '$lib/queries/lists'
+  import ListRow from '$lib/components/lists/ListRow.svelte'
+  import ListCreateRow from '$lib/components/lists/ListCreateRow.svelte'
+
+  let { data } = $props()
+
+  const listsQuery = createListsQuery(data.supabase)
+  const createListMutation = createCreateListMutation(data.supabase)
+  const deleteListMutation = createDeleteListMutation(data.supabase)
+
+  function handleCreate(name: string) {
+    createListMutation.mutate({ name, householdId: data.householdId })
+  }
+
+  function handleDelete(id: string) {
+    deleteListMutation.mutate({ id })
+  }
+</script>
+
+<div class="max-w-lg mx-auto px-4 py-6 space-y-2">
+  {#if listsQuery.isPending}
+    <p class="text-sm text-gray-400 text-center py-8">Laster lister…</p>
+  {:else if listsQuery.isError}
+    <p class="text-sm text-red-600 text-center py-8">Kunne ikke laste lister.</p>
+  {:else if listsQuery.data && listsQuery.data.length === 0}
+    <p class="text-sm text-gray-400 text-center py-8">
+      Ingen lister ennå. Trykk '+' for å lage din første liste.
+    </p>
+  {:else if listsQuery.data}
+    {#each listsQuery.data as list (list.id)}
+      <ListRow {list} onDelete={() => handleDelete(list.id)} />
+    {/each}
+  {/if}
+
+  <ListCreateRow onCreate={handleCreate} />
 </div>
