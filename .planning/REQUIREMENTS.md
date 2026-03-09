@@ -18,12 +18,12 @@
 
 ### Shopping Lists
 
-- [ ] **LIST-01**: User can create a named shopping list
-- [ ] **LIST-02**: User can delete a shopping list
-- [ ] **LIST-03**: User can add an item to a list by typing a name
-- [ ] **LIST-04**: User can remove an item from a list
-- [ ] **LIST-05**: User can check off an item while shopping (marks as done)
-- [ ] **LIST-06**: Changes to a list (add, remove, check off) sync to all family devices within a few seconds
+- [x] **LIST-01**: User can create a named shopping list
+- [x] **LIST-02**: User can delete a shopping list
+- [x] **LIST-03**: User can add an item to a list by typing a name
+- [x] **LIST-04**: User can remove an item from a list
+- [x] **LIST-05**: User can check off an item while shopping (marks as done)
+- [x] **LIST-06**: Changes to a list (add, remove, check off) sync to all family devices within a few seconds
 
 ### Categories & Store Layout
 
@@ -42,7 +42,7 @@
 
 ### History
 
-- [ ] **HIST-01**: Every item checked off during shopping is logged to the database (item name, category, list, store, timestamp, who checked it off)
+- [x] **HIST-01**: Every item checked off during shopping is logged to the database (item name, category, list, store, timestamp, who checked it off)
 - [ ] **HIST-02**: User can browse a history view showing past shopping sessions grouped by date and list
 
 ### Recommendations
@@ -99,13 +99,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 1 | Complete |
 | HOUS-01 | Phase 1 | Complete |
 | HOUS-02 | Phase 1 | Complete |
-| LIST-01 | Phase 2 | Pending |
-| LIST-02 | Phase 2 | Pending |
-| LIST-03 | Phase 2 | Pending |
-| LIST-04 | Phase 2 | Pending |
-| LIST-05 | Phase 2 | Pending |
-| LIST-06 | Phase 2 | Pending |
-| HIST-01 | Phase 2 | Pending |
+| LIST-01 | Phase 2 | Complete |
+| LIST-02 | Phase 2 | Complete |
+| LIST-03 | Phase 2 | Complete |
+| LIST-04 | Phase 2 | Complete |
+| LIST-05 | Phase 2 | Complete |
+| LIST-06 | Phase 2 | Complete |
+| HIST-01 | Phase 2 | Complete |
 | CATG-01 | Phase 3 | Pending |
 | CATG-02 | Phase 3 | Pending |
 | CATG-03 | Phase 3 | Pending |

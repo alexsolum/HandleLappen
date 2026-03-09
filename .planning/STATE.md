@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 ready to execute
-last_updated: "2026-03-09T21:05:00.000Z"
-last_activity: 2026-03-09 — Phase 1 completed and verified; Phase 2 is next
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-09T20:58:05.957Z"
+last_activity: 2026-03-09 — Phase 1 completed and verified
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 8
+  completed_plans: 5
   percent: 17
 ---
 
@@ -50,6 +50,7 @@ Progress: [██░░░░░░░░] 17%
 - Trend: Baseline established
 
 *Updated after each plan completion*
+| Phase 02-shopping-lists-and-core-loop P01 | 205 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,10 @@ Recent decisions affecting current work:
 - [Pre-phase]: Individual accounts + shared household — personal history enables recommendations
 - [Pre-phase]: Kassal.app + Open Food Facts for barcode data — Norwegian coverage + fallback
 - [Pre-phase]: Default category layout + per-store overrides — reduces setup burden
+- [Phase 02-01]: quantity is integer (not text) in list_items — text quantities deferred to Phase 3+
+- [Phase 02-01]: item_history excluded from supabase_realtime publication — write-only in Phase 2
+- [Phase 02-01]: QueryClient instantiated inside component body (not module level) to prevent SSR data leakage between sessions
+- [Phase 02-01]: Logout button removed from protected layout header — moved to Husstand tab in plan 02-02
 
 ### Pending Todos
 
@@ -76,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T21:05:00.000Z
-Stopped at: Phase 2 ready to execute
-Resume file: .planning/phases/02-shopping-lists-and-core-loop/02-CONTEXT.md
+Last session: 2026-03-09T20:58:05.947Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
