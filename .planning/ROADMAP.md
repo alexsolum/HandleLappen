@@ -12,7 +12,7 @@ HandleAppen delivers a store-layout-aware family grocery PWA in six dependency-o
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Auth and Household Foundation** - Authenticated users in a household context; load-bearing RLS patterns established
+- [x] **Phase 1: Auth and Household Foundation** - Authenticated users in a household context; load-bearing RLS patterns established
 - [ ] **Phase 2: Shopping Lists and Core Loop** - Create list, add item, check off, real-time sync; history logging starts here
 - [ ] **Phase 3: Store Layouts and Category Ordering** - Categories sorted by Norwegian store layout; per-store overrides
 - [ ] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS
@@ -34,9 +34,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Scaffold SvelteKit + Supabase wiring, database migration (households/profiles/my_household_id()/RLS), Playwright setup
-- [ ] 01-02-PLAN.md — Auth screens (/logg-inn, /registrer), hooks.server.ts, root layouts, /auth/callback, protected route guard
-- [ ] 01-03-PLAN.md — /velkommen onboarding (create/join household), household members view (/husstand) with invite code
+- [x] 01-01-PLAN.md — Scaffold SvelteKit + Supabase wiring, database migration (households/profiles/my_household_id()/RLS), Playwright setup
+- [x] 01-02-PLAN.md — Auth screens (/logg-inn, /registrer), hooks.server.ts, root layouts, /auth/callback, protected route guard
+- [x] 01-03-PLAN.md — /velkommen onboarding (create/join household), household members view (/husstand) with invite code
 
 ### Phase 2: Shopping Lists and Core Loop
 **Goal**: Family members can create shopping lists, add items, check them off while shopping, and see changes appear on all devices within a few seconds — with every check-off written to the history log
@@ -134,7 +134,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Auth and Household Foundation | 0/3 | Not started | - |
+| 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 0/4 | Not started | - |
 | 3. Store Layouts and Category Ordering | 0/4 | Not started | - |
 | 4. Barcode Scanning | 0/3 | Not started | - |

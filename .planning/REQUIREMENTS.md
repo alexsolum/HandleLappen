@@ -7,14 +7,14 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can create an account with email and password
-- [ ] **AUTH-02**: User can sign in with Google OAuth
-- [ ] **AUTH-03**: User session persists across browser refresh and app reopen
+- [x] **AUTH-01**: User can create an account with email and password
+- [x] **AUTH-02**: User can sign in with Google OAuth
+- [x] **AUTH-03**: User session persists across browser refresh and app reopen
 
 ### Household
 
-- [ ] **HOUS-01**: User can create a household (family group) during onboarding
-- [ ] **HOUS-02**: User can view the members of their household
+- [x] **HOUS-01**: User can create a household (family group) during onboarding
+- [x] **HOUS-02**: User can view the members of their household
 
 ### Shopping Lists
 
@@ -94,11 +94,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| HOUS-01 | Phase 1 | Pending |
-| HOUS-02 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| HOUS-01 | Phase 1 | Complete |
+| HOUS-02 | Phase 1 | Complete |
 | LIST-01 | Phase 2 | Pending |
 | LIST-02 | Phase 2 | Pending |
 | LIST-03 | Phase 2 | Pending |
