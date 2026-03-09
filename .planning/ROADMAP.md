@@ -135,7 +135,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
-| 2. Shopping Lists and Core Loop | 2/4 | In Progress|  |
+| 2. Shopping Lists and Core Loop | 3/4 | In Progress|  |
 | 3. Store Layouts and Category Ordering | 0/4 | Not started | - |
 | 4. Barcode Scanning | 0/3 | Not started | - |
 | 5. PWA and Offline Support | 0/3 | Not started | - |
