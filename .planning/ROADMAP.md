@@ -48,13 +48,13 @@ Plans:
   3. User can check off an item while shopping; the item is visually marked done and a row is written to `item_history`
   4. A change made on one device (add, remove, check off) appears on a second logged-in device within 3 seconds without a page refresh
   5. Optimistic UI updates show the change instantly; if the write fails, the UI rolls back and shows an error
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: `lists` and `list_items` schema + RLS, TanStack Query setup, list CRUD UI
-- [ ] 02-02: Item add/remove/check-off mutations with optimistic updates and rollback
-- [ ] 02-03: Supabase Realtime subscription per open list, TanStack Query invalidation on event, channel cleanup in effect teardown
-- [ ] 02-04: `item_history` table + RLS, write on check-off, verify rows accumulate
+- [ ] 02-01-PLAN.md — DB migration (lists/list_items/item_history + RLS + realtime publication), TanStack Query setup in protected layout, Wave 0 test scaffolds
+- [ ] 02-02-PLAN.md — Lister home screen (list CRUD UI), BottomNav component, swipeLeft action, list query factories, logout relocated to Husstand tab
+- [ ] 02-03-PLAN.md — List detail view: item add/remove/check-off with optimistic mutations, DoneSection, item_history write on check-off (HIST-01)
+- [ ] 02-04-PLAN.md — Supabase Realtime subscriptions on list_items and lists tables, two-context Playwright sync test
 
 ### Phase 3: Store Layouts and Category Ordering
 **Goal**: Items in every shopping list are grouped by category and ordered the way a Norwegian grocery store is laid out — and any family member can create a per-store layout that overrides the default order
