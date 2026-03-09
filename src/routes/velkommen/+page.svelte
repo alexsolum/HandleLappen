@@ -38,7 +38,7 @@
       >
         <div>
           <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Husstandsnavn</label>
-          <Input id="name" name="name" type="text" value={form?.name ?? ''} placeholder="Familie Hansen" required minlength="2" maxlength="80" />
+          <Input id="name" name="name" type="text" value={form?.name ?? ''} placeholder="Familie Hansen" required minlength={2} maxlength={80} />
         </div>
         <Button type="submit" disabled={creatingHousehold} class="w-full">
           {creatingHousehold ? 'Oppretter…' : 'Opprett husstand'}
