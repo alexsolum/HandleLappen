@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-09T20:58:05.957Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-09T21:22:38.075Z"
 last_activity: 2026-03-09 — Phase 1 completed and verified
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 17
 ---
 
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 17%
 
 *Updated after each plan completion*
 | Phase 02-shopping-lists-and-core-loop P01 | 205 | 3 tasks | 9 files |
+| Phase 02-shopping-lists-and-core-loop P02 | 1264 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 02-01]: item_history excluded from supabase_realtime publication — write-only in Phase 2
 - [Phase 02-01]: QueryClient instantiated inside component body (not module level) to prevent SSR data leakage between sessions
 - [Phase 02-01]: Logout button removed from protected layout header — moved to Husstand tab in plan 02-02
+- [Phase Phase 02-02]: Playwright tests need waitUntil: 'networkidle' and waitForLoadState after navigation — Svelte 5 + TanStack Query hydration timing
+- [Phase Phase 02-02]: householdId exposed from protected layout server to avoid redundant profiles queries in child pages
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T20:58:05.947Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-09T21:22:38.071Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
