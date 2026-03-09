@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 01-auth-and-household-foundation
 source: [01-01-SUMMARY.md]
 started: 2026-03-09T19:56:00+01:00
-updated: 2026-03-09T20:04:00+01:00
+updated: 2026-03-09T20:37:00+01:00
 ---
 
 ## Current Test
@@ -46,7 +46,7 @@ skipped: 0
 ## Gaps
 
 - truth: "When you are signed out and open /husstand directly, the app should redirect you to /logg-inn with the original destination preserved in the URL as next=%2Fhusstand."
-  status: failed
+  status: resolved
   reason: "User reported: There is no possibility to sign out"
   severity: major
   test: 2
