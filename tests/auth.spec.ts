@@ -1,4 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { createHouseholdUser, deleteTestUser } from './helpers/auth'
+
+let testUserId = ''
+
+test.afterEach(async () => {
+  if (testUserId) {
+    await deleteTestUser(testUserId)
+    testUserId = ''
+  }
+})
 
 // AUTH-01: User can create an account with email and password
 test('email signup @smoke', async ({ page }) => {
@@ -29,6 +39,48 @@ test('session persistence @smoke', async ({ page, context }) => {
 })
 
 // AUTH-03: Sign-out clears session
-test('sign out clears session', async () => {
-  test.skip(true, 'Stub — implement in integration phase')
+test('sign out clears session @smoke', async ({ page }) => {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set')
+    return
+  }
+
+  const seeded = await createHouseholdUser(`logout-${Date.now()}@example.com`, 'testpass123')
+  testUserId = seeded.user.id
+
+  await page.goto('/logg-inn')
+  await page.fill('input[type="email"]', seeded.user.email!)
+  await page.fill('input[type="password"]', 'testpass123')
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/')
+
+  await page.goto('/husstand')
+  await page.click('button:has-text("Logg ut")')
+  await page.waitForURL('/logg-inn')
+
+  await expect(page.getByRole('button', { name: 'Logg inn' })).toBeVisible()
+})
+
+test('protected route redirects after logout', async ({ page }) => {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set')
+    return
+  }
+
+  const seeded = await createHouseholdUser(`redirect-${Date.now()}@example.com`, 'testpass123')
+  testUserId = seeded.user.id
+
+  await page.goto('/logg-inn')
+  await page.fill('input[type="email"]', seeded.user.email!)
+  await page.fill('input[type="password"]', 'testpass123')
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/')
+
+  await page.click('button:has-text("Logg ut")')
+  await page.waitForURL('/logg-inn')
+
+  await page.goto('/husstand')
+  await page.waitForURL('/logg-inn?next=%2Fhusstand')
 })
