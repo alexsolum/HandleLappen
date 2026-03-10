@@ -112,25 +112,120 @@ test.describe('default order', () => {
 
 test.describe('store layout', () => {
   test('can create a named store and view its layout screen', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-store-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto('/butikker', { waitUntil: 'networkidle' })
+
+      await expect(page.getByRole('link', { name: /Standard rekkefølge/i })).toBeVisible()
+      await expect(page.locator('text=Legg til butikk')).toBeVisible()
+
+      await page.getByRole('button', { name: /Legg til butikk/i }).click()
+      await page.fill('#new-store-name', 'Rema 1000 Test')
+      await page.getByRole('button', { name: 'Lagre' }).click()
+
+      const storeLink = page.locator('a[href^="/butikker/"]:has-text("Rema 1000 Test")')
+      await expect(storeLink).toBeVisible()
+      await storeLink.click()
+
+      await page.waitForURL(/\/butikker\/[0-9a-f-]+$/)
+      await expect(page.locator('text=Frukt og grønt')).toBeVisible()
+      await expect(page.locator('text=Kjøl og frys')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 })
 
 test.describe('category crud', () => {
   test('can add a new category on the standard layout screen', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-add-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await page.getByRole('button', { name: /Legg til kategori/i }).click()
+      await page.fill('#new-category-name', 'Testkategori')
+      await page.getByRole('button', { name: 'Lagre kategori' }).click()
+
+      await expect(page.locator('text=Testkategori')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 
-  test('can rename a category; change appears on all devices via realtime', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+  test('can rename a category', async ({ page }) => {
+    const email = `categories-rename-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await page.getByRole('button', { name: /Gi nytt navn til Frukt og grønt/i }).click()
+      const renameInput = page.locator('input').first()
+      await expect(renameInput).toBeVisible()
+      await renameInput.fill('Frukt og bær')
+      await page.getByRole('button', { name: 'Lagre' }).click()
+
+      await expect(page.locator('text=Frukt og bær')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 
   test('can delete a category', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-delete-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+      await createTestCategory(household.id, 'Slett meg', 200)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await expect(page.locator('text=Slett meg')).toBeVisible()
+      await page.getByRole('button', { name: /Slett Slett meg/i }).click()
+      await expect(page.locator('text=Slett meg')).toHaveCount(0)
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 })
 
