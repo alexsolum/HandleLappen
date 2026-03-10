@@ -6,13 +6,25 @@
     createCheckOffMutation,
     itemsQueryKey,
   } from '$lib/queries/items'
-  import ItemRow from '$lib/components/items/ItemRow.svelte'
+  import { createCategoriesQuery, createStoreLayoutQuery } from '$lib/queries/categories'
+  import { createStoresQuery } from '$lib/queries/stores'
+  import CategorySection from '$lib/components/items/CategorySection.svelte'
   import ItemInput from '$lib/components/items/ItemInput.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
+  import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { onDestroy } from 'svelte'
 
+  type Item = {
+    id: string
+    name: string
+    quantity: number | null
+    is_checked: boolean
+    category_id: string | null
+  }
+
   let { data } = $props()
+  let selectedStoreId = $state<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -39,24 +51,49 @@
   })
 
   const itemsQuery = createItemsQuery(data.supabase, data.listId)
+  const categoriesQuery = createCategoriesQuery(data.supabase, data.householdId)
+  const storeLayoutQuery = createStoreLayoutQuery(data.supabase, selectedStoreId)
+  const storesQuery = createStoresQuery(data.supabase, data.householdId)
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)
   const checkOffMutation = createCheckOffMutation(data.supabase, data.listId, data.user.id)
 
-  const activeItems = $derived(itemsQuery.data?.filter((i) => !i.is_checked) ?? [])
+  const activeItems = $derived((itemsQuery.data?.filter((i) => !i.is_checked) ?? []) as Item[])
   const doneItems = $derived(itemsQuery.data?.filter((i) => i.is_checked) ?? [])
+  const groupingPending = $derived(
+    categoriesQuery.isPending || (selectedStoreId != null && storeLayoutQuery.isPending)
+  )
+  const groupedItems = $derived.by(() => {
+    const unchecked = activeItems
+    const orderedCategories = selectedStoreId
+      ? (storeLayoutQuery.data ?? [])
+      : (categoriesQuery.data ?? [])
+
+    const groups: Array<{ categoryId: string | null; name: string; items: Item[] }> = []
+
+    for (const category of orderedCategories) {
+      const categoryItems = unchecked.filter((item) => item.category_id === category.id)
+
+      if (categoryItems.length > 0) {
+        groups.push({
+          categoryId: category.id,
+          name: category.name,
+          items: categoryItems,
+        })
+      }
+    }
+
+    const uncategorized = unchecked.filter((item) => item.category_id == null)
+    if (uncategorized.length > 0) {
+      groups.push({ categoryId: null, name: 'Andre varer', items: uncategorized })
+    }
+
+    return groups
+  })
 
   function handleAdd(name: string, quantity: number | null) {
     // Focus is called synchronously in ItemInput before this fires
     addItemMutation.mutate({ name, quantity })
-  }
-
-  function handleToggle(item: { id: string; name: string; is_checked: boolean }) {
-    checkOffMutation.mutate({
-      itemId: item.id,
-      isChecked: !item.is_checked,
-      itemName: item.name,
-    })
   }
 
   function handleUncheck(itemId: string) {
@@ -66,6 +103,17 @@
 
   function handleDelete(itemId: string) {
     deleteItemMutation.mutate({ id: itemId })
+  }
+
+  function handleGroupToggle(itemId: string, checked: boolean) {
+    const item = activeItems.find((entry) => entry.id === itemId)
+    if (item) {
+      checkOffMutation.mutate({
+        itemId,
+        isChecked: checked,
+        itemName: item.name,
+      })
+    }
   }
 </script>
 
@@ -97,14 +145,32 @@
       Ingen varer. Legg til den første varen nedenfor.
     </p>
   {:else}
-    <div class="divide-y divide-gray-100 rounded-xl bg-white shadow-sm">
-      {#each activeItems as item (item.id)}
-        <ItemRow
-          {item}
-          onToggle={() => handleToggle(item)}
-          onDelete={() => handleDelete(item.id)}
-        />
-      {/each}
+    <div class="mb-4">
+      <StoreSelector
+        stores={storesQuery.data ?? []}
+        {selectedStoreId}
+        onSelect={(id) => (selectedStoreId = id)}
+      />
+    </div>
+
+    <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+      {#if groupingPending}
+        <div class="px-4 py-8 text-center text-sm text-gray-500">Laster kategorier…</div>
+      {:else}
+        {#each groupedItems as group (group.categoryId ?? 'andre')}
+          <CategorySection
+            categoryName={group.name}
+            items={group.items}
+            onToggle={handleGroupToggle}
+            onDelete={handleDelete}
+            onLongPress={() => {}}
+          />
+        {/each}
+      {/if}
+
+      {#if !groupingPending && groupedItems.length === 0 && activeItems.length === 0}
+        <div class="px-4 py-8 text-center text-sm text-gray-400">Ingen aktive varer</div>
+      {/if}
     </div>
 
     {#if activeItems.length === 0 && doneItems.length > 0}

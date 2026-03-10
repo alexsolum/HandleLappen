@@ -23,12 +23,17 @@ export async function createTestList(householdId: string, name = 'Testliste') {
   return data
 }
 
-export async function createTestItem(listId: string, name = 'Testitem', quantity?: number) {
+export async function createTestItem(
+  listId: string,
+  name = 'Testitem',
+  quantity?: number,
+  categoryId?: string | null
+) {
   const admin = getAdminClient()
   const { data, error } = await admin
     .from('list_items')
-    .insert({ list_id: listId, name, quantity: quantity ?? null })
-    .select('id, list_id, name, quantity, is_checked, created_at')
+    .insert({ list_id: listId, name, quantity: quantity ?? null, category_id: categoryId ?? null })
+    .select('id, list_id, name, quantity, is_checked, category_id, created_at')
     .single()
   if (error) throw error
   return data

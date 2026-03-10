@@ -32,6 +32,18 @@ export async function seedDefaultCategories(householdId: string) {
   if (error) throw error
 }
 
+export async function listTestCategories(householdId: string) {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('categories')
+    .select('id, name, position, household_id')
+    .eq('household_id', householdId)
+    .order('position', { ascending: true })
+
+  if (error) throw error
+  return data ?? []
+}
+
 export async function deleteTestCategory(categoryId: string) {
   if (!SERVICE_ROLE_KEY) return
   const admin = getAdminClient()
