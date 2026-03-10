@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-barcode-scanning-01-PLAN.md
-last_updated: "2026-03-10T21:15:11.590Z"
-last_activity: 2026-03-10 — Completed Phase 04 plan 01 barcode lookup foundation
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-10T21:40:46.377Z"
+last_activity: 2026-03-10 — Completed Phase 04 plan 02 barcode scanner UI
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State
@@ -26,16 +26,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 4 of 6 (Barcode Scanning)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-10 — Completed Phase 04 plan 01 barcode lookup foundation
+Last activity: 2026-03-10 — Completed Phase 04 plan 02 barcode scanner UI
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: -
 - Total execution time: -
 
@@ -46,8 +46,8 @@ Progress: [█████████░] 87%
 | 1 | 4 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 03-01, 03-02, 03-03, 03-04, 04-01
-- Trend: Phase 4 started
+- Last 5 plans: 03-02, 03-03, 03-04, 04-01, 04-02
+- Trend: Phase 4 progressing
 
 *Updated after each plan completion*
 | Phase 02-shopping-lists-and-core-loop P01 | 205 | 3 tasks | 9 files |
@@ -58,6 +58,7 @@ Progress: [█████████░] 87%
 | Phase 03-store-layouts-and-category-ordering P03 | 2037 | 3 tasks | 10 files |
 | Phase 03-store-layouts-and-category-ordering P04 | 1527 | 2 tasks | 8 files |
 | Phase 04-barcode-scanning P01 | 433 | 2 tasks | 7 files |
+| Phase 04-barcode-scanning P02 | 1226 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 04-barcode-scanning]: barcode_product_cache stays server-only via RLS plus service_role grants so raw provider payloads never reach the browser
 - [Phase 04-barcode-scanning]: Gemini output is optional at runtime; invalid model output falls back to deterministic provider normalization instead of failing the lookup
 - [Phase 04-barcode-scanning]: 12-digit UPC-A inputs normalize to a 13-digit cache key by prefixing 0 so one barcode resolves to one cached lookup path
+- [Phase 04-barcode-scanning]: ItemInput owns the scan and manual-entry sheet state so downstream list integration only consumes onDetected/onManualSubmit handoff hooks.
+- [Phase 04-barcode-scanning]: Barcode Playwright coverage uses a scanner mock and permission-denied recovery path instead of real camera hardware in headless runs.
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T21:14:45.612Z
-Stopped at: Completed 04-barcode-scanning-01-PLAN.md
+Last session: 2026-03-10T21:40:46.366Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
