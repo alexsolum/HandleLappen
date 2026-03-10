@@ -16,6 +16,8 @@ type Item = {
 type AddItemVariables = { name: string; quantity?: number | null }
 type DeleteItemVariables = { id: string }
 type ToggleItemVariables = { itemId: string; isChecked: boolean; itemName: string }
+type AssignCategoryVariables = { itemId: string; categoryId: string | null }
+type UpdateItemVariables = { id: string; name: string; quantity: number | null }
 type MutationContext = { previous: Item[] | undefined }
 
 export function itemsQueryKey(listId: string) {
@@ -138,6 +140,54 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
             ? { ...item, is_checked: isChecked, checked_at: isChecked ? new Date().toISOString() : null }
             : item
         )
+      )
+      return { previous }
+    },
+    onError: (_err: unknown, _vars: unknown, context: any) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  }))
+}
+
+export function createAssignCategoryMutation(supabase: SupabaseClient, listId: string) {
+  const queryClient = useQueryClient()
+  const queryKey = itemsQueryKey(listId)
+
+  return createMutation<void, Error, AssignCategoryVariables, MutationContext>(() => ({
+    mutationFn: async ({ itemId, categoryId }) => {
+      const { error } = await supabase.from('list_items').update({ category_id: categoryId }).eq('id', itemId)
+      if (error) throw error
+    },
+    onMutate: async ({ itemId, categoryId }) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) =>
+        old.map((item) => (item.id === itemId ? { ...item, category_id: categoryId } : item))
+      )
+      return { previous }
+    },
+    onError: (_err: unknown, _vars: unknown, context: any) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  }))
+}
+
+export function createUpdateItemMutation(supabase: SupabaseClient, listId: string) {
+  const queryClient = useQueryClient()
+  const queryKey = itemsQueryKey(listId)
+
+  return createMutation<void, Error, UpdateItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ id, name, quantity }) => {
+      const { error } = await supabase.from('list_items').update({ name, quantity }).eq('id', id)
+      if (error) throw error
+    },
+    onMutate: async ({ id, name, quantity }) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) =>
+        old.map((item) => (item.id === id ? { ...item, name, quantity } : item))
       )
       return { previous }
     },
