@@ -13,7 +13,7 @@ HandleAppen delivers a store-layout-aware family grocery PWA in six dependency-o
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Auth and Household Foundation** - Authenticated users in a household context; load-bearing RLS patterns established
-- [ ] **Phase 2: Shopping Lists and Core Loop** - Create list, add item, check off, real-time sync; history logging starts here
+- [x] **Phase 2: Shopping Lists and Core Loop** - Create list, add item, check off, real-time sync; history logging starts here (completed 2026-03-10)
 - [ ] **Phase 3: Store Layouts and Category Ordering** - Categories sorted by Norwegian store layout; per-store overrides
 - [ ] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS
 - [ ] **Phase 5: PWA and Offline Support** - Installable PWA with offline mutation queue and conflict resolution
@@ -135,7 +135,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
-| 2. Shopping Lists and Core Loop | 3/4 | In Progress|  |
+| 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 0/4 | Not started | - |
 | 4. Barcode Scanning | 0/3 | Not started | - |
 | 5. PWA and Offline Support | 0/3 | Not started | - |
