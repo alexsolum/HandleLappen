@@ -58,7 +58,7 @@
 
   const itemsQuery = createItemsQuery(data.supabase, data.listId)
   const categoriesQuery = createCategoriesQuery(data.supabase, data.householdId)
-  const storeLayoutQuery = createStoreLayoutQuery(data.supabase, selectedStoreId)
+  const storeLayoutQuery = createStoreLayoutQuery(data.supabase, () => selectedStoreId)
   const storesQuery = createStoresQuery(data.supabase, data.householdId)
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)

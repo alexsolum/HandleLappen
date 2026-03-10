@@ -79,6 +79,51 @@ test.describe('category grouping', () => {
       await deleteTestUser(user.id)
     }
   })
+
+  test('items stay visible after selecting a store layout', async ({ page }) => {
+    const email = `categories-store-select-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+      const store = await createTestStore(household.id, 'Meny Test')
+      const list = await createTestList(household.id, 'Butikkvalg')
+      const categories = await listTestCategories(household.id)
+      const produce = categories.find((category) => category.name === 'Frukt og grønt')
+
+      if (!produce) {
+        throw new Error('Expected seeded default categories to include Frukt og grønt')
+      }
+
+      await createTestItem(list.id, 'Paprika', 1, produce.id)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
+
+      await page.getByRole('button', { name: /Butikk:\s*Ingen/i }).click()
+      await page.getByRole('button', { name: 'Meny Test' }).click()
+
+      await expect(page.locator('text=Laster kategorier…')).toHaveCount(0)
+      await expect(page.getByRole('button', { name: /Butikk:\s*Meny Test/i })).toBeVisible()
+      await expect(page.locator('text=Paprika')).toBeVisible()
+      await expect(
+        page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+          hasText: 'Frukt og grønt',
+        })
+      ).toBeVisible()
+
+      void store
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
 })
 
 test.describe('default order', () => {

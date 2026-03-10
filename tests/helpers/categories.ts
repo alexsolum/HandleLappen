@@ -59,6 +59,26 @@ export async function createTestStore(householdId: string, name: string) {
     .single()
 
   if (error) throw error
+
+  const { data: categories, error: categoriesError } = await admin
+    .from('categories')
+    .select('id, position')
+    .eq('household_id', householdId)
+    .order('position', { ascending: true })
+
+  if (categoriesError) throw categoriesError
+
+  if ((categories ?? []).length > 0) {
+    const rows = categories.map((category, index) => ({
+      store_id: data.id,
+      category_id: category.id,
+      position: (index + 1) * 10,
+    }))
+
+    const { error: layoutError } = await admin.from('store_layouts').insert(rows)
+    if (layoutError) throw layoutError
+  }
+
   return data
 }
 
