@@ -2,7 +2,7 @@
 
 ## Overview
 
-HandleAppen delivers a store-layout-aware family grocery PWA in six dependency-ordered phases. Phase 1 establishes the auth and household foundation that every other phase depends on. Phase 2 ships the testable core loop — create list, add item, check off, sync in real-time — and begins writing purchase history from day one. Phase 3 implements the product's primary differentiator: categories sorted by Norwegian store layout, with per-store overrides. Phase 4 adds barcode scanning via a server-proxied Edge Function and a WASM polyfill for iOS. Phase 5 converts the working online app into an offline-capable PWA. Phase 6 surfaces the history data accumulated since Phase 2 as a history view and frequency-based recommendations.
+HandleAppen delivers a store-layout-aware family grocery PWA in six dependency-ordered phases. Phase 1 establishes the auth and household foundation that every other phase depends on. Phase 2 ships the testable core loop — create list, add item, check off, sync in real-time — and begins writing purchase history from day one. Phase 3 implements the product's primary differentiator: categories sorted by Norwegian store layout, with per-store overrides. Phase 4 adds barcode scanning via a server-proxied Edge Function, normalized provider fallback, and an iOS-safe scanner implementation. Phase 5 converts the working online app into an offline-capable PWA. Phase 6 surfaces the history data accumulated since Phase 2 as a history view and frequency-based recommendations.
 
 ## Phases
 
@@ -58,7 +58,7 @@ Plans:
 
 ### Phase 3: Store Layouts and Category Ordering
 **Goal**: Items in every shopping list are grouped by category and ordered the way a Norwegian grocery store is laid out — and any family member can create a per-store layout that overrides the default order
-**Depends on**: Phase 2
+**Depends on**: Phase 3
 **Requirements**: CATG-01, CATG-02, CATG-03, CATG-04, CATG-05
 **Success Criteria** (what must be TRUE):
   1. Items in a list are displayed grouped under category headings (e.g., Frukt og grønt, Meieri og egg, Kjøtt og fisk, Kjøl og frys) in the default Norwegian store order
@@ -76,7 +76,7 @@ Plans:
 
 ### Phase 4: Barcode Scanning
 **Goal**: User can point their phone camera at a product barcode and have the item's name and category auto-filled and ready to add to the list — on any device including iOS Safari
-**Depends on**: Phase 2
+**Depends on**: Phase 3
 **Requirements**: BARC-01, BARC-02, BARC-03, BARC-04
 **Success Criteria** (what must be TRUE):
   1. User taps a "Scan" button, the camera opens, and a detected barcode triggers a product lookup without any additional user action
@@ -87,9 +87,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Supabase Edge Function `/barcode/{ean}` — Kassal.app primary, Open Food Facts fallback, `product_cache` DB table with 30-day TTL, Gemini AI category/name extraction
-- [ ] 04-02: Barcode scanner UI component — `barcode-detector` WASM polyfill, `getUserMedia` rear camera, `requestAnimationFrame` detection loop, explicit user gesture trigger
-- [ ] 04-03: Scan-to-add flow — product prefill form, confirm to insert `list_item`, manual EAN text input fallback, graceful not-found and camera-failure states
+- [ ] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
+- [ ] 04-02: Barcode scanner UI component — iOS-safe scanner library/polyfill, rear-camera preference, explicit scan trigger, manual EAN fallback
+- [ ] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
 
 ### Phase 5: PWA and Offline Support
 **Goal**: The app is installable on a mobile home screen and continues to work for core shopping actions when in-store connectivity is poor or absent — syncing queued changes when the connection returns
@@ -130,7 +130,7 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
-Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but are independent of each other and of Phase 3 — they may be planned in parallel after Phase 2 completes.
+Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned products map into the category system built there, while Phase 5 remains independently plannable after Phase 2.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|

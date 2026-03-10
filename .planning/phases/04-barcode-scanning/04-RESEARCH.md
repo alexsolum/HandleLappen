@@ -1,273 +1,379 @@
-# Phase 4: Barcode Scanning - Research
+# Phase 04 Research: Barcode Scanning
 
-**Date:** 2026-03-10
-**Phase:** 04-barcode-scanning
-**Requirements:** BARC-01, BARC-02, BARC-03, BARC-04
+**Researched:** 2026-03-10  
+**Question:** What do I need to know to PLAN this phase well?
 
-## Executive Summary
+## Bottom Line
 
-Phase 4 should split cleanly into three planning areas:
+Plan this phase as one server-backed barcode workflow with three distinct layers:
 
-1. A server-only lookup layer that protects the Kassal token, falls back to Open Food Facts, caches responses, and normalizes one product result.
-2. A mobile-first scanner UI that works in iOS Safari/PWA mode by using a WASM-backed barcode detector path rather than relying on native `BarcodeDetector`.
-3. A scan-to-add confirmation flow that reuses the Phase 3 list/detail bottom-sheet patterns and ends by inserting an ordinary `list_item`.
+1. A mobile-first scanner sheet in the list page.
+2. A single Supabase Edge Function that owns lookup, fallback, AI enrichment, caching, and security.
+3. A normalized result model that stores a canonical category label, then maps that label to the household's own categories before add-to-list.
 
-The biggest planning risk is not UI complexity. It is the contract between the scanner, the lookup edge function, and the normalization/category-classification path. Plans should isolate that first.
+The biggest planning mistake would be treating this as "just a camera feature". The risk is actually in:
 
----
+- iOS Safari / installed PWA camera behavior
+- provider auth and rate limits
+- AI output normalization
+- cache design across households
+- validation on real devices
 
-## Key Findings
+## Repo-Specific Context That Matters
 
-### 1. Server-side lookup is mandatory
+- The list page already has the right extension point: [`src/routes/(protected)/lister/[id]/+page.svelte`](C:\Users\HP\Documents\Koding\HandleAppen\src\routes\(protected)\lister\[id]\+page.svelte).
+- The UI pattern is already bottom-sheet driven, matching the phase context.
+- Items are inserted directly into `list_items`, with category assignment handled separately today.
+- Categories are household-specific, and store layouts are per-store overrides.
+- Supabase Edge Functions are already the intended backend boundary for third-party calls.
 
-- The roadmap requirement that the Kassal Bearer token never appear in browser DevTools means all Kassal requests must be routed through a Supabase Edge Function.
-- The edge function should be the single public lookup boundary for the client: one EAN in, one normalized product result out.
-- Open Food Facts fallback should stay inside the same edge function, not become a second client-visible code path.
+Planning implication: the barcode cache must not store a household `category_id` as the canonical output. It should store a canonical category label/key, then map that to the current household category row at runtime.
 
-### 2. Product normalization needs its own contract
+## Standard Stack
 
-- Kassal and Open Food Facts will return different product shapes and quality levels.
-- Planner should define a normalized output shape early, likely something close to:
-  - `ean`
-  - `name`
-  - `brand`
-  - `image_url`
-  - `source`
-  - `category_suggestion`
-  - `confidence`
-  - `not_found`
-- Gemini should not be asked to do open-ended generation. It should classify/clean into a tightly structured JSON response from normalized provider input.
-- Classification should reuse the existing household category model from Phase 3, but Phase 4 only needs the default/category suggestion path, not new category management features.
+- Scanner: `html5-qrcode` low-level API (`Html5Qrcode`), not its stock UI.
+- Camera API: `navigator.mediaDevices.getUserMedia()` with `playsinline`, `muted`, explicit cleanup, and manual EAN fallback always available.
+- Browser support strategy: feature-detect camera support; do not rely on native `BarcodeDetector` alone.
+- Backend boundary: Supabase Edge Function invoked via `supabase.functions.invoke(...)`.
+- Secrets: Supabase project secrets for Kassal and Gemini credentials.
+- AI normalization: Gemini structured output with a strict JSON schema.
+- Persistence: Postgres cache table for normalized barcode results plus optional raw provider payload storage.
 
-### 3. Cache before AI/classification where possible
+## Architecture Patterns
 
-- The roadmap already places `product_cache` in Phase 4 plan 04-01. That should store the normalized provider response plus category suggestion metadata, not raw provider payload only.
-- Cache key should be the EAN code.
-- A 30-day TTL is appropriate for grocery products because names and categories are mostly stable, while pricing is irrelevant here.
-- Caching normalized results reduces repeated Kassal/Open Food Facts calls and repeated Gemini usage for popular household staples.
+### 1. Keep one lookup path
 
-### 4. Scanner UX should not depend on native BarcodeDetector
+Both camera scan and manual EAN entry should call the same server function:
 
-- iOS Safari/PWA support is the hard requirement, so the scanner plan should assume the polyfill/WASM path is the primary reliable implementation.
-- Scanner should be explicitly user-triggered from the list screen.
-- Detection loop should stop on first confident result and hand off to the lookup flow immediately.
-- The scanner must degrade to manual EAN entry within the same recovery surface when camera access fails or the environment cannot scan well.
+- input: `ean`, optional `listId`
+- output: normalized `{ ean, itemName, canonicalCategory, confidence, source, found }`
 
-### 5. Phase 3 assets reduce UI risk substantially
+Do not create separate "camera lookup" and "manual lookup" backends.
 
-- Existing bottom-sheet dialog patterns already exist in:
-  - `src/lib/components/items/CategoryPickerModal.svelte`
-  - `src/lib/components/items/ItemDetailSheet.svelte`
-- Existing list integration point already exists in:
-  - `src/routes/(protected)/lister/[id]/+page.svelte`
-- Existing item insert mutation path already exists in:
-  - `src/lib/queries/items.ts`
-- That means Phase 4 should not invent a new add-item architecture. It should feed the scanner result into the same list item mutation layer.
+### 2. Use server-side orchestration only
 
----
+The browser should never call Kassal, Open Food Facts, or Gemini directly. The Edge Function should:
 
-## Recommended Plan Shape
+1. Validate auth and input barcode.
+2. Check cache.
+3. Query Kassal first.
+4. Query Open Food Facts only if Kassal is empty or insufficient.
+5. Build one merged provider payload.
+6. Pass that payload to Gemini for final name/category extraction.
+7. Persist normalized result.
+8. Return a small safe DTO to the client.
 
-### Plan 04-01: Lookup backend and normalization
+### 3. Model categories in two steps
 
-Focus:
-- Supabase Edge Function `/barcode/{ean}`
-- Kassal primary lookup
-- Open Food Facts fallback
-- `product_cache` table and TTL handling
-- Gemini structured category/name extraction
-- response normalization and error contract
+Recommended split:
 
-Why first:
-- It resolves the biggest uncertainty and creates the API contract for the UI plans.
+- `canonicalCategory`: fixed internal label/key such as `meieri_og_egg`, `drikke`, `snacks_og_godteri`
+- `householdCategoryId`: resolved after lookup by matching the household's categories
 
-### Plan 04-02: Scanner UI and camera detection
+This avoids poisoning the cache with household-specific IDs and keeps cached results reusable across users and devices.
 
-Focus:
-- dedicated scan action in list UI
-- camera permission handling
-- WASM/polyfill-backed detector
-- rear-camera preference
-- detection loop and stop-on-hit behavior
+### 4. Treat the confirm sheet as the state boundary
 
-Why second:
-- Scanner can be built against a mocked or real edge function contract once 04-01 is defined.
+The scanner should stop as soon as it gets one valid code and transition into:
 
-### Plan 04-03: Scan-to-add flow
+- loading state
+- found / prefilled state
+- not found state
+- manual EAN retry state
 
-Focus:
-- bottom-sheet result presentation
-- editable name/category/quantity
-- confirm-to-add behavior
-- manual EAN fallback
-- not-found state
-- list insertion and targeted e2e coverage
+Do not keep the live camera running behind the confirm sheet.
 
-Why third:
-- It depends on both the lookup contract and scanner entry flow.
+## Recommended Data Model
 
----
+Minimum useful cache table:
 
-## Product and UX Constraints
+```sql
+create table public.barcode_product_cache (
+  ean text primary key,
+  normalized_name text,
+  canonical_category text,
+  confidence numeric,
+  source text not null, -- kassal | off | kassal+off | gemini
+  status text not null, -- found | not_found | failed
+  provider_payload jsonb,
+  provider_fetched_at timestamptz,
+  ai_enriched_at timestamptz,
+  expires_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+```
 
-### Locked by context
+Planning notes:
 
-- Dedicated scan action, not replacement of typed input
-- One-shot auto-fetch after first strong detection
-- Result shown in bottom sheet
-- Explicit confirm before insert
-- Camera failure and manual EAN use the same recovery flow
-- Name, category, and quantity all editable
-- Quantity defaults to `1`
-- Confirm returns user to the list
+- Cache negative lookups too, with a short TTL.
+- Keep provider payload server-side only.
+- `provider_payload` is useful for debugging and future re-enrichment.
+- `expires_at` should allow refresh without changing the client contract.
 
-### Implications for planning
+Inference: normalize cache keys to digits-only, and consider converting UPC-A to a canonical 13-digit form while retaining the raw scanned value for audit/debug.
 
-- Plans should treat the scanner as an alternate item-entry method, not a separate mode of the app.
-- The result UI should look and behave like Phase 3 bottom sheets.
-- Not-found and manual entry should be folded into the same flow, not split into separate route states.
+## Provider Lookup Path
 
----
+### Kassal.app primary
 
-## Data and API Research Notes
+Kassal has a dedicated EAN endpoint and explicit API-key auth:
 
-### Edge Function contract
+- endpoint: `/api/v1/products/ean/{ean}`
+- auth: Bearer token
+- default rate limit: 60 calls/minute
 
-Recommended success payload:
+This should be the primary source because the app is Norway-first and Kassal has the most relevant product coverage.
+
+### Open Food Facts fallback
+
+Open Food Facts should be used only when Kassal misses or returns too little usable data.
+
+Important planning constraints:
+
+- read requests do not require auth, but do require a custom `User-Agent`
+- read-product rate limit is 100 req/min
+- OFF data is community-maintained and explicitly not guaranteed to be complete or reliable
+
+Planning implication: OFF is a resilience source, not a trust anchor.
+
+### Gemini enrichment
+
+Gemini should receive the merged provider payload and return structured JSON like:
 
 ```json
 {
-  "ean": "7040512631516",
-  "name": "Tine Lettmelk 1L",
-  "brand": "Tine",
-  "imageUrl": "https://...",
-  "source": "kassal",
-  "categorySuggestion": {
-    "name": "Meieri og egg",
-    "categoryId": "uuid-or-null",
-    "confidence": 0.92
-  },
-  "notFound": false
+  "itemName": "Pepsi Max",
+  "canonicalCategory": "drikke",
+  "confidence": 0.92,
+  "reason": "..."
 }
 ```
 
-Recommended miss payload:
+Use structured output, not prompt-parsed free text. The schema should restrict category values to your internal category enum.
 
-```json
-{
-  "ean": "7040512631516",
-  "notFound": true
-}
-```
+Recommended rule:
 
-### Normalization rules
+- Every cache miss goes through Gemini once.
+- Cached results are reused afterward.
 
-- Prefer provider product name if it is clean and localized.
-- Use Gemini only to:
-  - clean noisy titles when needed
-  - map product text to an existing app category
-- Do not make Gemini responsible for the full lookup pipeline.
-- Store both normalized result and source metadata so future debugging does not require replaying provider calls.
+That satisfies BARC-03 without paying the AI cost repeatedly.
 
-### Security rules
+## Scanner UI And iOS Safari / PWA Behavior
 
-- Kassal token must live only in server env / Edge Function secrets.
-- Client calls only the app-controlled edge function.
-- Rate limiting or abuse protection should be considered in the edge function plan, even if lightweight.
+### What is stable enough
 
----
+- `getUserMedia()` is the correct camera API.
+- It requires a secure context.
+- The scanner must be opened from explicit user interaction.
+
+### What is not stable enough
+
+- Native `BarcodeDetector` is still marked experimental by MDN.
+- Current support tables still show Safari / iOS Safari as disabled by default.
+- There are still open WebKit bugs for installed PWA camera failures in standalone mode.
+
+Planning implication: do not design Phase 04 around native `BarcodeDetector`.
+
+### Recommended scanner behavior
+
+- Open scanner from a dedicated action near `ItemInput`.
+- Render a custom sheet / overlay that matches existing bottom-sheet patterns.
+- Use a low-level scanner library with fallback behavior (`html5-qrcode`) instead of building decode loops manually.
+- Restrict formats to retail barcodes only: `EAN_13`, `EAN_8`, `UPC_A`, `UPC_E`.
+- Lock on first valid read.
+- Stop tracks immediately on success, close, route change, `visibilitychange`, and sheet dismiss.
+- Always expose a visible "Skriv EAN manuelt" fallback.
+
+### iOS-specific hardening
+
+- `<video autoplay muted playsinline>`
+- request `facingMode: { ideal: 'environment' }`
+- surface clear recovery if permission is denied
+- surface clear recovery if camera opens but stream fails
+- expect standalone PWA camera issues on some devices even when Safari-in-browser works
+
+Because of the open WebKit bugs, manual EAN entry is not just a nice fallback. It is required for a reliable v1.
+
+## Caching Strategy
+
+Recommended cache policy:
+
+- Cache successful normalized results aggressively.
+- Cache not-found results with a shorter TTL.
+- Refresh stale rows asynchronously or on next request after expiry.
+- Never re-hit Gemini if the cache is still fresh.
+
+Suggested TTLs:
+
+- found result: 30-90 days
+- not found: 1-7 days
+
+Reasoning:
+
+- product identity changes rarely
+- category inference changes rarely
+- provider availability and data completeness may improve later
+
+Avoid caching these client-side as the source of truth. Browser memory/session state is fine for current-screen UX, but the durable cache belongs in Postgres behind the Edge Function.
+
+## Security Concerns
+
+### Secrets and backend boundary
+
+- Kassal Bearer token must stay server-side.
+- Gemini key must stay server-side.
+- Store both in Supabase secrets and read them via environment variables.
+
+### Auth and abuse
+
+- Keep JWT verification enabled for the function.
+- Build the Supabase client inside the function using the request `Authorization` header so auth context is preserved.
+- Add app-level rate limiting per user/session to avoid burning paid provider/API quota.
+
+### Data minimization
+
+- Return only normalized fields the UI needs.
+- Do not send raw provider payloads to the client.
+- Avoid storing or returning product images in this phase unless needed; Kassal notes image rights can be copyrighted.
+
+### Prompt safety
+
+- Do not feed raw provider JSON directly into an unconstrained prompt.
+- Build a narrow Gemini input object from selected fields.
+- Validate the model output against schema and category enum before use.
+- If Gemini fails validation, return deterministic fallback values instead of raw model text.
+
+## Don't Hand-Roll
+
+- Do not hand-roll barcode frame capture and decoding loops.
+- Do not hand-roll free-text AI parsing.
+- Do not store household `category_id` in the shared barcode cache.
+- Do not expose provider-specific failure states in the customer UI.
+- Do not treat native `BarcodeDetector` as the main implementation path.
+
+## Common Pitfalls
+
+- Shipping a scanner that works in desktop Chrome and Android, but not reliably in iOS standalone mode.
+- Forgetting to stop camera tracks when the sheet closes or the page hides.
+- Re-querying providers and Gemini on every scan because no durable cache exists.
+- Assuming OFF categories map cleanly to your household categories.
+- Letting the provider response shape leak into the UI contract.
+- Logging raw provider or AI payloads too aggressively.
+- Returning provider-specific "Kassal failed / OFF failed" states instead of one user-facing not-found state.
 
 ## Test Strategy
 
-### Automated
+Use three layers, because no single layer will cover this phase well.
 
-- Unit/integration coverage for the edge function normalization path:
-  - Kassal hit
-  - Kassal miss -> Open Food Facts hit
-  - provider miss -> `notFound`
-  - cache hit bypassing providers
-  - Gemini classification returning structured category suggestion
-- Browser/e2e coverage for:
-  - scanner entry action visible
-  - manual EAN fallback flow
-  - result sheet prefill + confirm
-  - not-found state
-  - token never exposed client-side is best verified via architecture review and edge function boundary, not DOM assertions
+### 1. Function-level contract tests
 
-### Manual-only or higher-risk checks
+Test pure logic around:
 
-- Physical-device scan reliability under varying lighting
-- iOS Safari standalone/PWA camera permission behavior
-- rear-camera selection behavior on real phones
+- barcode normalization
+- provider merge rules
+- category mapping
+- Gemini schema validation
+- cache hit / miss / stale logic
 
----
+This is the highest-value automation for the phase.
+
+### 2. Browser E2E tests
+
+Use Playwright for:
+
+- opening the scanner flow
+- permission denied -> manual EAN fallback
+- manual EAN success -> confirm sheet -> add item
+- not-found -> unified result state
+- happy path with mocked lookup response
+
+Do not depend on real camera access in CI.
+
+### 3. Manual device validation
+
+This phase requires real-device verification.
+
+Minimum matrix:
+
+- iPhone in Safari
+- iPhone installed PWA standalone mode
+- Android Chrome
+
+Manual checks:
+
+- first permission request
+- repeat open/close
+- scan success
+- scan cancel
+- permission denied
+- stream failure
+- manual EAN fallback
+- sheet close / reopen
+- background app -> resume
 
 ## Validation Architecture
 
-### Proposed quick feedback loop
+Treat validation as a formal part of the phase plan, not a final afterthought.
 
-- Backend quick check:
-  - targeted function/unit tests for lookup normalization
-- Frontend quick check:
-  - targeted Playwright file for barcode/manual-entry result flow
-- Full wave check:
-  - `npx playwright test`
+Recommended gates:
 
-### Required Wave 0 additions
+1. Compile/type gate for app + function code.
+2. Function contract tests with mocked upstreams.
+3. Playwright flow tests with mocked scan/lookup.
+4. Manual UAT on physical iPhone Safari and installed PWA.
+5. Final verification that BARC-01 through BARC-04 are each explicitly demonstrated.
 
-- `tests/barcode.spec.ts` for the dedicated Phase 4 scan/manual-entry flows
-- Edge function test harness or a lightweight direct invocation path for the barcode lookup handler
-- Mock fixtures for Kassal, Open Food Facts, and Gemini responses
+The manual gate matters most for this phase because the main risk is browser/device behavior, not just application logic.
 
----
+## Planning Implications
 
-## Planning Risks to Address
+The cleanest plan split is probably:
 
-1. **API ambiguity**
-   - Kassal auth and product endpoint details are a known project concern in `STATE.md`.
-   - Planner should isolate endpoint verification and normalization in the first plan.
+### Plan A: Backend lookup foundation
 
-2. **Polyfill/device behavior**
-   - iOS Safari standalone support is the requirement that should drive scanner architecture, not desktop convenience.
+- schema for cache
+- Edge Function
+- Kassal + OFF merge
+- Gemini normalization
+- auth, secrets, rate limiting
 
-3. **Cross-plan contract drift**
-   - If plan 04-01 does not define a stable normalized response, plans 04-02 and 04-03 will be brittle.
+### Plan B: Scanner and confirm UX
 
-4. **False confidence from desktop testing**
-   - Planner should keep manual verification tasks for physical-device scanning behavior even if automated tests are strong.
+- scan trigger in list page
+- scanner sheet
+- manual EAN fallback
+- result sheet
+- final add-to-list integration
 
----
+### Plan C: Hardening and validation
 
-## Reusable Code Context
+- cache refinement
+- failure/retry states
+- Playwright coverage
+- physical-device validation checklist
+- iOS standalone cleanup fixes
 
-### Reusable assets
+## Open Questions To Resolve During Planning
 
-- `src/routes/(protected)/lister/[id]/+page.svelte`
-- `src/lib/queries/items.ts`
-- `src/lib/components/items/CategoryPickerModal.svelte`
-- `src/lib/components/items/ItemDetailSheet.svelte`
-- `src/lib/components/items/ItemInput.svelte`
+- Will you create the barcode cache in Phase 04 now, even though PERF-V2-01 is officially a v2 requirement? Recommendation: yes, because it materially reduces provider cost and complexity for BARC.
+- Will Gemini run on every cache miss, or only when deterministic mapping is weak? Recommendation: every cache miss for v1, then cache the result.
+- Will canonical categories be a fixed enum or a free-text label? Recommendation: fixed enum.
+- Do you want negative-cache TTL to be short enough that newly indexed products become discoverable soon? Recommendation: yes.
 
-### Established patterns
+## Sources
 
-- Bottom-sheet dialogs for focused task flows
-- TanStack Query mutations for optimistic list updates
-- Norwegian-first labels and error states
-- Mobile-first interactions
-
-### Integration points
-
-- Add scan trigger near or inside the existing list-entry area
-- Feed confirmed scan result into existing add-item mutation path
-- Reuse category suggestion/editing patterns from Phase 3
-
----
-
-## Recommendation To Planner
-
-Write 3 plans that mirror the roadmap split:
-- backend lookup and cache
-- scanner camera/polyfill UI
-- scan-to-add confirmation flow
-
-Ensure plan 04-01 defines the exact response contract consumed by 04-02 and 04-03. That contract is the backbone of the phase.
+- Kassal API docs: https://kassal.app/api
+- Open Food Facts API docs: https://openfoodfacts.github.io/documentation/docs/Product-Opener/api/
+- Gemini structured outputs: https://ai.google.dev/gemini-api/docs/structured-output
+- MDN `BarcodeDetector`: https://developer.mozilla.org/en-US/docs/Web/API/BarcodeDetector
+- Can I use `BarcodeDetector`: https://caniuse.com/mdn-api_barcodedetector_barcodedetector
+- MDN `getUserMedia()`: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+- Supabase Edge Functions: https://supabase.com/docs/guides/functions
+- Supabase function CORS guidance: https://supabase.com/docs/guides/functions/cors
+- Supabase functions + secrets CLI docs: https://supabase.com/docs/reference/cli/supabase-encryption-get-root-key
+- Supabase auth context in Edge Functions: https://supabase.com/docs/guides/functions/auth-legacy-jwt
+- html5-qrcode docs: https://scanapp.org/html5-qrcode-docs/
+- html5-qrcode supported formats: https://scanapp.org/html5-qrcode-docs/docs/supported_code_formats
+- WebKit bug 273938: https://bugs.webkit.org/show_bug.cgi?id=273938
+- WebKit bug 282327: https://bugs.webkit.org/show_bug.cgi?id=282327

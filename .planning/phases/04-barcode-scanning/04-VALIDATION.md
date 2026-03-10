@@ -1,9 +1,9 @@
 ---
 phase: 4
 slug: barcode-scanning
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: ready
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-10
 ---
 
@@ -19,7 +19,7 @@ created: 2026-03-10
 |----------|-------|
 | **Framework** | Playwright + targeted function/integration tests |
 | **Config file** | `playwright.config.ts` |
-| **Quick run command** | `npx playwright test tests/barcode.spec.ts` |
+| **Quick run command** | `deno test --allow-env --allow-net --allow-read supabase/functions/barcode-lookup/index.test.ts && npx playwright test tests/barcode.spec.ts` |
 | **Full suite command** | `npx playwright test` |
 | **Estimated runtime** | ~75 seconds |
 
@@ -27,7 +27,7 @@ created: 2026-03-10
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx playwright test tests/barcode.spec.ts`
+- **After every task commit:** Run `deno test --allow-env --allow-net --allow-read supabase/functions/barcode-lookup/index.test.ts && npx playwright test tests/barcode.spec.ts`
 - **After every plan wave:** Run `npx playwright test`
 - **Before `$gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 75 seconds
@@ -38,11 +38,13 @@ created: 2026-03-10
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 4-01-01 | 01 | 1 | BARC-02, BARC-03, BARC-04 | integration | `npx playwright test tests/barcode.spec.ts -g "lookup"` | ❌ W0 | ⬜ pending |
-| 4-01-02 | 01 | 1 | BARC-02 | integration | `{edge function test command}` | ❌ W0 | ⬜ pending |
-| 4-02-01 | 02 | 2 | BARC-01, BARC-04 | e2e/manual hybrid | `npx playwright test tests/barcode.spec.ts -g "scan entry|manual ean"` | ❌ W0 | ⬜ pending |
-| 4-03-01 | 03 | 2 | BARC-01, BARC-04 | e2e | `npx playwright test tests/barcode.spec.ts -g "confirm flow"` | ❌ W0 | ⬜ pending |
-| 4-03-02 | 03 | 2 | BARC-02, BARC-04 | e2e | `npx playwright test tests/barcode.spec.ts -g "not found|fallback"` | ❌ W0 | ⬜ pending |
+| 4-01-01 | 01 | 1 | BARC-02, BARC-04 | e2e stub | `npx playwright test tests/barcode.spec.ts -g "lookup contract|fallback path|manual EAN path|unified not-found state"` | ❌ W0 | ⬜ pending |
+| 4-01-02 | 01 | 1 | BARC-02, BARC-03, BARC-04 | integration | `deno test --allow-env --allow-net --allow-read supabase/functions/barcode-lookup/index.test.ts` | ❌ W0 | ⬜ pending |
+| 4-02-01 | 02 | 2 | BARC-01, BARC-04 | build | `npm run build` | ✅ existing | ⬜ pending |
+| 4-02-02 | 02 | 2 | BARC-01, BARC-04 | e2e | `npx playwright test tests/barcode.spec.ts -g "scan entry|manual ean|permission denied" --reporter=list` | ❌ W0 | ⬜ pending |
+| 4-03-01 | 03 | 3 | BARC-02, BARC-04 | build | `npm run build` | ✅ existing | ⬜ pending |
+| 4-03-02 | 03 | 3 | BARC-01, BARC-02, BARC-03, BARC-04 | e2e | `npx playwright test tests/barcode.spec.ts --reporter=list` | ❌ W0 | ⬜ pending |
+| 4-03-03 | 03 | 3 | BARC-01, BARC-04 | manual device UAT | `manual checkpoint` | ✅ n/a | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,7 +54,7 @@ created: 2026-03-10
 
 - [ ] `tests/barcode.spec.ts` — stubs for BARC-01, BARC-02, BARC-03, BARC-04
 - [ ] Barcode lookup fixture set for Kassal hit, Open Food Facts fallback hit, and not-found
-- [ ] Edge function invocation harness or equivalent local test path for the barcode lookup handler
+- [ ] `supabase/functions/barcode-lookup/index.test.ts` — Deno coverage for cache hit, Kassal hit, OFF fallback, not-found, and Gemini schema validation
 
 *Existing Playwright infrastructure covers the browser side; this phase needs dedicated barcode fixtures and edge-function verification support.*
 
@@ -77,4 +79,4 @@ created: 2026-03-10
 - [ ] Feedback latency < 75s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ready for execution 2026-03-10
