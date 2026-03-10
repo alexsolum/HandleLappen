@@ -1,6 +1,23 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+type Item = {
+  id: string
+  list_id: string
+  name: string
+  quantity: number | null
+  is_checked: boolean
+  checked_at: string | null
+  sort_order: number
+  category_id: string | null
+  created_at: string
+}
+
+type AddItemVariables = { name: string; quantity?: number | null }
+type DeleteItemVariables = { id: string }
+type ToggleItemVariables = { itemId: string; isChecked: boolean; itemName: string }
+type MutationContext = { previous: Item[] | undefined }
+
 export function itemsQueryKey(listId: string) {
   return ['items', listId]
 }
@@ -11,12 +28,12 @@ export function createItemsQuery(supabase: SupabaseClient, listId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('list_items')
-        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, created_at')
+        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
         .eq('list_id', listId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true })
       if (error) throw error
-      return data
+      return (data ?? []) as Item[]
     },
   }))
 }
@@ -25,20 +42,20 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
 
-  return createMutation(() => ({
-    mutationFn: async ({ name, quantity }: { name: string; quantity?: number | null }) => {
+  return createMutation<Item, Error, AddItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ name, quantity }) => {
       const { data, error } = await supabase
         .from('list_items')
         .insert({ list_id: listId, name, quantity: quantity ?? null })
-        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, created_at')
+        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
         .single()
       if (error) throw error
-      return data
+      return data as Item
     },
     onMutate: async ({ name, quantity }) => {
       await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData(queryKey)
-      queryClient.setQueryData(queryKey, (old: any[] = []) => [
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) => [
         ...old,
         {
           id: crypto.randomUUID(),
@@ -48,6 +65,7 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
           is_checked: false,
           checked_at: null,
           sort_order: 0,
+          category_id: null,
           created_at: new Date().toISOString(),
         },
       ])
@@ -64,15 +82,15 @@ export function createDeleteItemMutation(supabase: SupabaseClient, listId: strin
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
 
-  return createMutation(() => ({
-    mutationFn: async ({ id }: { id: string }) => {
+  return createMutation<void, Error, DeleteItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ id }) => {
       const { error } = await supabase.from('list_items').delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData(queryKey)
-      queryClient.setQueryData(queryKey, (old: any[] = []) => old.filter((item) => item.id !== id))
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) => old.filter((item) => item.id !== id))
       return { previous }
     },
     onError: (_err: unknown, _vars: unknown, context: any) => {
@@ -86,16 +104,8 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
 
-  return createMutation(() => ({
-    mutationFn: async ({
-      itemId,
-      isChecked,
-      itemName,
-    }: {
-      itemId: string
-      isChecked: boolean
-      itemName: string
-    }) => {
+  return createMutation<void, Error, ToggleItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ itemId, isChecked, itemName }) => {
       // Step 1: Toggle the item
       const { error: itemError } = await supabase
         .from('list_items')
@@ -121,8 +131,8 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
     },
     onMutate: async ({ itemId, isChecked }) => {
       await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData(queryKey)
-      queryClient.setQueryData(queryKey, (old: any[] = []) =>
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) =>
         old.map((item) =>
           item.id === itemId
             ? { ...item, is_checked: isChecked, checked_at: isChecked ? new Date().toISOString() : null }
