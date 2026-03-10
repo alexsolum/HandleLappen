@@ -55,9 +55,21 @@ test.describe('category grouping', () => {
       await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
 
       await expect(page.getByRole('button', { name: /Butikk:\s*Ingen/i })).toBeVisible()
-      await expect(page.locator('text=Frukt og grønt')).toBeVisible()
-      await expect(page.locator('text=Meieri og egg')).toBeVisible()
-      await expect(page.locator('text=Andre varer')).toBeVisible()
+      await expect(
+        page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+          hasText: 'Frukt og grønt',
+        })
+      ).toBeVisible()
+      await expect(
+        page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+          hasText: 'Meieri og egg',
+        })
+      ).toBeVisible()
+      await expect(
+        page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+          hasText: 'Andre varer',
+        })
+      ).toBeVisible()
 
       const activeCard = page.locator('div.rounded-xl.border.border-gray-200.bg-white')
       await expect(activeCard.locator('text=Bananer')).toBeVisible()
@@ -231,17 +243,118 @@ test.describe('category crud', () => {
 
 test.describe('assign category', () => {
   test('category picker modal appears after adding uncategorized item', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-picker-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+      const list = await createTestList(household.id, 'Kategori etter legg til')
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
+
+      await page.getByPlaceholder('Legg til vare…').fill('Kaffe')
+      await page.getByRole('button', { name: 'Legg til' }).click()
+
+      const dialog = page.locator('dialog[open]')
+      await expect(dialog).toBeVisible()
+      await expect(dialog.getByText('Velg kategori')).toBeVisible()
+      await expect(dialog.getByRole('button', { name: 'Hopp over' })).toBeVisible()
+
+      await dialog.getByRole('button', { name: 'Hopp over' }).click()
+      await expect(dialog).toHaveCount(0)
+
+      const uncategorizedSection = page.locator('div', { hasText: 'Andre varer' }).first()
+      await expect(uncategorizedSection).toBeVisible()
+      await expect(page.locator('text=Kaffe')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 
   test('assigning category moves item to correct group immediately', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-assign-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+      const list = await createTestList(household.id, 'Direkte kategori')
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
+
+      await page.getByPlaceholder('Legg til vare…').fill('Tomater')
+      await page.getByRole('button', { name: 'Legg til' }).click()
+
+      const dialog = page.locator('dialog[open]')
+      await expect(dialog).toBeVisible()
+      await dialog.getByRole('button', { name: 'Frukt og grønt' }).click()
+      await expect(dialog).toHaveCount(0)
+
+      const produceSection = page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+        hasText: 'Frukt og grønt',
+      })
+      await expect(produceSection).toBeVisible()
+      await expect(page.locator('text=Tomater')).toBeVisible()
+      await expect(page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', { hasText: 'Andre varer' })).toHaveCount(0)
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 
   test('long-press on item row opens detail sheet', async ({ page }) => {
-    test.skip()
-    await page.goto('/')
+    const email = `categories-detail-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      await seedDefaultCategories(household.id)
+      const list = await createTestList(household.id, 'Langtrykk')
+      await createTestItem(list.id, 'Agurk', 2, null)
+
+      await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+      await page.fill('[type=email]', email)
+      await page.fill('[type=password]', password)
+      await page.click('button:has-text("Logg inn")')
+      await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
+
+      await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
+
+      const itemRow = page.getByRole('button', { name: /Agurk/ }).first()
+      const box = await itemRow.boundingBox()
+
+      if (!box) {
+        throw new Error('Expected Agurk item row to have a bounding box')
+      }
+
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+      await page.mouse.down()
+      await page.waitForTimeout(600)
+      await page.mouse.up()
+
+      const dialog = page.locator('dialog[open]')
+      await expect(dialog).toBeVisible()
+      await expect(dialog.getByText('Rediger vare')).toBeVisible()
+      await expect(dialog.locator('input[type=\"text\"]')).toHaveValue('Agurk')
+      await expect(dialog.locator('input[type=\"number\"]')).toHaveValue('2')
+      await expect(dialog.getByText('Frukt og grønt')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
   })
 })

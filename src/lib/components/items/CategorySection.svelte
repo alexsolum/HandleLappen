@@ -25,10 +25,11 @@
   {categoryName}
 </div>
 
-{#each items as item (item.id)}
+  {#each items as item (item.id)}
   <ItemRow
     {item}
     onToggle={() => onToggle(item.id, !item.is_checked)}
     onDelete={() => onDelete(item.id)}
+    onLongPress={() => onLongPress(item)}
   />
 {/each}

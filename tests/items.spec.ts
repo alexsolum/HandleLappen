@@ -25,6 +25,7 @@ test.describe('items', () => {
       await page.waitForSelector('input[placeholder="Legg til vare…"]')
       await page.fill('input[placeholder="Legg til vare…"]', 'Melk')
       await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: 'Hopp over' }).click()
 
       await expect(page.locator('text=Melk')).toBeVisible()
 
@@ -54,6 +55,7 @@ test.describe('items', () => {
       await page.waitForSelector('input[placeholder="Legg til vare…"]')
       await page.fill('input[placeholder="Legg til vare…"]', 'Brød')
       await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: 'Hopp over' }).click()
       await expect(page.locator('text=Brød')).toBeVisible()
 
       // Wait for add mutation to settle so item has real DB id before checking off
@@ -85,6 +87,7 @@ test.describe('items', () => {
       await page.waitForSelector('input[placeholder="Legg til vare…"]')
       await page.fill('input[placeholder="Legg til vare…"]', 'Ost')
       await page.keyboard.press('Enter')
+      await page.getByRole('button', { name: 'Hopp over' }).click()
       await expect(page.locator('text=Ost')).toBeVisible()
 
       // Wait for add mutation to settle so item has real DB id before checking off

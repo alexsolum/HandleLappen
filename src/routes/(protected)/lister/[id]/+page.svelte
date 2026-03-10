@@ -4,12 +4,16 @@
     createAddItemMutation,
     createDeleteItemMutation,
     createCheckOffMutation,
+    createAssignCategoryMutation,
+    createUpdateItemMutation,
     itemsQueryKey,
   } from '$lib/queries/items'
   import { createCategoriesQuery, createStoreLayoutQuery } from '$lib/queries/categories'
   import { createStoresQuery } from '$lib/queries/stores'
   import CategorySection from '$lib/components/items/CategorySection.svelte'
+  import CategoryPickerModal from '$lib/components/items/CategoryPickerModal.svelte'
   import ItemInput from '$lib/components/items/ItemInput.svelte'
+  import ItemDetailSheet from '$lib/components/items/ItemDetailSheet.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
@@ -25,6 +29,8 @@
 
   let { data } = $props()
   let selectedStoreId = $state<string | null>(null)
+  let pendingCategoryItem = $state<{ id: string; name: string } | null>(null)
+  let detailSheetItem = $state<Item | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -57,6 +63,8 @@
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)
   const checkOffMutation = createCheckOffMutation(data.supabase, data.listId, data.user.id)
+  const assignCategoryMutation = createAssignCategoryMutation(data.supabase, data.listId)
+  const updateItemMutation = createUpdateItemMutation(data.supabase, data.listId)
 
   const activeItems = $derived((itemsQuery.data?.filter((i) => !i.is_checked) ?? []) as Item[])
   const doneItems = $derived(itemsQuery.data?.filter((i) => i.is_checked) ?? [])
@@ -93,7 +101,14 @@
 
   function handleAdd(name: string, quantity: number | null) {
     // Focus is called synchronously in ItemInput before this fires
-    addItemMutation.mutate({ name, quantity })
+    addItemMutation.mutate(
+      { name, quantity },
+      {
+        onSuccess: (newItem) => {
+          pendingCategoryItem = { id: newItem.id, name: newItem.name }
+        },
+      }
+    )
   }
 
   function handleUncheck(itemId: string) {
@@ -115,6 +130,26 @@
       })
     }
   }
+
+  function handleCategorySelection(categoryId: string | null) {
+    if (pendingCategoryItem && categoryId !== null) {
+      assignCategoryMutation.mutate({ itemId: pendingCategoryItem.id, categoryId })
+    }
+
+    pendingCategoryItem = null
+  }
+
+  function handleDetailSave(id: string, name: string, quantity: number | null, categoryId: string | null) {
+    const previousCategoryId = detailSheetItem?.category_id ?? null
+
+    updateItemMutation.mutate({ id, name, quantity })
+
+    if (categoryId !== previousCategoryId) {
+      assignCategoryMutation.mutate({ itemId: id, categoryId })
+    }
+
+    detailSheetItem = null
+  }
 </script>
 
 <svelte:head>
@@ -129,7 +164,13 @@
   </div>
 
   <!-- Error banner -->
-  {#if addItemMutation.isError || deleteItemMutation.isError || checkOffMutation.isError}
+  {#if
+    addItemMutation.isError ||
+    deleteItemMutation.isError ||
+    checkOffMutation.isError ||
+    assignCategoryMutation.isError ||
+    updateItemMutation.isError
+  }
     <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
       Noe gikk galt. Endringen ble ikke lagret.
     </div>
@@ -163,7 +204,7 @@
             items={group.items}
             onToggle={handleGroupToggle}
             onDelete={handleDelete}
-            onLongPress={() => {}}
+            onLongPress={(item) => (detailSheetItem = item)}
           />
         {/each}
       {/if}
@@ -184,3 +225,20 @@
 
 <!-- Persistent bottom input bar -->
 <ItemInput onAdd={handleAdd} />
+
+{#if pendingCategoryItem !== null}
+  <CategoryPickerModal
+    categories={categoriesQuery.data ?? []}
+    open={true}
+    onSelect={handleCategorySelection}
+  />
+{/if}
+
+{#if detailSheetItem !== null}
+  <ItemDetailSheet
+    item={detailSheetItem}
+    categories={categoriesQuery.data ?? []}
+    onSave={handleDetailSave}
+    onClose={() => (detailSheetItem = null)}
+  />
+{/if}
