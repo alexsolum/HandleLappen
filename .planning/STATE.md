@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: discussing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-10T22:05:00.000Z"
-last_activity: 2026-03-10 — Phase 04 context captured for Barcode Scanning
+status: executing
+stopped_at: Completed 04-barcode-scanning-01-PLAN.md
+last_updated: "2026-03-10T21:15:11.590Z"
+last_activity: 2026-03-10 — Completed Phase 04 plan 01 barcode lookup foundation
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
-  percent: 50
+  total_plans: 15
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -26,16 +26,16 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 4 of 6 (Barcode Scanning)
-Plan: 0 of 3 in current phase
-Status: Discussing
-Last activity: 2026-03-10 — Phase 04 context captured for Barcode Scanning
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-03-10 — Completed Phase 04 plan 01 barcode lookup foundation
 
-Progress: [█████░░░░░] 50%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: -
 - Total execution time: -
 
@@ -46,8 +46,8 @@ Progress: [█████░░░░░] 50%
 | 1 | 4 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 02-04, 03-01, 03-02, 03-03, 03-04
-- Trend: Phase 3 complete
+- Last 5 plans: 03-01, 03-02, 03-03, 03-04, 04-01
+- Trend: Phase 4 started
 
 *Updated after each plan completion*
 | Phase 02-shopping-lists-and-core-loop P01 | 205 | 3 tasks | 9 files |
@@ -57,6 +57,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03 P02 | 10 | 2 tasks | 10 files |
 | Phase 03-store-layouts-and-category-ordering P03 | 2037 | 3 tasks | 10 files |
 | Phase 03-store-layouts-and-category-ordering P04 | 1527 | 2 tasks | 8 files |
+| Phase 04-barcode-scanning P01 | 433 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Recent decisions affecting current work:
 - [Phase 03-store-layouts-and-category-ordering]: List-level dialog sheets are mounted only while active to avoid hidden DOM interfering with list interactions and assertions.
 - [Phase 03-store-layouts-and-category-ordering]: Add-item category assignment opens from the persisted mutation result to avoid optimistic id races.
 - [Phase 03-store-layouts-and-category-ordering]: Phase verification passed with all CATG requirements satisfied; remaining full-suite failures are pre-existing auth and list test issues tracked in deferred items.
+- [Phase 04-barcode-scanning]: barcode_product_cache stays server-only via RLS plus service_role grants so raw provider payloads never reach the browser
+- [Phase 04-barcode-scanning]: Gemini output is optional at runtime; invalid model output falls back to deterministic provider normalization instead of failing the lookup
+- [Phase 04-barcode-scanning]: 12-digit UPC-A inputs normalize to a 13-digit cache key by prefixing 0 so one barcode resolves to one cached lookup path
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:05:00.000Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-barcode-scanning/04-CONTEXT.md
+Last session: 2026-03-10T21:14:45.612Z
+Stopped at: Completed 04-barcode-scanning-01-PLAN.md
+Resume file: None

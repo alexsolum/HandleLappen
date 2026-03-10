@@ -87,7 +87,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
+- [x] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
 - [ ] 04-02: Barcode scanner UI component — iOS-safe scanner library/polyfill, rear-camera preference, explicit scan trigger, manual EAN fallback
 - [ ] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
 
@@ -137,6 +137,6 @@ Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned pro
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
-| 4. Barcode Scanning | 0/3 | Not started | - |
+| 4. Barcode Scanning | 1/3 | In Progress | - |
 | 5. PWA and Offline Support | 0/3 | Not started | - |
 | 6. History View and Recommendations | 0/3 | Not started | - |

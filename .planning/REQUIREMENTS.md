@@ -36,9 +36,9 @@
 ### Barcode & Product Identification
 
 - [ ] **BARC-01**: User can open a camera view and scan a product barcode to add it to the list
-- [ ] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
-- [ ] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
-- [ ] **BARC-04**: Item name and category are auto-filled from the barcode scan result
+- [x] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
+- [x] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
+- [x] **BARC-04**: Item name and category are auto-filled from the barcode scan result
 
 ### History
 
@@ -112,9 +112,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATG-04 | Phase 3 | Complete |
 | CATG-05 | Phase 3 | Complete |
 | BARC-01 | Phase 4 | Pending |
-| BARC-02 | Phase 4 | Pending |
-| BARC-03 | Phase 4 | Pending |
-| BARC-04 | Phase 4 | Pending |
+| BARC-02 | Phase 4 | Complete |
+| BARC-03 | Phase 4 | Complete |
+| BARC-04 | Phase 4 | Complete |
 | PWAF-01 | Phase 5 | Pending |
 | PWAF-02 | Phase 5 | Pending |
 | HIST-02 | Phase 6 | Pending |
@@ -135,4 +135,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-10 after Phase 3 completion and verification*
+*Last updated: 2026-03-10 after Phase 4 plan 01 completion*
