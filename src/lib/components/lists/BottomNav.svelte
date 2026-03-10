@@ -4,7 +4,7 @@
   const tabs = [
     { label: 'Lister', href: '/', active: true },
     { label: 'Husstand', href: '/husstand', active: true },
-    { label: 'Butikker', href: null, active: false }, // Phase 3
+    { label: 'Butikker', href: '/butikker', active: true },
     { label: 'Anbefalinger', href: null, active: false }, // Phase 6
   ]
 </script>
