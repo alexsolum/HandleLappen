@@ -27,10 +27,10 @@
 
 ### Categories & Store Layout
 
-- [ ] **CATG-01**: Items in a list are grouped by category (e.g., Produce, Dairy, Meat, Frozen)
-- [ ] **CATG-02**: Categories are sorted by a default store layout order that reflects how Norwegian grocery stores are structured
-- [ ] **CATG-03**: Any family member can create a per-store layout — a custom category order for a specific store
-- [ ] **CATG-04**: Any family member can add, rename, or delete categories
+- [x] **CATG-01**: Items in a list are grouped by category (e.g., Produce, Dairy, Meat, Frozen)
+- [x] **CATG-02**: Categories are sorted by a default store layout order that reflects how Norwegian grocery stores are structured
+- [x] **CATG-03**: Any family member can create a per-store layout — a custom category order for a specific store
+- [x] **CATG-04**: Any family member can add, rename, or delete categories
 - [ ] **CATG-05**: User can manually assign or change an item's category
 
 ### Barcode & Product Identification
@@ -106,10 +106,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIST-05 | Phase 2 | Complete |
 | LIST-06 | Phase 2 | Complete |
 | HIST-01 | Phase 2 | Complete |
-| CATG-01 | Phase 3 | Pending |
-| CATG-02 | Phase 3 | Pending |
-| CATG-03 | Phase 3 | Pending |
-| CATG-04 | Phase 3 | Pending |
+| CATG-01 | Phase 3 | Complete |
+| CATG-02 | Phase 3 | Complete |
+| CATG-03 | Phase 3 | Complete |
+| CATG-04 | Phase 3 | Complete |
 | CATG-05 | Phase 3 | Pending |
 | BARC-01 | Phase 4 | Pending |
 | BARC-02 | Phase 4 | Pending |

@@ -69,9 +69,9 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — DB migration (categories/stores/store_layouts + RLS + seed_default_categories() function), Wave 0 Playwright test scaffold
-- [ ] 03-02-PLAN.md — Category-grouped list view (section headers, Andre varer catch-all, store selector pill + session-only state, StoreSelector bottom sheet)
-- [ ] 03-03-PLAN.md — Butikker tab activation, store list screen, per-store drag-to-reorder layout (svelte-dnd-action), default layout screen with category CRUD + Realtime
+- [x] 03-01-PLAN.md — DB migration (categories/stores/store_layouts + RLS + seed_default_categories() function), Wave 0 Playwright test scaffold
+- [x] 03-02-PLAN.md — Category-grouped list view (section headers, Andre varer catch-all, store selector pill + session-only state, StoreSelector bottom sheet)
+- [x] 03-03-PLAN.md — Butikker tab activation, store list screen, per-store drag-to-reorder layout (svelte-dnd-action), default layout screen with category CRUD + Realtime
 - [ ] 03-04-PLAN.md — Per-item category assignment: long-press detail sheet, auto-category picker modal after add, optimistic assignCategoryMutation
 
 ### Phase 4: Barcode Scanning
@@ -136,7 +136,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but
 |-------|----------------|--------|-----------|
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
-| 3. Store Layouts and Category Ordering | 0/4 | Not started | - |
+| 3. Store Layouts and Category Ordering | 3/4 | In Progress | - |
 | 4. Barcode Scanning | 0/3 | Not started | - |
 | 5. PWA and Offline Support | 0/3 | Not started | - |
 | 6. History View and Recommendations | 0/3 | Not started | - |

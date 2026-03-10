@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-10T04:17:54.544Z"
-last_activity: 2026-03-10 — Phase 2 plan 4 (Realtime) completed
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-03-10T19:32:32.820Z"
+last_activity: 2026-03-10 — Phase 03 plan 03 (Butikker layouts and category CRUD) completed
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 33
+  total_plans: 12
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 2 — Shopping Lists and Core Loop
+**Current focus:** Phase 3 — Store Layouts and Category Ordering
 
 ## Current Position
 
-Phase: 2 of 6 (Shopping Lists and Core Loop)
-Plan: 4 of 4 in current phase — PHASE COMPLETE
+Phase: 3 of 6 (Store Layouts and Category Ordering)
+Plan: 3 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-10 — Phase 2 plan 4 (Realtime) completed
+Last activity: 2026-03-10 — Phase 03 plan 03 (Butikker layouts and category CRUD) completed
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 11
 - Average duration: -
 - Total execution time: -
 
@@ -54,6 +54,8 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-shopping-lists-and-core-loop P02 | 1264 | 2 tasks | 10 files |
 | Phase 02-shopping-lists-and-core-loop P03 | 12 | 2 tasks | 7 files |
 | Phase 02-shopping-lists-and-core-loop P04 | 15 | 2 tasks | 3 files |
+| Phase 03 P02 | 10 | 2 tasks | 10 files |
+| Phase 03-store-layouts-and-category-ordering P03 | 2037 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -79,6 +81,11 @@ Recent decisions affecting current work:
 - [Phase 02-04]: button:has-text() selector required over [type=submit] — Button component defaults to type=button
 - [Phase 02-04]: Pre-test cleanup via listUsers() scan needed for idempotent fixed-email test users
 - [Phase 02-04]: lists subscription needs no household_id filter — RLS/WALRUS enforces household isolation server-side
+- [Phase 03]: Shared Svelte Query mutation typings were fixed inline so plan 03-02 could satisfy its TypeScript compile gate.
+- [Phase 03]: Store selection remains session-only in the list page and is exposed through a native dialog bottom sheet.
+- [Phase 03-store-layouts-and-category-ordering]: Per-store layout screens remain reorder-only while Standard rekkefolge owns category CRUD.
+- [Phase 03-store-layouts-and-category-ordering]: New category creation backfills store_layouts rows for every existing store to prevent missing per-store order entries.
+- [Phase 03-store-layouts-and-category-ordering]: 03-03 human verification checkpoint approved after validating Butikker drag persistence and category CRUD flows.
 
 ### Pending Todos
 
@@ -92,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T04:12:03Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-10T19:32:32.809Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
