@@ -61,18 +61,18 @@ Plans:
 **Depends on**: Phase 2
 **Requirements**: CATG-01, CATG-02, CATG-03, CATG-04, CATG-05
 **Success Criteria** (what must be TRUE):
-  1. Items in a list are displayed grouped under category headings (e.g., Frukt og grnt, Meieri, Kjtt, Frysevarer) in the default Norwegian store order
+  1. Items in a list are displayed grouped under category headings (e.g., Frukt og grønt, Meieri og egg, Kjøtt og fisk, Kjøl og frys) in the default Norwegian store order
   2. Any family member can create a named store (e.g., "Rema 1000 Majorstua") and drag categories into a custom order for that store
-  3. When a list is linked to a store, its categories appear in that store's custom order; lists not linked to a store use the default order
+  3. When a store is selected in a list, its categories appear in that store's custom order; lists with no store selected use the default order
   4. Any family member can add, rename, or delete a category; changes propagate to all devices via Realtime
   5. User can manually change an item's category from a list view; the item moves to the correct group immediately
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: `categories` table seeded with 13 default Norwegian categories (fractional position, gaps of 1000), `stores` and `store_layouts` schema + RLS
-- [ ] 03-02: Category grouping in list view using default order; store layout resolution (store override then global fallback)
-- [ ] 03-03: Drag-and-drop category reorder UI (fractional midpoint position update, single UPDATE per reorder), store management settings screen
-- [ ] 03-04: Per-item category assignment UI, category add/rename/delete for household members
+- [ ] 03-01-PLAN.md — DB migration (categories/stores/store_layouts + RLS + seed_default_categories() function), Wave 0 Playwright test scaffold
+- [ ] 03-02-PLAN.md — Category-grouped list view (section headers, Andre varer catch-all, store selector pill + session-only state, StoreSelector bottom sheet)
+- [ ] 03-03-PLAN.md — Butikker tab activation, store list screen, per-store drag-to-reorder layout (svelte-dnd-action), default layout screen with category CRUD + Realtime
+- [ ] 03-04-PLAN.md — Per-item category assignment: long-press detail sheet, auto-category picker modal after add, optimistic assignCategoryMutation
 
 ### Phase 4: Barcode Scanning
 **Goal**: User can point their phone camera at a product barcode and have the item's name and category auto-filled and ready to add to the list — on any device including iOS Safari
