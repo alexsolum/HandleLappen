@@ -38,24 +38,71 @@ export const actions: Actions = {
       return fail(400, { createError: 'Husstandsnavn er for langt (maks 80 tegn)', name })
     }
 
-    const { data: household, error: householdError } = await supabase
-      .from('households')
-      .insert({ name })
-      .select('id')
-      .single()
+    const householdId = crypto.randomUUID()
+    const { error: householdError } = await supabase.from('households').insert({
+      id: householdId,
+      name,
+    })
 
-    if (householdError || !household) {
+    if (householdError) {
+      console.error('createHousehold: households insert failed', {
+        message: householdError.message,
+        details: householdError.details,
+        hint: householdError.hint,
+        code: householdError.code,
+      })
       return fail(500, { createError: 'Kunne ikke opprette husstand. Prøv igjen.', name })
     }
 
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: user.id,
-      household_id: household.id,
-      display_name: user.user_metadata?.full_name ?? user.email ?? 'Ukjent',
+    const { error: seedError } = await supabase.rpc('seed_default_categories', {
+      p_household_id: householdId,
     })
 
-    if (profileError) {
-      return fail(500, { createError: 'Kunne ikke knytte profil til husstand. Prøv igjen.', name })
+    if (seedError) {
+      console.error('createHousehold: seed_default_categories failed', {
+        message: seedError.message,
+        details: seedError.details,
+        hint: seedError.hint,
+        code: seedError.code,
+      })
+    }
+
+    const profilePayload = {
+      id: user.id,
+      household_id: householdId,
+      display_name: user.user_metadata?.full_name ?? user.email ?? 'Ukjent',
+    }
+
+    const { error: profileInsertError } = await supabase.from('profiles').insert(profilePayload)
+
+    if (profileInsertError) {
+      if (profileInsertError.code === '23505') {
+        const { error: profileUpdateError } = await supabase
+          .from('profiles')
+          .update({
+            household_id: householdId,
+            display_name: profilePayload.display_name,
+          })
+          .eq('id', user.id)
+
+        if (profileUpdateError) {
+          console.error('createHousehold: profiles update failed after duplicate insert', {
+            message: profileUpdateError.message,
+            details: profileUpdateError.details,
+            hint: profileUpdateError.hint,
+            code: profileUpdateError.code,
+          })
+          return fail(500, { createError: 'Kunne ikke knytte profil til husstand. Prøv igjen.', name })
+        }
+      } else {
+        console.error('createHousehold: profiles insert failed', {
+          message: profileInsertError.message,
+          details: profileInsertError.details,
+          hint: profileInsertError.hint,
+          code: profileInsertError.code,
+        })
+        return fail(500, { createError: 'Kunne ikke knytte profil til husstand. Prøv igjen.', name })
+      }
     }
 
     throw redirect(303, '/')
@@ -68,7 +115,10 @@ export const actions: Actions = {
     }
 
     const formData = await request.formData()
-    const code = String(formData.get('code') ?? '').trim().toUpperCase()
+    const code = String(formData.get('code') ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
 
     if (!code) {
       return fail(400, { joinError: 'Invitasjonskode er påkrevd' })
@@ -81,17 +131,54 @@ export const actions: Actions = {
       .single()
 
     if (error || !household) {
+      if (error) {
+        console.error('joinHousehold: household lookup failed', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          inviteCode: code,
+        })
+      }
       return fail(404, { joinError: 'Fant ingen husstand med den koden. Sjekk koden og prøv igjen.' })
     }
 
-    const { error: profileError } = await supabase.from('profiles').upsert({
+    const joinProfilePayload = {
       id: user.id,
       household_id: household.id,
       display_name: user.user_metadata?.full_name ?? user.email ?? 'Ukjent',
-    })
+    }
 
-    if (profileError) {
-      return fail(500, { joinError: 'Kunne ikke bli med i husstand. Prøv igjen.' })
+    const { error: joinProfileInsertError } = await supabase.from('profiles').insert(joinProfilePayload)
+
+    if (joinProfileInsertError) {
+      if (joinProfileInsertError.code === '23505') {
+        const { error: joinProfileUpdateError } = await supabase
+          .from('profiles')
+          .update({
+            household_id: household.id,
+            display_name: joinProfilePayload.display_name,
+          })
+          .eq('id', user.id)
+
+        if (joinProfileUpdateError) {
+          console.error('joinHousehold: profiles update failed after duplicate insert', {
+            message: joinProfileUpdateError.message,
+            details: joinProfileUpdateError.details,
+            hint: joinProfileUpdateError.hint,
+            code: joinProfileUpdateError.code,
+          })
+          return fail(500, { joinError: 'Kunne ikke bli med i husstand. Prøv igjen.' })
+        }
+      } else {
+        console.error('joinHousehold: profiles insert failed', {
+          message: joinProfileInsertError.message,
+          details: joinProfileInsertError.details,
+          hint: joinProfileInsertError.hint,
+          code: joinProfileInsertError.code,
+        })
+        return fail(500, { joinError: 'Kunne ikke bli med i husstand. Prøv igjen.' })
+      }
     }
 
     throw redirect(303, '/')
