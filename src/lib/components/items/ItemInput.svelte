@@ -1,14 +1,27 @@
 <script lang="ts">
+  import BarcodeScannerSheet from '$lib/components/barcode/BarcodeScannerSheet.svelte'
+  import ManualEanEntrySheet from '$lib/components/barcode/ManualEanEntrySheet.svelte'
+
   interface Props {
     onAdd: (name: string, quantity: number | null) => void
-    onScan?: () => void
+    onDetected?: (ean: string) => void
+    onManualSubmit?: (ean: string) => void
   }
 
-  let { onAdd, onScan = () => {} }: Props = $props()
+  let { onAdd, onDetected = () => {}, onManualSubmit = () => {} }: Props = $props()
 
   let name = $state('')
   let quantity = $state('')
   let nameInput: HTMLInputElement
+  let barcodeFlow = $state<'scanner' | 'manual' | null>(null)
+  let cameraSupported = $state(false)
+
+  $effect(() => {
+    cameraSupported =
+      typeof navigator !== 'undefined' &&
+      typeof navigator.mediaDevices?.getUserMedia === 'function' &&
+      typeof window !== 'undefined'
+  })
 
   function handleSubmit() {
     const trimmed = name.trim()
@@ -30,6 +43,32 @@
       e.preventDefault()
       handleSubmit()
     }
+  }
+
+  function openScanner() {
+    queueMicrotask(() => {
+      barcodeFlow = 'scanner'
+    })
+  }
+
+  function openManualEntry() {
+    queueMicrotask(() => {
+      barcodeFlow = 'manual'
+    })
+  }
+
+  function closeBarcodeFlow() {
+    barcodeFlow = null
+  }
+
+  function handleDetected(ean: string) {
+    closeBarcodeFlow()
+    onDetected(ean)
+  }
+
+  function handleManualSubmit(ean: string) {
+    closeBarcodeFlow()
+    onManualSubmit(ean)
   }
 </script>
 
@@ -57,7 +96,7 @@
     <div class="flex items-center gap-2 sm:flex-none">
       <button
         type="button"
-        onclick={onScan}
+        onclick={openScanner}
         class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:flex-none"
       >
         Scan
@@ -72,3 +111,18 @@
     </div>
   </div>
 </div>
+
+<BarcodeScannerSheet
+  open={barcodeFlow === 'scanner'}
+  onClose={closeBarcodeFlow}
+  onDetected={handleDetected}
+  onOpenManualEntry={openManualEntry}
+/>
+
+<ManualEanEntrySheet
+  open={barcodeFlow === 'manual'}
+  supportsCamera={cameraSupported}
+  onClose={closeBarcodeFlow}
+  onSubmit={handleManualSubmit}
+  onBackToCamera={openScanner}
+/>

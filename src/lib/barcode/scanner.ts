@@ -29,8 +29,21 @@ export class ScannerError extends Error {
   }
 }
 
+type ScannerInstance = Pick<Html5Qrcode, 'clear' | 'stop'> & {
+  isScanning?: boolean
+}
+
+type MockScannerHandle = {
+  stop?: () => Promise<void> | void
+  clear?: () => Promise<void> | void
+}
+
+type MockScannerController = {
+  start: (options: StartScannerOptions) => Promise<MockScannerHandle | void> | MockScannerHandle | void
+}
+
 export type ScannerSession = {
-  scanner: Html5Qrcode
+  scanner: ScannerInstance
   elementId: string
   status: ScannerStatus
   stopped: boolean
@@ -41,6 +54,12 @@ export type StartScannerOptions = {
   elementId: string
   onDetected: (ean: string) => void | Promise<void>
   onError?: (error: ScannerError) => void | Promise<void>
+}
+
+declare global {
+  interface Window {
+    __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: MockScannerController
+  }
 }
 
 function normalizeRetailBarcode(value: string): string | null {
@@ -109,10 +128,17 @@ export async function startScanner({
   onDetected,
   onError,
 }: StartScannerOptions): Promise<ScannerSession> {
-  const scanner = new Html5Qrcode(elementId, {
-    formatsToSupport: [...SUPPORTED_FORMATS],
-    verbose: false,
-  })
+  const mockController = typeof window !== 'undefined' ? window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ : undefined
+  const scanner = mockController
+    ? ({
+        isScanning: true,
+        stop: async () => {},
+        clear: async () => {},
+      } satisfies ScannerInstance)
+    : new Html5Qrcode(elementId, {
+        formatsToSupport: [...SUPPORTED_FORMATS],
+        verbose: false,
+      })
   const session: ScannerSession = {
     scanner,
     elementId,
@@ -122,26 +148,39 @@ export async function startScanner({
   }
 
   try {
-    await scanner.start(
-      { facingMode: { ideal: 'environment' } },
-      getScanConfig(),
-      async (decodedText: string, result: Html5QrcodeResult) => {
-        if (session.stopped || session.status === 'stopping') return
-        if (!isSupportedResult(result)) return
-
-        const normalized = normalizeRetailBarcode(decodedText)
-        if (!normalized || normalized === session.lastValue) return
-
-        session.lastValue = normalized
-        session.status = 'stopping'
-
-        await stopScanner(session)
-        await onDetected(normalized)
-      },
-      (_errorMessage: string, _error?: Html5QrcodeError) => {
-        // Frame-level decode misses are expected; ignore until a valid retail barcode is found.
+    if (mockController) {
+      const mockHandle = (await mockController.start({ elementId, onDetected, onError })) ?? {}
+      session.scanner = {
+        isScanning: true,
+        stop: async () => {
+          await mockHandle.stop?.()
+        },
+        clear: async () => {
+          await mockHandle.clear?.()
+        },
       }
-    )
+    } else {
+      await scanner.start(
+        { facingMode: { ideal: 'environment' } },
+        getScanConfig(),
+        async (decodedText: string, result: Html5QrcodeResult) => {
+          if (session.stopped || session.status === 'stopping') return
+          if (!isSupportedResult(result)) return
+
+          const normalized = normalizeRetailBarcode(decodedText)
+          if (!normalized || normalized === session.lastValue) return
+
+          session.lastValue = normalized
+          session.status = 'stopping'
+
+          await stopScanner(session)
+          await onDetected(normalized)
+        },
+        (_errorMessage: string, _error?: Html5QrcodeError) => {
+          // Frame-level decode misses are expected; ignore until a valid retail barcode is found.
+        }
+      )
+    }
 
     session.status = 'running'
 
@@ -170,7 +209,7 @@ export async function stopScanner(session: ScannerSession | null | undefined): P
   session.status = 'stopping'
 
   try {
-    if (session.scanner.isScanning) {
+    if (session.scanner.isScanning ?? true) {
       await session.scanner.stop()
     }
   } finally {
