@@ -31,7 +31,7 @@
 - [x] **CATG-02**: Categories are sorted by a default store layout order that reflects how Norwegian grocery stores are structured
 - [x] **CATG-03**: Any family member can create a per-store layout — a custom category order for a specific store
 - [x] **CATG-04**: Any family member can add, rename, or delete categories
-- [ ] **CATG-05**: User can manually assign or change an item's category
+- [x] **CATG-05**: User can manually assign or change an item's category
 
 ### Barcode & Product Identification
 
@@ -110,7 +110,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATG-02 | Phase 3 | Complete |
 | CATG-03 | Phase 3 | Complete |
 | CATG-04 | Phase 3 | Complete |
-| CATG-05 | Phase 3 | Pending |
+| CATG-05 | Phase 3 | Complete |
 | BARC-01 | Phase 4 | Pending |
 | BARC-02 | Phase 4 | Pending |
 | BARC-03 | Phase 4 | Pending |
@@ -135,4 +135,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after roadmap creation (traceability updated to 6-phase structure)*
+*Last updated: 2026-03-10 after Phase 3 completion and verification*

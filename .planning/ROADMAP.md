@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Auth and Household Foundation** - Authenticated users in a household context; load-bearing RLS patterns established
 - [x] **Phase 2: Shopping Lists and Core Loop** - Create list, add item, check off, real-time sync; history logging starts here (completed 2026-03-10)
-- [ ] **Phase 3: Store Layouts and Category Ordering** - Categories sorted by Norwegian store layout; per-store overrides
+- [x] **Phase 3: Store Layouts and Category Ordering** - Categories sorted by Norwegian store layout; per-store overrides (completed 2026-03-10)
 - [ ] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS
 - [ ] **Phase 5: PWA and Offline Support** - Installable PWA with offline mutation queue and conflict resolution
 - [ ] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions
@@ -72,7 +72,7 @@ Plans:
 - [x] 03-01-PLAN.md — DB migration (categories/stores/store_layouts + RLS + seed_default_categories() function), Wave 0 Playwright test scaffold
 - [x] 03-02-PLAN.md — Category-grouped list view (section headers, Andre varer catch-all, store selector pill + session-only state, StoreSelector bottom sheet)
 - [x] 03-03-PLAN.md — Butikker tab activation, store list screen, per-store drag-to-reorder layout (svelte-dnd-action), default layout screen with category CRUD + Realtime
-- [ ] 03-04-PLAN.md — Per-item category assignment: long-press detail sheet, auto-category picker modal after add, optimistic assignCategoryMutation
+- [x] 03-04-PLAN.md — Per-item category assignment: long-press detail sheet, auto-category picker modal after add, optimistic assignCategoryMutation
 
 ### Phase 4: Barcode Scanning
 **Goal**: User can point their phone camera at a product barcode and have the item's name and category auto-filled and ready to add to the list — on any device including iOS Safari
@@ -136,7 +136,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 and Phase 5 also depend on Phase 2 but
 |-------|----------------|--------|-----------|
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
-| 3. Store Layouts and Category Ordering | 3/4 | In Progress | - |
+| 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
 | 4. Barcode Scanning | 0/3 | Not started | - |
 | 5. PWA and Offline Support | 0/3 | Not started | - |
 | 6. History View and Recommendations | 0/3 | Not started | - |

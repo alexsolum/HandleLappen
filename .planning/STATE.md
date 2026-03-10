@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-03-10T19:32:32.820Z"
-last_activity: 2026-03-10 — Phase 03 plan 03 (Butikker layouts and category CRUD) completed
+status: ready_for_next_phase
+stopped_at: Phase 3 verified complete
+last_updated: "2026-03-10T20:55:00.000Z"
+last_activity: 2026-03-10 — Phase 03 (Store Layouts and Category Ordering) verified complete
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 50
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 3 — Store Layouts and Category Ordering
+**Current focus:** Phase 4 — Barcode Scanning
 
 ## Current Position
 
-Phase: 3 of 6 (Store Layouts and Category Ordering)
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-03-10 — Phase 03 plan 03 (Butikker layouts and category CRUD) completed
+Phase: 4 of 6 (Barcode Scanning)
+Plan: 0 of 3 in current phase
+Status: Ready for planning
+Last activity: 2026-03-10 — Phase 03 (Store Layouts and Category Ordering) verified complete
 
-Progress: [█████████░] 92%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: -
 - Total execution time: -
 
@@ -46,8 +46,8 @@ Progress: [█████████░] 92%
 | 1 | 4 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 01-01, 01-02, 01-03, 01-04
-- Trend: Baseline established
+- Last 5 plans: 02-04, 03-01, 03-02, 03-03, 03-04
+- Trend: Phase 3 complete
 
 *Updated after each plan completion*
 | Phase 02-shopping-lists-and-core-loop P01 | 205 | 3 tasks | 9 files |
@@ -56,6 +56,7 @@ Progress: [█████████░] 92%
 | Phase 02-shopping-lists-and-core-loop P04 | 15 | 2 tasks | 3 files |
 | Phase 03 P02 | 10 | 2 tasks | 10 files |
 | Phase 03-store-layouts-and-category-ordering P03 | 2037 | 3 tasks | 10 files |
+| Phase 03-store-layouts-and-category-ordering P04 | 1527 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,10 @@ Recent decisions affecting current work:
 - [Phase 03-store-layouts-and-category-ordering]: Per-store layout screens remain reorder-only while Standard rekkefolge owns category CRUD.
 - [Phase 03-store-layouts-and-category-ordering]: New category creation backfills store_layouts rows for every existing store to prevent missing per-store order entries.
 - [Phase 03-store-layouts-and-category-ordering]: 03-03 human verification checkpoint approved after validating Butikker drag persistence and category CRUD flows.
+- [Phase 03-store-layouts-and-category-ordering]: Long-press only suppresses click after the 500ms threshold fires so one-tap check-off remains immediate.
+- [Phase 03-store-layouts-and-category-ordering]: List-level dialog sheets are mounted only while active to avoid hidden DOM interfering with list interactions and assertions.
+- [Phase 03-store-layouts-and-category-ordering]: Add-item category assignment opens from the persisted mutation result to avoid optimistic id races.
+- [Phase 03-store-layouts-and-category-ordering]: Phase verification passed with all CATG requirements satisfied; remaining full-suite failures are pre-existing auth and list test issues tracked in deferred items.
 
 ### Pending Todos
 
@@ -99,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T19:32:32.809Z
-Stopped at: Completed 03-03-PLAN.md
-Resume file: None
+Last session: 2026-03-10T20:55:00.000Z
+Stopped at: Phase 3 verified complete
+Resume file: .planning/phases/03-store-layouts-and-category-ordering/03-VERIFICATION.md
