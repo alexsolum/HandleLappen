@@ -1,21 +1,17 @@
 ---
-status: testing
+status: complete
 phase: 06-history-view-and-recommendations
 source:
   - 06-01-SUMMARY.md
   - 06-02-SUMMARY.md
   - 06-03-SUMMARY.md
 started: 2026-03-11T22:05:00Z
-updated: 2026-03-11T22:45:00Z
+updated: 2026-03-11T22:47:00Z
 ---
 
 ## Current Test
 
-number: 4
-name: Add-Back Works From History or Recommendations
-expected: |
-  Tapping a history item or recommendation should add it back to the obvious current list in one action, otherwise require a chooser. If the item already exists on the chosen list, quantity should increase on an active row or a new active row should be created, and a subtle confirmation toast should appear.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -33,14 +29,14 @@ result: pass
 
 ### 4. Add-Back Works From History or Recommendations
 expected: Tapping a history item or recommendation should add it back to the obvious current list in one action, otherwise require a chooser. If the item already exists on the chosen list, quantity should increase and a subtle confirmation toast should appear.
-result: pending
+result: pass
 
 ## Summary
 
 total: 4
-passed: 3
+passed: 4
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 
 ## Gaps
