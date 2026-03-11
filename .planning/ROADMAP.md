@@ -104,9 +104,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: `@vite-pwa/sveltekit` configuration, PWA manifest (icons, display: standalone, theme color), app shell CacheFirst precache, Supabase REST NetworkFirst strategy
-- [ ] 05-02: IndexedDB mutation queue (add, remove, check-off with soft-delete semantics and idempotency keys), offline detection, optimistic UI continues to work offline
-- [ ] 05-03: Workbox BackgroundSync plugin for Android, next-open replay fallback for Safari, conflict resolution (monotone OR for `is_checked`, soft deletes), pending-sync badge in UI
+- [ ] 05-01-PLAN.md — `@vite-pwa/sveltekit` + injectManifest config, custom service-worker.ts (precache + Supabase NetworkFirst), PWA icons, SW registration in root layout, Wave 0 test stubs
+- [ ] 05-02-PLAN.md — IndexedDB queue (idb-keyval), offline.svelte.ts global store, checkOff mutation offline intercept, BottomNav offline badge, ItemInput disabled when offline
+- [ ] 05-03-PLAN.md — Queue drain on reconnect + next-open replay (Safari), success toast "Endringer synkronisert", monotone OR conflict resolution, full Playwright offline test suite
 
 ### Phase 6: History View and Recommendations
 **Goal**: Users can browse their household's shopping history and receive useful item suggestions derived from purchase frequency and co-purchase patterns — using real data that has been accumulating since Phase 2
@@ -138,5 +138,5 @@ Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned pro
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
 | 4. Barcode Scanning | 2/3 | In Progress | - |
-| 5. PWA and Offline Support | 0/3 | Not started | - |
+| 5. PWA and Offline Support | 0/3 | Planned | - |
 | 6. History View and Recommendations | 0/3 | Not started | - |
