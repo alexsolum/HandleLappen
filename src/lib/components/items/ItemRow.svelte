@@ -1,5 +1,6 @@
 <script lang="ts">
   import { swipeLeft } from '$lib/actions/swipe'
+  import { offlineStore } from '$lib/stores/offline.svelte'
   import { onDestroy } from 'svelte'
 
   interface Props {
@@ -10,6 +11,7 @@
   }
 
   let { item, onToggle, onDelete, onLongPress }: Props = $props()
+  let isOnline = $derived(offlineStore.isOnline)
 
   let longPressTimer: ReturnType<typeof setTimeout> | null = null
   let cleanupMove: (() => void) | null = null
@@ -109,7 +111,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    use:swipeLeft={{ onDelete }}
+    use:swipeLeft={{ onDelete: isOnline ? onDelete : () => {} }}
     onpointerdown={startLongPress}
     onclick={handleClick}
     class="relative flex cursor-pointer items-center gap-3 bg-white px-4 py-3"

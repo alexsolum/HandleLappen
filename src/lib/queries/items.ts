@@ -1,5 +1,7 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { enqueue } from '$lib/offline/queue'
+import { refreshPendingCount } from '$lib/stores/offline.svelte'
 
 type Item = {
   id: string
@@ -108,12 +110,34 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
 
   return createMutation<void, Error, ToggleItemVariables, MutationContext>(() => ({
     mutationFn: async ({ itemId, isChecked, itemName }) => {
+      if (!navigator.onLine) {
+        const timestamp = new Date().toISOString()
+
+        await enqueue({
+          id: itemId,
+          type: 'toggle',
+          payload: {
+            itemId,
+            listId,
+            isChecked,
+            itemName,
+            userId,
+            timestamp,
+          },
+          enqueuedAt: timestamp,
+        })
+        await refreshPendingCount()
+        return
+      }
+
+      const timestamp = new Date().toISOString()
+
       // Step 1: Toggle the item
       const { error: itemError } = await supabase
         .from('list_items')
         .update({
           is_checked: isChecked,
-          checked_at: isChecked ? new Date().toISOString() : null,
+          checked_at: isChecked ? timestamp : null,
         })
         .eq('id', itemId)
       if (itemError) throw itemError
@@ -126,7 +150,7 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
           item_id: itemId,
           item_name: itemName,
           checked_by: userId,
-          checked_at: new Date().toISOString(),
+          checked_at: timestamp,
         })
         if (histError) throw histError
       }
@@ -146,7 +170,11 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      if (navigator.onLine) {
+        queryClient.invalidateQueries({ queryKey })
+      }
+    },
   }))
 }
 
