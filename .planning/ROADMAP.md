@@ -2,7 +2,7 @@
 
 ## Overview
 
-HandleAppen delivers a store-layout-aware family grocery PWA in six dependency-ordered phases. Phase 1 establishes the auth and household foundation that every other phase depends on. Phase 2 ships the testable core loop — create list, add item, check off, sync in real-time — and begins writing purchase history from day one. Phase 3 implements the product's primary differentiator: categories sorted by Norwegian store layout, with per-store overrides. Phase 4 adds barcode scanning via a server-proxied Edge Function, normalized provider fallback, and an iOS-safe scanner implementation. Phase 5 converts the working online app into an offline-capable PWA. Phase 6 surfaces the history data accumulated since Phase 2 as a history view and frequency-based recommendations.
+HandleAppen delivers a store-layout-aware family grocery PWA in eight dependency-ordered phases. Phase 1 establishes the auth and household foundation that every other phase depends on. Phase 2 ships the testable core loop — create list, add item, check off, sync in real-time — and begins writing purchase history from day one. Phase 3 implements the product's primary differentiator: categories sorted by Norwegian store layout, with per-store overrides. Phase 4 adds barcode scanning via a server-proxied Edge Function, normalized provider fallback, and an iOS-safe scanner implementation. Phase 5 converts the working online app into an offline-capable PWA. Phase 6 surfaces the history data accumulated since Phase 2 as a history view and frequency-based recommendations. Phase 7 closes the missing verification/evidence chain for the late phases, and Phase 8 reconciles central planning state so milestone v1.0 can be re-audited cleanly.
 
 ## Phases
 
@@ -18,6 +18,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS
 - [ ] **Phase 5: PWA and Offline Support** - Installable PWA with offline mutation queue and conflict resolution
 - [ ] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions
+- [ ] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability
+- [ ] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit
 
 ## Phase Details
 
@@ -125,6 +127,39 @@ Plans:
 - [ ] 06-02: Frequency recommendations SQL (top items, last 90 days, per household), co-purchase SQL (JOIN on session time window), cold-start gate (min 10 sessions)
 - [ ] 06-03: Recommendations tab in bottom nav, add-to-list action from history/recommendations, end-to-end flow tested with seeded history data
 
+### Phase 7: Verification and Evidence Closure
+**Goal**: Restore the missing verification chain for the delivered late-phase work so barcode, offline/PWA, and history/recommendation requirements can pass milestone audit
+**Depends on**: Phases 4, 5, 6
+**Requirements**: BARC-01, BARC-02, BARC-03, BARC-04, PWAF-01, PWAF-02, HIST-02, RECD-01, RECD-02, RECD-03
+**Gap Closure**: Closes milestone audit orphaned-requirement gaps caused by missing `04-VERIFICATION.md`, `05-VERIFICATION.md`, and `06-VERIFICATION.md`
+**Success Criteria** (what must be TRUE):
+  1. Phase 4 has a `04-VERIFICATION.md` that maps BARC-01..04 to concrete code/tests/manual checkpoints and records a clear phase verdict
+  2. Phase 5 has a `05-VERIFICATION.md` that maps PWAF-01..02 to concrete code/tests/UAT evidence and records any residual risk explicitly
+  3. Phase 6 has a `06-VERIFICATION.md` that maps HIST-02 and RECD-01..03 to concrete code/tests/UAT evidence and records a clear phase verdict
+  4. The orphaned requirement IDs from the milestone audit are now covered by phase verification artifacts rather than only summaries/UAT
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Verify Phase 4 barcode delivery against code, tests, and any required manual checkpoints; write `04-VERIFICATION.md`
+- [ ] 07-02-PLAN.md — Verify Phase 5 PWA/offline delivery against code, tests, and UAT; write `05-VERIFICATION.md`
+- [ ] 07-03-PLAN.md — Verify Phase 6 history/recommendation delivery against code, tests, and UAT; write `06-VERIFICATION.md`
+
+### Phase 8: Traceability Reconciliation and Milestone Re-Audit
+**Goal**: Bring central planning state back into sync with the delivered and newly verified milestone so v1.0 can pass audit cleanly
+**Depends on**: Phase 7
+**Requirements**: none (bookkeeping and release closure)
+**Gap Closure**: Closes roadmap drift, requirements traceability drift, and reruns the milestone audit after verification closure
+**Success Criteria** (what must be TRUE):
+  1. `ROADMAP.md` reflects the true completion state of Phases 4-7 and no longer reports stale in-progress/planned states for delivered work
+  2. `REQUIREMENTS.md` top-level checkboxes and traceability table match the verified completion state for BARC-01..04, PWAF-01..02, HIST-02, and RECD-01..03
+  3. A fresh milestone audit no longer reports orphaned late-phase requirements
+  4. Milestone completion can proceed from planning state without contradictory source documents
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Reconcile roadmap progress and phase completion metadata after Phase 7 verification artifacts exist
+- [ ] 08-02-PLAN.md — Reconcile requirement traceability/checklists, rerun milestone audit, and record milestone closure readiness
+
 ## Progress
 
 **Execution Order:**
@@ -140,3 +175,5 @@ Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned pro
 | 4. Barcode Scanning | 2/3 | In Progress | - |
 | 5. PWA and Offline Support | 0/3 | Planned | - |
 | 6. History View and Recommendations | 0/3 | Not started | - |
+| 7. Verification and Evidence Closure | 0/3 | Planned | - |
+| 8. Traceability Reconciliation and Milestone Re-Audit | 0/2 | Planned | - |

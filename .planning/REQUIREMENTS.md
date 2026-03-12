@@ -35,10 +35,10 @@
 
 ### Barcode & Product Identification
 
-- [x] **BARC-01**: User can open a camera view and scan a product barcode to add it to the list
-- [x] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
-- [x] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
-- [x] **BARC-04**: Item name and category are auto-filled from the barcode scan result
+- [ ] **BARC-01**: User can open a camera view and scan a product barcode to add it to the list
+- [ ] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
+- [ ] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
+- [ ] **BARC-04**: Item name and category are auto-filled from the barcode scan result
 
 ### History
 
@@ -111,16 +111,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATG-03 | Phase 3 | Complete |
 | CATG-04 | Phase 3 | Complete |
 | CATG-05 | Phase 3 | Complete |
-| BARC-01 | Phase 4 | Complete |
-| BARC-02 | Phase 4 | Complete |
-| BARC-03 | Phase 4 | Complete |
-| BARC-04 | Phase 4 | Complete |
-| PWAF-01 | Phase 5 | Pending |
-| PWAF-02 | Phase 5 | Pending |
-| HIST-02 | Phase 6 | Pending |
-| RECD-01 | Phase 6 | Pending |
-| RECD-02 | Phase 6 | Pending |
-| RECD-03 | Phase 6 | Pending |
+| BARC-01 | Phase 7 | Pending |
+| BARC-02 | Phase 7 | Pending |
+| BARC-03 | Phase 7 | Pending |
+| BARC-04 | Phase 7 | Pending |
+| PWAF-01 | Phase 7 | Pending |
+| PWAF-02 | Phase 7 | Pending |
+| HIST-02 | Phase 7 | Pending |
+| RECD-01 | Phase 7 | Pending |
+| RECD-02 | Phase 7 | Pending |
+| RECD-03 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
@@ -129,10 +129,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Phase change notes (vs. initial draft):**
 - HIST-01 moved from Phase 5 to Phase 2: history logging must start when check-off is built to avoid cold-start data loss
-- HIST-02 separated from HIST-01: the history VIEW requires data to be useful; placed in Phase 6 alongside recommendations
-- PWAF-01 and PWAF-02 moved from Phase 7 to Phase 5: offline support is its own coherent phase; no Phase 7 needed
-- Phase 5 (PWA/Offline) is now the correct home for both PWAF requirements; Phase 6 is the final phase
+- HIST-02 separated from HIST-01: the history VIEW requires data to be useful; initially placed in Phase 6 alongside recommendations
+- PWAF-01 and PWAF-02 were originally moved from Phase 7 to Phase 5 so offline support could ship as a coherent product phase
+- After the milestone audit on 2026-03-12, BARC-01..04, PWAF-01..02, HIST-02, and RECD-01..03 were reassigned to Phase 7 for verification closure because the delivered late phases lacked formal `*-VERIFICATION.md` artifacts
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-10 after Phase 4 plan 02 completion*
+*Last updated: 2026-03-12 after milestone gap-phase creation*
