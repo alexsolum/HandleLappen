@@ -87,6 +87,57 @@ export type Database = {
         }
         Relationships: []
       }
+      household_item_memory: {
+        Row: {
+          created_at: string
+          display_name: string
+          household_id: string
+          id: string
+          last_category_id: string | null
+          last_used_at: string
+          normalized_name: string
+          updated_at: string
+          use_count: number
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          household_id: string
+          id?: string
+          last_category_id?: string | null
+          last_used_at?: string
+          normalized_name: string
+          updated_at?: string
+          use_count?: number
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          household_id?: string
+          id?: string
+          last_category_id?: string | null
+          last_used_at?: string
+          normalized_name?: string
+          updated_at?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_item_memory_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_item_memory_last_category_id_fkey"
+            columns: ["last_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_history: {
         Row: {
           checked_at: string
@@ -344,8 +395,28 @@ export type Database = {
       generate_invite_code: { Args: never; Returns: string }
       history_session_count: { Args: never; Returns: number }
       my_household_id: { Args: never; Returns: string }
+      normalize_item_name: { Args: { p_name: string }; Returns: string }
+      search_household_item_memory: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: {
+          item_name: string
+          last_category_id: string | null
+          last_used_at: string
+          normalized_name: string
+          use_count: number
+        }[]
+      }
       seed_default_categories: {
         Args: { p_household_id: string }
+        Returns: undefined
+      }
+      upsert_household_item_memory: {
+        Args: {
+          p_category_id?: string | null
+          p_household_id: string
+          p_increment?: number
+          p_item_name: string
+        }
         Returns: undefined
       }
     }

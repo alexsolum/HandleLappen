@@ -1,0 +1,137 @@
+import { expect, test } from '@playwright/test'
+import { createHouseholdUser, deleteTestUser } from './helpers/auth'
+import { createTestCategory, deleteTestCategory } from './helpers/categories'
+import { createAuthenticatedTestClient, clearRememberedItems, seedRememberedItem } from './helpers/remembered-items'
+
+async function searchRememberedItems(query: string, client: Awaited<ReturnType<typeof createAuthenticatedTestClient>>) {
+  const { data, error } = await client.rpc('search_household_item_memory', {
+    p_query: query,
+    p_limit: 5,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data ?? []
+}
+
+test.describe('remembered item memory', () => {
+  test('search is household-scoped, starts from one letter, and caps results at five', async () => {
+    const password = 'password123'
+    const primaryEmail = `remembered-items-a-${Date.now()}@test.example`
+    const secondaryEmail = `remembered-items-b-${Date.now()}@test.example`
+    const { user: primaryUser, household: primaryHousehold } = await createHouseholdUser(primaryEmail, password)
+    const { user: secondaryUser, household: secondaryHousehold } = await createHouseholdUser(
+      secondaryEmail,
+      password
+    )
+
+    try {
+      await Promise.all([
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Melkesjokolade',
+          useCount: 5,
+          lastUsedAt: '2026-03-12T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Melk',
+          useCount: 3,
+          lastUsedAt: '2026-03-11T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Melon',
+          useCount: 2,
+          lastUsedAt: '2026-03-10T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Melis',
+          useCount: 1,
+          lastUsedAt: '2026-03-09T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Melboller',
+          useCount: 4,
+          lastUsedAt: '2026-03-08T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: primaryHousehold.id,
+          name: 'Soyamelk',
+          useCount: 9,
+          lastUsedAt: '2026-03-12T12:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: secondaryHousehold.id,
+          name: 'Melk',
+          useCount: 99,
+          lastUsedAt: '2026-03-12T12:00:00.000Z',
+        }),
+      ])
+
+      const client = await createAuthenticatedTestClient(primaryEmail, password)
+      const results = await searchRememberedItems('m', client)
+
+      expect(results).toHaveLength(5)
+      expect(results.map((row) => row.item_name)).toEqual([
+        'Melkesjokolade',
+        'Melboller',
+        'Melk',
+        'Melon',
+        'Melis',
+      ])
+      expect(results.some((row) => row.use_count === 99)).toBe(false)
+    } finally {
+      await Promise.all([
+        clearRememberedItems(primaryHousehold.id),
+        clearRememberedItems(secondaryHousehold.id),
+        deleteTestUser(primaryUser.id),
+        deleteTestUser(secondaryUser.id),
+      ])
+    }
+  })
+
+  test('narrowing keeps the latest remembered category and deterministic ranking', async () => {
+    const password = 'password123'
+    const email = `remembered-items-category-${Date.now()}@test.example`
+    const { user, household } = await createHouseholdUser(email, password)
+    let categoryId: string | null = null
+
+    try {
+      categoryId = (await createTestCategory(household.id, 'Meieri', 10)).id
+
+      await Promise.all([
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melk',
+          categoryId,
+          useCount: 4,
+          lastUsedAt: '2026-03-12T07:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Soyamelk',
+          useCount: 7,
+          lastUsedAt: '2026-03-12T08:00:00.000Z',
+        }),
+      ])
+
+      const client = await createAuthenticatedTestClient(email, password)
+      const results = await searchRememberedItems('melk', client)
+
+      expect(results.map((row) => row.item_name)).toEqual(['Melk', 'Soyamelk'])
+      expect(results[0]?.last_category_id).toBe(categoryId)
+      expect(results[0]?.normalized_name).toBe('melk')
+    } finally {
+      await clearRememberedItems(household.id)
+      if (categoryId) {
+        await deleteTestCategory(categoryId)
+      }
+      await deleteTestUser(user.id)
+    }
+  })
+})
