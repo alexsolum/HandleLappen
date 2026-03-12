@@ -66,7 +66,7 @@ Deno.test('cache hit returns normalized DTO without provider fetches', async () 
       ean: '7044610878304',
       found: true,
       itemName: 'Pepsi Max 1,5 L',
-      canonicalCategory: 'drikke',
+      canonicalCategory: 'drikkevarer',
       confidence: 0.92,
       source: 'cache',
     }),
@@ -99,7 +99,7 @@ Deno.test('Kassal hit path returns Gemini-normalized DTO and caches it', async (
   assertObjectMatch(await response.json(), {
     ean: '7044610878304',
     found: true,
-    canonicalCategory: 'drikke',
+    canonicalCategory: 'drikkevarer',
     source: 'kassal+gemini',
   })
   assertEquals(dependencyContext.counters.kassal, 1)
@@ -168,7 +168,7 @@ Deno.test('invalid Gemini category falls back to deterministic provider normaliz
   assertObjectMatch(await response.json(), {
     found: true,
     itemName: 'Pepsi Max 1,5 L',
-    canonicalCategory: 'drikke',
+    canonicalCategory: 'drikkevarer',
     source: 'kassal',
   })
 })

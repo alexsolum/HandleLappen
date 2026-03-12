@@ -313,7 +313,7 @@ test.describe('barcode lookup flow', () => {
       await expect(page.locator('text=Pepsi Max')).toBeVisible()
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
-          hasText: 'Drikke',
+          hasText: 'Drikkevarer',
         })
       ).toBeVisible()
     } finally {
@@ -332,7 +332,7 @@ test.describe('barcode lookup flow', () => {
     await mockBarcodeLookup(page, {
       '7044610878304': buildGeminiNormalizedResponse({
         itemName: 'Pepsi Max uten sukker 1,5 L',
-        canonicalCategory: 'drikke',
+        canonicalCategory: 'drikkevarer',
       }),
     })
 
@@ -357,7 +357,7 @@ test.describe('barcode lookup flow', () => {
       await expect(page.locator('text=Pepsi Max uten sukker 1,5 L')).toBeVisible()
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
-          hasText: 'Drikke',
+          hasText: 'Drikkevarer',
         })
       ).toBeVisible()
     } finally {

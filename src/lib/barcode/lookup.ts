@@ -1,16 +1,29 @@
 export type CanonicalCategory =
   | 'frukt_og_gront'
-  | 'brod_og_bakevarer'
-  | 'palegg_og_kjott'
-  | 'meieri_og_egg'
-  | 'kjott_og_fisk'
-  | 'hermetikk_og_glass'
-  | 'pasta_ris_og_korn'
-  | 'snacks_og_godteri'
-  | 'drikke'
-  | 'rengjoring'
-  | 'helse_og_hygiene'
-  | 'kjol_og_frys'
+  | 'urter_og_ferdigkuttede_gronnsaker'
+  | 'brod_og_bakervarer'
+  | 'frokostblanding_og_havregryn'
+  | 'meieriprodukter'
+  | 'ost'
+  | 'egg'
+  | 'ferskt_kjott'
+  | 'kylling_og_kalkun'
+  | 'fisk_og_sjomat'
+  | 'ferdigretter_og_delikatesse'
+  | 'frysevarer'
+  | 'pasta_ris_og_kornprodukter'
+  | 'bakevarer_og_bakeingredienser'
+  | 'hermetikk_og_glassvarer'
+  | 'sauser_og_matoljer'
+  | 'krydder'
+  | 'snacks'
+  | 'sjokolade_og_godteri'
+  | 'drikkevarer'
+  | 'kaffe_og_te'
+  | 'ol_og_cider'
+  | 'husholdningsartikler'
+  | 'personlig_hygiene'
+  | 'dyremat'
 
 export type BarcodeLookupDto = {
   ean: string
@@ -41,17 +54,30 @@ export type BarcodeSheetModel = {
 
 const CANONICAL_CATEGORY_NAMES: Record<CanonicalCategory, string[]> = {
   frukt_og_gront: ['Frukt og grønt'],
-  brod_og_bakevarer: ['Brød og bakevarer', 'Brod og bakevarer'],
-  palegg_og_kjott: ['Pålegg og kjøtt', 'Palegg og kjott'],
-  meieri_og_egg: ['Meieri og egg'],
-  kjott_og_fisk: ['Kjøtt og fisk', 'Kjott og fisk'],
-  hermetikk_og_glass: ['Hermetikk og glass'],
-  pasta_ris_og_korn: ['Pasta, ris og korn', 'Pasta ris og korn'],
-  snacks_og_godteri: ['Snacks og godteri'],
-  drikke: ['Drikke'],
-  rengjoring: ['Rengjøring', 'Rengjoring'],
-  helse_og_hygiene: ['Helse og hygiene'],
-  kjol_og_frys: ['Kjøl og frys', 'Kjol og frys'],
+  urter_og_ferdigkuttede_gronnsaker: ['Urter og ferdigkuttede grønnsaker'],
+  brod_og_bakervarer: ['Brød og bakervarer', 'Brød og bakevarer', 'Brod og bakervarer', 'Brod og bakevarer'],
+  frokostblanding_og_havregryn: ['Frokostblanding og havregryn'],
+  meieriprodukter: ['Meieriprodukter', 'Meieri og egg'],
+  ost: ['Ost'],
+  egg: ['Egg'],
+  ferskt_kjott: ['Ferskt kjøtt', 'Ferskt kjott'],
+  kylling_og_kalkun: ['Kylling og kalkun'],
+  fisk_og_sjomat: ['Fisk og sjømat', 'Fisk og sjomat', 'Kjøtt og fisk', 'Kjott og fisk'],
+  ferdigretter_og_delikatesse: ['Ferdigretter og delikatesse', 'Pålegg og kjøtt', 'Palegg og kjott'],
+  frysevarer: ['Frysevarer', 'Kjøl og frys', 'Kjol og frys'],
+  pasta_ris_og_kornprodukter: ['Pasta, ris og kornprodukter', 'Pasta, ris og korn', 'Pasta ris og korn'],
+  bakevarer_og_bakeingredienser: ['Bakevarer og bakeingredienser'],
+  hermetikk_og_glassvarer: ['Hermetikk og glassvarer', 'Hermetikk og glass'],
+  sauser_og_matoljer: ['Sauser og matoljer'],
+  krydder: ['Krydder'],
+  snacks: ['Snacks', 'Snacks og godteri'],
+  sjokolade_og_godteri: ['Sjokolade og godteri'],
+  drikkevarer: ['Drikkevarer', 'Drikke'],
+  kaffe_og_te: ['Kaffe og te'],
+  ol_og_cider: ['Øl og cider', 'Ol og cider'],
+  husholdningsartikler: ['Husholdningsartikler', 'Rengjøring', 'Rengjoring'],
+  personlig_hygiene: ['Personlig hygiene', 'Helse og hygiene'],
+  dyremat: ['Dyremat'],
 }
 
 function normalizeLabel(value: string) {

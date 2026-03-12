@@ -35,10 +35,10 @@ test.describe('category grouping', () => {
       const list = await createTestList(household.id, 'Kategoriliste')
       const categories = await listTestCategories(household.id)
       const produce = categories.find((category) => category.name === 'Frukt og grønt')
-      const dairy = categories.find((category) => category.name === 'Meieri og egg')
+      const dairy = categories.find((category) => category.name === 'Meieriprodukter')
 
       if (!produce || !dairy) {
-        throw new Error('Expected seeded default categories to include Frukt og grønt and Meieri og egg')
+        throw new Error('Expected seeded default categories to include Frukt og grønt and Meieriprodukter')
       }
 
       await createTestItem(list.id, 'Bananer', 2, produce.id)
@@ -63,6 +63,11 @@ test.describe('category grouping', () => {
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
           hasText: 'Meieri og egg',
+        })
+      ).toHaveCount(0)
+      await expect(
+        page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
+          hasText: 'Meieriprodukter',
         })
       ).toBeVisible()
       await expect(
@@ -137,10 +142,10 @@ test.describe('default order', () => {
       const list = await createTestList(household.id, 'Rekkefolge')
       const categories = await listTestCategories(household.id)
       const produce = categories.find((category) => category.name === 'Frukt og grønt')
-      const dairy = categories.find((category) => category.name === 'Meieri og egg')
+      const dairy = categories.find((category) => category.name === 'Meieriprodukter')
 
       if (!produce || !dairy) {
-        throw new Error('Expected seeded default categories to include Frukt og grønt and Meieri og egg')
+        throw new Error('Expected seeded default categories to include Frukt og grønt and Meieriprodukter')
       }
 
       await createTestItem(list.id, 'Epler', 1, produce.id)
@@ -159,8 +164,8 @@ test.describe('default order', () => {
       const texts = await headers.allTextContents()
 
       expect(texts.indexOf('Frukt og grønt')).toBeGreaterThanOrEqual(0)
-      expect(texts.indexOf('Meieri og egg')).toBeGreaterThanOrEqual(0)
-      expect(texts.indexOf('Frukt og grønt')).toBeLessThan(texts.indexOf('Meieri og egg'))
+      expect(texts.indexOf('Meieriprodukter')).toBeGreaterThanOrEqual(0)
+      expect(texts.indexOf('Frukt og grønt')).toBeLessThan(texts.indexOf('Meieriprodukter'))
     } finally {
       await deleteTestUser(user.id)
     }
@@ -198,7 +203,7 @@ test.describe('store layout', () => {
 
       await page.waitForURL(/\/butikker\/[0-9a-f-]+$/)
       await expect(page.locator('text=Frukt og grønt')).toBeVisible()
-      await expect(page.locator('text=Kjøl og frys')).toBeVisible()
+      await expect(page.locator('text=Frysevarer')).toBeVisible()
     } finally {
       await deleteTestUser(user.id)
     }
@@ -267,7 +272,7 @@ test.describe('category crud', () => {
 
     try {
       await seedDefaultCategories(household.id)
-      await createTestCategory(household.id, 'Slett meg', 200)
+      await createTestCategory(household.id, 'Slett meg', 400)
 
       await page.goto('/logg-inn', { waitUntil: 'networkidle' })
       await page.fill('[type=email]', email)

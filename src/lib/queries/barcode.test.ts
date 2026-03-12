@@ -11,12 +11,12 @@ import {
 Deno.test('resolveCanonicalCategoryId maps canonical categories to seeded household names', () => {
   const categories = [
     { id: 'cat-1', name: 'Frukt og grønt' },
-    { id: 'cat-2', name: 'Drikke' },
+    { id: 'cat-2', name: 'Drikkevarer' },
   ]
 
-  assertEquals(resolveCanonicalCategoryId(categories, 'drikke'), 'cat-2')
+  assertEquals(resolveCanonicalCategoryId(categories, 'drikkevarer'), 'cat-2')
   assertEquals(resolveCanonicalCategoryId(categories, 'frukt_og_gront'), 'cat-1')
-  assertEquals(resolveCanonicalCategoryId(categories, 'meieri_og_egg'), null)
+  assertEquals(resolveCanonicalCategoryId(categories, 'meieriprodukter'), null)
 })
 
 Deno.test('mapBarcodeLookupResult returns a found sheet DTO with mapped category metadata', () => {
@@ -24,12 +24,12 @@ Deno.test('mapBarcodeLookupResult returns a found sheet DTO with mapped category
     ean: '7044610878304',
     found: true,
     itemName: 'Pepsi Max 1,5 L',
-    canonicalCategory: 'drikke',
+    canonicalCategory: 'drikkevarer',
     confidence: 0.92,
     source: 'kassal+gemini',
   }
 
-  const result = mapBarcodeLookupResult(dto, [{ id: 'cat-2', name: 'Drikke' }])
+  const result = mapBarcodeLookupResult(dto, [{ id: 'cat-2', name: 'Drikkevarer' }])
 
   assertEquals(result, {
     state: 'found',
@@ -37,7 +37,7 @@ Deno.test('mapBarcodeLookupResult returns a found sheet DTO with mapped category
     itemName: 'Pepsi Max 1,5 L',
     quantity: 1,
     categoryId: 'cat-2',
-    canonicalCategory: 'drikke',
+    canonicalCategory: 'drikkevarer',
     confidence: 0.92,
     source: 'kassal+gemini',
   })
@@ -53,7 +53,7 @@ Deno.test('mapBarcodeLookupResult returns a single not-found DTO ready for manua
     source: 'not_found',
   }
 
-  const result = mapBarcodeLookupResult(dto, [{ id: 'cat-2', name: 'Drikke' }])
+  const result = mapBarcodeLookupResult(dto, [{ id: 'cat-2', name: 'Drikkevarer' }])
 
   assertEquals(result, {
     state: 'not_found',
