@@ -1,78 +1,30 @@
-# HandleAppen
-
-## Current Milestone: Completed M001 — v1.1 Mobile UX and Smart Item Entry
-
-**Outcome:** The signed-in shopping flow now behaves like a more polished mobile app: dialogs stay inside the viewport, the bottom navigation is pinned and thumb-friendly, quantity can be edited inline from the list, and recurring household items can be re-added through inline suggestions with remembered categories.
-
-**Delivered in M001:**
-- Mobile-safe dialogs and layouts with no horizontal overflow
-- Larger fixed bottom navigation with better touch ergonomics
-- Inline quantity controls on the main list with default quantity `1`
-- Household item memory with typeahead suggestions and remembered categories
+# Project
 
 ## What This Is
 
-An installable family grocery shopping web app that makes shopping efficient through store-layout-aware, category-sorted lists. Family members each have individual accounts under a shared household, with multiple shopping lists that sync in near real-time across devices, plus barcode-assisted item entry, shopping history, and household recommendations.
+HandleAppen is an installable family grocery shopping web app for shared household shopping. It already supports household accounts, synced shopping lists, category/store ordering, barcode-assisted entry, history, recommendations, offline guardrails, and remembered item suggestions. The current planning focus is tightening authentication reliability so Google sign-in behaves like the rest of the polished mobile flow.
 
 ## Core Value
 
-The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
+A household can keep one shared grocery workflow that is fast to use in the store, always in sync, and friction-light when adding or returning to common items.
 
-## Requirements
+## Current State
 
-### Validated
+M001 is complete. The core shopping experience is built and verified across auth, household onboarding, list CRUD, realtime sync, category/store ordering, barcode lookup and scanner UI, PWA installability, offline queue guardrails, history/recommendations, mobile layout hardening, inline quantity controls, and household item memory. A focused auth bug remains: Google OAuth sign-in can land on a raw `/?code=...` URL instead of completing the callback exchange and establishing a real session.
 
-- ✓ Family members can create accounts, join a household, and stay signed in across app reopen — v1.0
-- ✓ Shared shopping lists support add, remove, check-off, and near real-time sync across devices — v1.0
-- ✓ Items are grouped by grocery categories and can follow default or per-store layouts — v1.0
-- ✓ Barcode scanning can auto-fill item name and category through Supabase edge-function lookups — v1.0
-- ✓ Shopping history and recommendation views are available from the app navigation — v1.0
-- ✓ Mobile dialogs fit fully within the viewport and never cause sideways scrolling — M001
-- ✓ Mobile screens do not allow accidental sideways app scrolling during normal use — M001
-- ✓ Bottom navigation stays fixed to the screen bottom and is easier to tap with a thumb — M001
-- ✓ Quantity can be adjusted directly from the main list without opening item details — M001
-- ✓ Newly added items default to quantity `1` unless explicitly changed — M001
-- ✓ Previously added household items appear as typeahead suggestions while typing — M001
-- ✓ Picking a remembered item suggestion reuses its last known category automatically — M001
+## Architecture / Key Patterns
 
-### Active
+- SvelteKit app with Supabase for auth, database, realtime, and edge functions.
+- Server-side auth wiring uses `@supabase/ssr` in `src/hooks.server.ts` and route-level redirects for protected pages.
+- OAuth entry points live in `/logg-inn` and `/registrer`; callback handling lives in `src/routes/auth/callback/+server.ts`.
+- Playwright runs against a dedicated local dev server on port `4173`, with targeted suites used as the main proof surface.
+- The codebase prefers thin route orchestration, shared query helpers, and user-visible flows verified end to end rather than only by unit tests.
 
-- None currently tracked for post-M001 follow-up in this file.
+## Capability Contract
 
-### Out of Scope
+See `.gsd/REQUIREMENTS.md` for the explicit capability contract, requirement status, and coverage mapping.
 
-- Native mobile app — PWA covers mobile use case
-- Price comparison / cheapest store routing — too complex for v1
-- Meal planning integration — separate concern, defer to later
-- Push notifications — deferred to v2
+## Milestone Sequence
 
-## Context
-
-- Norwegian market: barcode data comes from Kassal.app (Norwegian grocery price comparison API) and Open Food Facts as fallback
-- Family use case: shared household with individual logins — similar to how apps like OurGroceries or AnyList work
-- Store layout: categories have a default sequence (e.g., produce → dairy → meat → frozen) that reflects how most Norwegian grocery stores (Rema 1000, Kiwi, Meny, Spar) are laid out; each store can override
-- Real-time sync is the core technical challenge — Supabase Realtime subscriptions handle this
-- PWA requirement: installable, fast on mobile, works well offline or with poor connectivity during shopping
-- v1.1 was driven by real mobile usage feedback: dialogs overflowed on phones, horizontal drag/scroll broke the app feel, tap targets were too small, and recurring-item entry was too repetitive
-
-## Constraints
-
-- **Tech stack**: Supabase (auth, database, edge functions, realtime) — already decided
-- **Platform**: PWA only — no separate native apps
-- **Market**: Norwegian — product naming, barcode sources, and store layouts are Norway-specific
-- **Language**: App UI should support Norwegian (primary) with English as fallback
-- **Compatibility**: Mobile Safari and Android Chrome must both feel stable in standalone/PWA use — improvements cannot depend on desktop-only interactions
-
-## Key Decisions
-
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Supabase for backend | Auth, DB, realtime, and edge functions in one platform — reduces infrastructure complexity | Established |
-| PWA over native app | Family can install from browser, no app store friction | Established |
-| Individual accounts + shared household | Individual identity for history/recommendations while sharing lists | Established |
-| Kassal.app + Open Food Facts for barcodes | Best coverage for Norwegian products — try Kassal first, fall back to Open Food Facts | Established |
-| Default layout + per-store overrides | Reduces setup burden while allowing store-specific precision | Established |
-| v1.1 targets mobile UX before broad feature expansion | Current user pain is interaction friction on phones, not missing major workflows | Completed in M001 |
-
----
-*Last updated: 2026-03-12 after completing milestone M001*
+- [x] M001: Migration — Mobile-safe shopping flow, inline quantity editing, and remembered household item entry.
+- [ ] M002: Google OAuth Callback Repair — Fix Google login so callback exchange, failure routing, and regression coverage are reliable.
