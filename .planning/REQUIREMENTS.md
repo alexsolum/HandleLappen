@@ -18,9 +18,9 @@
 
 ### Smart Item Entry
 
-- [ ] **SUGG-01**: As user types an item name, the app shows suggestions from items previously added in that household
-- [ ] **SUGG-02**: Suggestions narrow as the typed query becomes more specific
-- [ ] **SUGG-03**: When user picks a remembered item suggestion, the app reuses its last known category automatically
+- [x] **SUGG-01**: As user types an item name, the app shows suggestions from items previously added in that household
+- [x] **SUGG-02**: Suggestions narrow as the typed query becomes more specific
+- [x] **SUGG-03**: When user picks a remembered item suggestion, the app reuses its last known category automatically
 
 ## Future Requirements
 
@@ -57,9 +57,9 @@
 | MOBL-03 | Phase 9 | Pending |
 | LIST-07 | Phase 10 | Pending |
 | LIST-08 | Phase 10 | Pending |
-| SUGG-01 | Phase 11 | Pending |
-| SUGG-02 | Phase 11 | Pending |
-| SUGG-03 | Phase 11 | Pending |
+| SUGG-01 | Phase 11 | Complete |
+| SUGG-02 | Phase 11 | Complete |
+| SUGG-03 | Phase 11 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 8 total

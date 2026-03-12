@@ -205,7 +205,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Add household item-memory data source and queries for suggestion search
+- [x] 11-01-PLAN.md — Add household item-memory data source and queries for suggestion search
 - [ ] 11-02-PLAN.md — Build mobile-friendly typeahead suggestion UI and selection behavior in the add-item flow
 - [ ] 11-03-PLAN.md — Persist and reuse remembered categories for suggested items, then verify recurring-item behavior end to end
 
@@ -228,5 +228,5 @@ Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases.
 | 8. Traceability Reconciliation and Milestone Re-Audit | 2/2 | Complete | 2026-03-12 |
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
-| 11. Household Item Memory and Suggestions | 0/3 | Planned | - |
+| 11. Household Item Memory and Suggestions | 1/3 | In Progress|  |
 
