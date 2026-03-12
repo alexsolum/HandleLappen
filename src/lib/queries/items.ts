@@ -2,6 +2,7 @@ import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-qu
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { enqueue } from '$lib/offline/queue'
 import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
+import { rememberedItemsBaseKey } from '$lib/queries/remembered-items'
 
 type Item = {
   id: string
@@ -15,7 +16,7 @@ type Item = {
   created_at: string
 }
 
-type AddItemVariables = { name: string; quantity?: number | null }
+type AddItemVariables = { name: string; quantity?: number | null; categoryId?: string | null }
 type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number }
 type DeleteItemVariables = { id: string }
 type ChangeQuantityVariables = {
@@ -64,16 +65,16 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
   const queryKey = itemsQueryKey(listId)
 
   return createMutation<Item, Error, AddItemVariables, MutationContext>(() => ({
-    mutationFn: async ({ name, quantity }) => {
+    mutationFn: async ({ name, quantity, categoryId }) => {
       const { data, error } = await supabase
         .from('list_items')
-        .insert({ list_id: listId, name, quantity: quantity ?? 1 })
+        .insert({ list_id: listId, name, quantity: quantity ?? 1, category_id: categoryId ?? null })
         .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
         .single()
       if (error) throw error
       return data as Item
     },
-    onMutate: async ({ name, quantity }) => {
+    onMutate: async ({ name, quantity, categoryId }) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<Item[]>(queryKey)
       queryClient.setQueryData<Item[]>(queryKey, (old = []) => [
@@ -86,7 +87,7 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
           is_checked: false,
           checked_at: null,
           sort_order: 0,
-          category_id: null,
+          category_id: categoryId ?? null,
           created_at: new Date().toISOString(),
         },
       ])
@@ -95,7 +96,10 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(listId) })
+    },
   }))
 }
 
@@ -148,6 +152,7 @@ export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
     onSettled: (_result, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: itemsQueryKey(variables.listId) })
       queryClient.invalidateQueries({ queryKey: ['lists'] })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(variables.listId) })
     },
   }))
 }
@@ -170,7 +175,10 @@ export function createDeleteItemMutation(supabase: SupabaseClient, listId: strin
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(listId) })
+    },
   }))
 }
 
@@ -211,7 +219,10 @@ export function createChangeQuantityMutation(supabase: SupabaseClient, listId: s
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(listId) })
+    },
   }))
 }
 
@@ -346,7 +357,10 @@ export function createAssignCategoryMutation(supabase: SupabaseClient, listId: s
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(listId) })
+    },
   }))
 }
 
@@ -370,6 +384,9 @@ export function createUpdateItemMutation(supabase: SupabaseClient, listId: strin
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+      queryClient.invalidateQueries({ queryKey: rememberedItemsBaseKey(listId) })
+    },
   }))
 }
