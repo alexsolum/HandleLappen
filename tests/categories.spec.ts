@@ -385,7 +385,7 @@ test.describe('assign category', () => {
 
       await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
 
-      const itemRow = page.getByRole('button', { name: /Agurk/ }).first()
+      const itemRow = page.getByRole('checkbox', { name: /Agurk/ }).first()
       const box = await itemRow.boundingBox()
 
       if (!box) {

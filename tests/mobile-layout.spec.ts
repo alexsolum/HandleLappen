@@ -1,0 +1,89 @@
+import { expect, test, type Page } from '@playwright/test'
+import { createHouseholdUser, deleteTestUser } from './helpers/auth'
+import { createTestItem, createTestList } from './helpers/lists'
+
+test.use({
+  viewport: { width: 390, height: 844 },
+})
+
+async function loginAndOpenList(page: Page, email: string, password: string, listId: string) {
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+  await page.fill('[type=email]', email)
+  await page.fill('[type=password]', password)
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/')
+  await page.waitForLoadState('networkidle')
+  await page.goto(`/lister/${listId}`, { waitUntil: 'networkidle' })
+}
+
+async function expectNoHorizontalOverflow(page: Page) {
+  const metrics = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(Math.max(metrics.innerWidth, metrics.clientWidth))
+}
+
+test.describe('mobile layout hardening', () => {
+  test('list screen keeps the bottom dock pinned without horizontal overflow', async ({ page }) => {
+    const email = `mobile-layout-dock-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      const list = await createTestList(household.id, 'Mobiltest')
+      await loginAndOpenList(page, email, password, list.id)
+
+      const dock = page.getByTestId('bottom-dock')
+      await expect(dock).toBeVisible()
+      await expectNoHorizontalOverflow(page)
+
+      const box = await dock.boundingBox()
+      if (!box) throw new Error('Expected bottom dock bounding box')
+
+      expect(box.y + box.height).toBeLessThanOrEqual(844)
+      expect(box.height).toBeGreaterThanOrEqual(72)
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('item detail sheet keeps actions visible on a phone viewport', async ({ page }) => {
+    const email = `mobile-layout-sheet-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      const list = await createTestList(household.id, 'Mobilark')
+      await createTestItem(list.id, 'Agurk', 2, null)
+
+      await loginAndOpenList(page, email, password, list.id)
+
+      const itemRow = page.getByRole('checkbox', { name: /Agurk/ }).first()
+      const rowBox = await itemRow.boundingBox()
+
+      if (!rowBox) throw new Error('Expected Agurk item row to have a bounding box')
+
+      await page.mouse.move(rowBox.x + rowBox.width / 2, rowBox.y + rowBox.height / 2)
+      await page.mouse.down()
+      await page.waitForTimeout(650)
+      await page.mouse.up()
+
+      const openDialog = page.locator('dialog[open]').first()
+      const actions = openDialog.getByTestId('sheet-actions')
+      await expect(actions).toBeVisible()
+      await expect(openDialog.getByRole('button', { name: 'Lagre' })).toBeVisible()
+      await expect(openDialog.getByRole('button', { name: 'Lukk', exact: true })).toBeVisible()
+      await expectNoHorizontalOverflow(page)
+
+      const actionBox = await actions.boundingBox()
+      if (!actionBox) throw new Error('Expected sheet action area bounding box')
+
+      expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(844)
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+})
