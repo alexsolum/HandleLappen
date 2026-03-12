@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { createHouseholdUser, deleteTestUser } from './helpers/auth'
 import { createTestCategory, deleteTestCategory } from './helpers/categories'
+import { createTestList } from './helpers/lists'
 import { createAuthenticatedTestClient, clearRememberedItems, seedRememberedItem } from './helpers/remembered-items'
 
 async function searchRememberedItems(query: string, client: Awaited<ReturnType<typeof createAuthenticatedTestClient>>) {
@@ -14,6 +15,17 @@ async function searchRememberedItems(query: string, client: Awaited<ReturnType<t
   }
 
   return data ?? []
+}
+
+async function loginAndOpenList(page: Page, email: string, password: string, listId: string) {
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+  await page.fill('[type=email]', email)
+  await page.fill('[type=password]', password)
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/')
+  await page.waitForLoadState('networkidle')
+  await page.goto(`/lister/${listId}`, { waitUntil: 'networkidle' })
+  await expect(page.getByTestId('add-item-input')).toBeVisible()
 }
 
 test.describe('remembered item memory', () => {
@@ -126,6 +138,91 @@ test.describe('remembered item memory', () => {
       expect(results.map((row) => row.item_name)).toEqual(['Melk', 'Soyamelk'])
       expect(results[0]?.last_category_id).toBe(categoryId)
       expect(results[0]?.normalized_name).toBe('melk')
+    } finally {
+      await clearRememberedItems(household.id)
+      if (categoryId) {
+        await deleteTestCategory(categoryId)
+      }
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('typing shows remembered suggestions and narrows them as the query gets more specific', async ({
+    page,
+  }) => {
+    const password = 'password123'
+    const email = `remembered-items-ui-${Date.now()}@test.example`
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      const list = await createTestList(household.id, 'Forslagsliste')
+      await Promise.all([
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melk',
+          useCount: 4,
+          lastUsedAt: '2026-03-12T07:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melon',
+          useCount: 3,
+          lastUsedAt: '2026-03-11T07:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Soyamelk',
+          useCount: 2,
+          lastUsedAt: '2026-03-10T07:00:00.000Z',
+        }),
+      ])
+
+      await loginAndOpenList(page, email, password, list.id)
+
+      const input = page.getByTestId('add-item-input')
+      await input.fill('m')
+
+      const suggestionList = page.getByTestId('remembered-suggestions')
+      await expect(suggestionList).toBeVisible()
+      await expect(page.getByTestId('remembered-suggestion-row')).toHaveCount(3)
+
+      await input.fill('melk')
+      await expect(page.getByTestId('remembered-suggestion-row')).toHaveCount(2)
+      await expect(page.getByTestId('remembered-suggestion-row').first()).toContainText('Melk')
+    } finally {
+      await clearRememberedItems(household.id)
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('selecting a remembered suggestion adds the item immediately under its remembered category', async ({
+    page,
+  }) => {
+    const password = 'password123'
+    const email = `remembered-items-add-${Date.now()}@test.example`
+    const { user, household } = await createHouseholdUser(email, password)
+    let categoryId: string | null = null
+
+    try {
+      const list = await createTestList(household.id, 'Hurtigliste')
+      categoryId = (await createTestCategory(household.id, 'Meieri', 10)).id
+
+      await seedRememberedItem({
+        householdId: household.id,
+        name: 'Melk',
+        categoryId,
+        useCount: 5,
+        lastUsedAt: '2026-03-12T09:00:00.000Z',
+      })
+
+      await loginAndOpenList(page, email, password, list.id)
+
+      await page.getByTestId('add-item-input').fill('m')
+      await page.getByTestId('remembered-suggestion-row').first().click()
+
+      await expect(page.getByRole('checkbox', { name: /Melk/ }).first()).toBeVisible()
+      await expect(page.locator('dialog[open]')).toHaveCount(0)
+      await expect(page.getByText('Meieri')).toBeVisible()
     } finally {
       await clearRememberedItems(household.id)
       if (categoryId) {

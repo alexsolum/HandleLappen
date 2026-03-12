@@ -9,6 +9,10 @@
     createUpdateItemMutation,
     itemsQueryKey,
   } from '$lib/queries/items'
+  import {
+    createRememberedItemsQuery,
+    type RememberedItem,
+  } from '$lib/queries/remembered-items'
   import { createCategoriesQuery, createStoreLayoutQuery } from '$lib/queries/categories'
   import { createStoresQuery } from '$lib/queries/stores'
   import {
@@ -43,6 +47,7 @@
   let barcodeLookupState = $state<'closed' | 'loading' | 'found' | 'not_found' | 'error'>('closed')
   let barcodeLookupResult = $state<BarcodeSheetModel | null>(null)
   let barcodeLookupEan = $state<string | null>(null)
+  let rememberedQueryText = $state('')
 
   const queryClient = useQueryClient()
 
@@ -72,6 +77,11 @@
   const categoriesQuery = createCategoriesQuery(data.supabase, data.householdId)
   const storeLayoutQuery = createStoreLayoutQuery(data.supabase, () => selectedStoreId)
   const storesQuery = createStoresQuery(data.supabase, data.householdId)
+  const rememberedItemsQuery = createRememberedItemsQuery(
+    data.supabase,
+    data.listId,
+    () => rememberedQueryText
+  )
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)
   const changeQuantityMutation = createChangeQuantityMutation(data.supabase, data.listId)
@@ -88,6 +98,7 @@
   const barcodeSubmitting = $derived(
     barcodeLookupState !== 'closed' && (addItemMutation.isPending || assignCategoryMutation.isPending)
   )
+  const rememberedSuggestions = $derived(rememberedItemsQuery.data ?? [])
   const groupingPending = $derived(
     categoriesQuery.isPending || (selectedStoreId != null && storeLayoutQuery.isPending)
   )
@@ -140,12 +151,37 @@
   })
 
   function handleAdd(name: string, quantity: number | null) {
+    rememberedQueryText = ''
+
     // Focus is called synchronously in ItemInput before this fires
     addItemMutation.mutate(
       { name, quantity },
       {
         onSuccess: (newItem) => {
           pendingCategoryItem = { id: newItem.id, name: newItem.name }
+        },
+      }
+    )
+  }
+
+  function handleRememberedQueryChange(value: string) {
+    rememberedQueryText = value
+  }
+
+  function handleRememberedSuggestionSelect(suggestion: RememberedItem) {
+    rememberedQueryText = ''
+
+    addItemMutation.mutate(
+      {
+        name: suggestion.itemName,
+        quantity: 1,
+        categoryId: suggestion.lastCategoryId,
+      },
+      {
+        onSuccess: (newItem) => {
+          if (suggestion.lastCategoryId == null) {
+            pendingCategoryItem = { id: newItem.id, name: newItem.name }
+          }
         },
       }
     )
@@ -311,7 +347,8 @@
     changeQuantityMutation.isError ||
     checkOffMutation.isError ||
     assignCategoryMutation.isError ||
-    updateItemMutation.isError
+    updateItemMutation.isError ||
+    rememberedItemsQuery.isError
   }
     <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
       Noe gikk galt. Endringen ble ikke lagret.
@@ -370,9 +407,12 @@
 <!-- Persistent bottom input bar -->
 <ItemInput
   onAdd={handleAdd}
+  onQueryChange={handleRememberedQueryChange}
+  onSuggestionSelect={handleRememberedSuggestionSelect}
   onDetected={handleBarcodeEntry}
   onManualSubmit={handleBarcodeEntry}
   resumeBarcodeFlow={barcodeResumeFlow}
+  suggestions={rememberedSuggestions}
   onResumeHandled={handleBarcodeResumeHandled}
 />
 

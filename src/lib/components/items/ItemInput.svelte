@@ -1,21 +1,28 @@
 <script lang="ts">
   import BarcodeScannerSheet from '$lib/components/barcode/BarcodeScannerSheet.svelte'
   import ManualEanEntrySheet from '$lib/components/barcode/ManualEanEntrySheet.svelte'
+  import type { RememberedItem } from '$lib/queries/remembered-items-core'
   import { offlineStore } from '$lib/stores/offline.svelte'
 
   interface Props {
     onAdd: (name: string, quantity: number) => void
+    onQueryChange?: (query: string) => void
+    onSuggestionSelect?: (suggestion: RememberedItem) => void
     onDetected?: (ean: string) => void
     onManualSubmit?: (ean: string) => void
     resumeBarcodeFlow?: 'scanner' | 'manual' | null
+    suggestions?: RememberedItem[]
     onResumeHandled?: () => void
   }
 
   let {
     onAdd,
+    onQueryChange = () => {},
+    onSuggestionSelect = () => {},
     onDetected = () => {},
     onManualSubmit = () => {},
     resumeBarcodeFlow = null,
+    suggestions = [],
     onResumeHandled = () => {},
   }: Props = $props()
 
@@ -25,6 +32,7 @@
   let barcodeFlow = $state<'scanner' | 'manual' | null>(null)
   let cameraSupported = $state(false)
   let isOnline = $derived(offlineStore.isOnline)
+  const visibleSuggestions = $derived(isOnline && name.trim().length > 0 ? suggestions : [])
   const offlineLabel = 'Legg til krever nett'
 
   $effect(() => {
@@ -62,6 +70,12 @@
     })
   })
 
+  function resetInput() {
+    name = ''
+    quantity = 1
+    onQueryChange('')
+  }
+
   function handleSubmit() {
     if (!isOnline) return
 
@@ -71,9 +85,21 @@
     nameInput.focus()
 
     onAdd(trimmed, quantity)
+    resetInput()
+  }
 
-    name = ''
-    quantity = 1
+  function handleInput(event: Event) {
+    const nextValue = (event.currentTarget as HTMLInputElement).value
+    name = nextValue
+    onQueryChange(nextValue)
+  }
+
+  function handleSuggestionClick(suggestion: RememberedItem) {
+    if (!isOnline) return
+
+    nameInput.focus()
+    onSuggestionSelect(suggestion)
+    resetInput()
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -123,18 +149,23 @@
 </script>
 
 <div class="fixed inset-x-0 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-30 px-3">
-  <div class="mx-auto max-w-lg rounded-[1.5rem] border border-gray-200 bg-white/95 px-3 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.12)] backdrop-blur">
+  <div
+    class="mx-auto max-w-lg rounded-[1.5rem] border border-gray-200 bg-white/95 px-3 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.12)] backdrop-blur"
+    data-testid="add-bar-shell"
+  >
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
       <div class="flex min-w-0 flex-1 items-center gap-2">
         <input
           bind:this={nameInput}
-          bind:value={name}
           type="text"
+          value={name}
           placeholder="Legg til vare…"
           class="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
           disabled={!isOnline}
           title={!isOnline ? offlineLabel : undefined}
           aria-label={!isOnline ? offlineLabel : 'Legg til vare'}
+          data-testid="add-item-input"
+          oninput={handleInput}
           onkeydown={handleKeydown}
         />
         <div
@@ -194,6 +225,37 @@
         </button>
       </div>
     </div>
+
+    {#if visibleSuggestions.length > 0}
+      <div
+        class="mt-3 overflow-hidden rounded-2xl border border-gray-200 bg-white"
+        data-testid="remembered-suggestions"
+      >
+        <div class="border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+          Nylig brukt i husstanden
+        </div>
+        <div class="max-h-60 overflow-y-auto">
+          {#each visibleSuggestions as suggestion (suggestion.normalizedName)}
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-3 border-b border-gray-100 px-3 py-3 text-left last:border-b-0 hover:bg-green-50"
+              data-testid="remembered-suggestion-row"
+              onclick={() => handleSuggestionClick(suggestion)}
+            >
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-medium text-gray-900">{suggestion.itemName}</span>
+                <span class="block text-xs text-gray-500">
+                  {suggestion.useCount} tidligere {suggestion.useCount === 1 ? 'gang' : 'ganger'}
+                </span>
+              </span>
+              <span class="shrink-0 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                Hurtiglegg til
+              </span>
+            </button>
+          {/each}
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
 
