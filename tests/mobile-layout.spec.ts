@@ -86,4 +86,30 @@ test.describe('mobile layout hardening', () => {
       await deleteTestUser(user.id)
     }
   })
+
+  test('visible row stepper stays inside the phone viewport without horizontal overflow', async ({ page }) => {
+    const email = `mobile-layout-stepper-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      const list = await createTestList(household.id, 'Mobilsteg')
+      await createTestItem(list.id, 'Ekstra lang vare for smal skjerm', 3, null)
+
+      await loginAndOpenList(page, email, password, list.id)
+
+      const row = page.getByRole('checkbox', { name: /Ekstra lang vare/ }).first()
+      const stepper = row.getByTestId('item-stepper')
+      await expect(stepper).toBeVisible()
+      await expect(stepper.getByTestId('item-quantity')).toHaveText('3')
+      await expectNoHorizontalOverflow(page)
+
+      const box = await stepper.boundingBox()
+      if (!box) throw new Error('Expected item stepper bounding box')
+
+      expect(box.x + box.width).toBeLessThanOrEqual(390)
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
 })

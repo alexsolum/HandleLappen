@@ -4,7 +4,7 @@
   import { offlineStore } from '$lib/stores/offline.svelte'
 
   interface Props {
-    onAdd: (name: string, quantity: number | null) => void
+    onAdd: (name: string, quantity: number) => void
     onDetected?: (ean: string) => void
     onManualSubmit?: (ean: string) => void
     resumeBarcodeFlow?: 'scanner' | 'manual' | null
@@ -20,7 +20,7 @@
   }: Props = $props()
 
   let name = $state('')
-  let quantity = $state('')
+  let quantity = $state(1)
   let nameInput: HTMLInputElement
   let barcodeFlow = $state<'scanner' | 'manual' | null>(null)
   let cameraSupported = $state(false)
@@ -70,11 +70,10 @@
 
     nameInput.focus()
 
-    const qty = quantity !== '' ? parseInt(quantity, 10) : null
-    onAdd(trimmed, isNaN(qty as number) ? null : qty)
+    onAdd(trimmed, quantity)
 
     name = ''
-    quantity = ''
+    quantity = 1
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -113,6 +112,14 @@
     closeBarcodeFlow()
     onManualSubmit(ean)
   }
+
+  function incrementQuantity() {
+    quantity += 1
+  }
+
+  function decrementQuantity() {
+    quantity = Math.max(1, quantity - 1)
+  }
 </script>
 
 <div class="fixed inset-x-0 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-30 px-3">
@@ -130,17 +137,40 @@
           aria-label={!isOnline ? offlineLabel : 'Legg til vare'}
           onkeydown={handleKeydown}
         />
-        <input
-          bind:value={quantity}
-          type="number"
-          min="1"
-          placeholder="Antall"
-          class="w-24 rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-          disabled={!isOnline}
-          title={!isOnline ? offlineLabel : undefined}
-          aria-label={!isOnline ? offlineLabel : 'Antall'}
-          onkeydown={handleKeydown}
-        />
+        <div
+          class="flex items-center gap-1 rounded-xl border border-gray-300 bg-white p-1 disabled:cursor-not-allowed disabled:bg-gray-100"
+          data-testid="add-quantity-stepper"
+        >
+          <button
+            type="button"
+            class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300"
+            aria-label={!isOnline ? offlineLabel : 'Reduser antall'}
+            data-testid="add-decrement"
+            onclick={decrementQuantity}
+            disabled={!isOnline}
+            title={!isOnline ? offlineLabel : undefined}
+          >
+            -
+          </button>
+          <span
+            class="min-w-8 text-center text-sm font-semibold text-gray-900 disabled:text-gray-400"
+            aria-label={!isOnline ? offlineLabel : 'Antall'}
+            data-testid="add-quantity"
+          >
+            {quantity}
+          </span>
+          <button
+            type="button"
+            class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-semibold text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300"
+            aria-label={!isOnline ? offlineLabel : 'Øk antall'}
+            data-testid="add-increment"
+            onclick={incrementQuantity}
+            disabled={!isOnline}
+            title={!isOnline ? offlineLabel : undefined}
+          >
+            +
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center gap-2 sm:flex-none">

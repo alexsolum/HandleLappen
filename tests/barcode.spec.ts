@@ -263,12 +263,15 @@ test.describe('barcode lookup flow', () => {
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.getByRole('heading', { name: 'Bekreft vare' })).toBeVisible()
       await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max 1,5 L')
+      await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
       await expect(dialog.locator('select')).toHaveValue(/.+/)
 
       await dialog.getByRole('button', { name: 'Legg til vare' }).click()
 
       await expect(page.locator('dialog[open]')).toHaveCount(0)
-      await expect(page.locator('text=Pepsi Max 1,5 L')).toBeVisible()
+      const row = page.getByRole('checkbox', { name: /Pepsi Max 1,5 L/ }).first()
+      await expect(row).toBeVisible()
+      await expect(row.getByTestId('item-quantity')).toHaveText('1')
 
       expect(requestLog).toHaveLength(1)
       expect(requestLog[0].url).toContain('/functions/v1/barcode-lookup')
@@ -305,15 +308,18 @@ test.describe('barcode lookup flow', () => {
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.getByRole('heading', { name: 'Bekreft vare' })).toBeVisible()
       await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max')
+      await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
       await expect(dialog.getByText(/Open Food Facts/i)).toHaveCount(0)
       await expect(dialog.getByText(/Kassal/i)).toHaveCount(0)
 
       await dialog.getByRole('button', { name: 'Legg til vare' }).click()
 
-      await expect(page.locator('text=Pepsi Max')).toBeVisible()
+      const row = page.getByRole('checkbox', { name: /Pepsi Max/ }).first()
+      await expect(row).toBeVisible()
+      await expect(row.getByTestId('item-quantity')).toHaveText('1')
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
-          hasText: 'Drikkevarer',
+          hasText: /Drikkevarer|Drikke/,
         })
       ).toBeVisible()
     } finally {
@@ -351,13 +357,16 @@ test.describe('barcode lookup flow', () => {
 
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max uten sukker 1,5 L')
+      await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
 
       await dialog.getByRole('button', { name: 'Legg til vare' }).click()
 
-      await expect(page.locator('text=Pepsi Max uten sukker 1,5 L')).toBeVisible()
+      const row = page.getByRole('checkbox', { name: /Pepsi Max uten sukker 1,5 L/ }).first()
+      await expect(row).toBeVisible()
+      await expect(row.getByTestId('item-quantity')).toHaveText('1')
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
-          hasText: 'Drikkevarer',
+          hasText: /Drikkevarer|Drikke/,
         })
       ).toBeVisible()
     } finally {

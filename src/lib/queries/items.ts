@@ -67,7 +67,7 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
     mutationFn: async ({ name, quantity }) => {
       const { data, error } = await supabase
         .from('list_items')
-        .insert({ list_id: listId, name, quantity: quantity ?? null })
+        .insert({ list_id: listId, name, quantity: quantity ?? 1 })
         .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
         .single()
       if (error) throw error
@@ -82,7 +82,7 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
           id: crypto.randomUUID(),
           list_id: listId,
           name,
-          quantity: quantity ?? null,
+          quantity: quantity ?? 1,
           is_checked: false,
           checked_at: null,
           sort_order: 0,

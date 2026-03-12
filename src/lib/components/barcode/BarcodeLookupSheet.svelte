@@ -37,10 +37,10 @@
   }
 
   function parseQuantity(value: string) {
-    if (!value) return null
+    if (!value) return 1
 
     const parsed = Number.parseInt(value, 10)
-    return Number.isNaN(parsed) ? null : parsed
+    return Number.isNaN(parsed) ? 1 : Math.max(parsed, 1)
   }
 
   function handleCategoryChange(event: Event) {
@@ -151,6 +151,7 @@
                 bind:value={draftQuantity}
                 type="number"
                 min="1"
+                data-testid="barcode-quantity-input"
                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </label>

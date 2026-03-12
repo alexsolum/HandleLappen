@@ -48,6 +48,27 @@ test.describe('items', () => {
     }
   })
 
+  test('button submit also uses visible default quantity one', async ({ page }) => {
+    const email = `items-button-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+    const list = await createTestList(household.id, 'Knappeliste')
+
+    try {
+      await loginAndOpenList(page, email, password, list.id)
+      await expect(page.getByTestId('add-quantity')).toHaveText('1')
+
+      await page.fill('input[placeholder="Legg til vare…"]', 'Banan')
+      await page.getByRole('button', { name: 'Legg til' }).click()
+      await dismissCategoryPicker(page)
+
+      await expect(page.getByRole('checkbox', { name: /Banan/ }).getByTestId('item-quantity')).toHaveText('1')
+      await expect(page.getByTestId('add-quantity')).toHaveText('1')
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+
   test('check off moves the row to the Handlet section', async ({ page }) => {
     const email = `items-check-${Date.now()}@test.example`
     const password = 'password123'
