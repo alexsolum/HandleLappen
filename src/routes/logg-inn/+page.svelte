@@ -8,6 +8,12 @@
   let password = $state('')
   let error = $state<string | null>(null)
   let loading = $state(false)
+  let oauthLoading = $state(false)
+
+  function getNextPath() {
+    const next = new URLSearchParams(window.location.search).get('next')
+    return next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+  }
 
   async function handleSignIn() {
     loading = true
@@ -32,10 +38,22 @@
   }
 
   async function handleGoogleSignIn() {
-    await data.supabase.auth.signInWithOAuth({
+    oauthLoading = true
+    error = null
+
+    const redirectTo = new URL('/auth/callback', window.location.origin)
+    redirectTo.searchParams.set('next', getNextPath())
+
+    const { error: authError } = await data.supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: redirectTo.toString() },
     })
+
+    oauthLoading = false
+
+    if (authError) {
+      error = 'Kunne ikke starte Google-innlogging. Prøv igjen.'
+    }
   }
 </script>
 
@@ -71,8 +89,8 @@
         <div class="relative flex justify-center text-xs text-gray-400"><span class="bg-white px-2">eller</span></div>
       </div>
 
-      <Button variant="outline" onclick={handleGoogleSignIn} class="w-full">
-        Fortsett med Google
+      <Button variant="outline" onclick={handleGoogleSignIn} disabled={oauthLoading} class="w-full">
+        {oauthLoading ? 'Sender deg til Google…' : 'Fortsett med Google'}
       </Button>
     </div>
 
