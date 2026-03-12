@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability (completed 2026-03-12)
 - [x] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit (completed 2026-03-12)
 - [x] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed (completed 2026-03-12)
-- [ ] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state
+- [x] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state (completed 2026-03-12)
 - [ ] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry
 
 ## Phase Details
@@ -190,8 +190,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Add inline quantity controls and optimistic quantity mutations to the list UI
-- [ ] 10-02-PLAN.md — Normalize item-creation paths so new items always persist with quantity `1` by default and verify the behavior
+- [x] 10-01-PLAN.md — Add inline quantity controls and optimistic quantity mutations to the list UI
+- [x] 10-02-PLAN.md — Normalize item-creation paths so new items always persist with quantity `1` by default and verify the behavior
 
 ### Phase 11: Household Item Memory and Suggestions
 **Goal**: Recurring household items become fast to re-add through typeahead suggestions that remember prior category choices
@@ -227,6 +227,6 @@ Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases.
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
 | 8. Traceability Reconciliation and Milestone Re-Audit | 2/2 | Complete | 2026-03-12 |
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
-| 10. Inline Quantity Controls | 0/2 | Planned | - |
+| 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 0/3 | Planned | - |
 
