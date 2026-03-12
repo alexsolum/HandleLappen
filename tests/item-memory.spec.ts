@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { createHouseholdUser, deleteTestUser } from './helpers/auth'
 import { createTestCategory, deleteTestCategory } from './helpers/categories'
-import { createTestList } from './helpers/lists'
+import { createTestItem, createTestList } from './helpers/lists'
 import { createAuthenticatedTestClient, clearRememberedItems, seedRememberedItem } from './helpers/remembered-items'
 
 async function searchRememberedItems(query: string, client: Awaited<ReturnType<typeof createAuthenticatedTestClient>>) {
@@ -229,6 +229,86 @@ test.describe('remembered item memory', () => {
         await deleteTestCategory(categoryId)
       }
       await deleteTestUser(user.id)
+    }
+  })
+
+  test('remembered add reuses the most recent category and keeps quantity at one', async ({ page }) => {
+    const password = 'password123'
+    const email = `remembered-items-latest-category-${Date.now()}@test.example`
+    const { user, household } = await createHouseholdUser(email, password)
+    let olderCategoryId: string | null = null
+    let latestCategoryId: string | null = null
+
+    try {
+      const list = await createTestList(household.id, 'Kategoriliste')
+      const olderList = await createTestList(household.id, 'Tidligere liste')
+      olderCategoryId = (await createTestCategory(household.id, 'Meieri', 10)).id
+      latestCategoryId = (await createTestCategory(household.id, 'Drikke', 20)).id
+
+      await createTestItem(olderList.id, 'Melk', 1, olderCategoryId)
+      await createTestItem(list.id, 'Melk', 1, latestCategoryId)
+
+      await loginAndOpenList(page, email, password, list.id)
+      await page.getByTestId('add-item-input').fill('m')
+      await page.getByTestId('remembered-suggestion-row').first().click()
+
+      const melkRows = page.getByRole('checkbox', { name: /Melk/ })
+      await expect(melkRows).toHaveCount(2)
+      await expect(page.getByText('Drikke')).toBeVisible()
+      await expect(melkRows.last().getByTestId('item-quantity')).toHaveText('1')
+      await expect(page.locator('dialog[open]')).toHaveCount(0)
+    } finally {
+      await clearRememberedItems(household.id)
+      if (olderCategoryId) {
+        await deleteTestCategory(olderCategoryId)
+      }
+      if (latestCategoryId) {
+        await deleteTestCategory(latestCategoryId)
+      }
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('stale remembered category falls back to the existing picker flow', async ({ page }) => {
+    const password = 'password123'
+    const primaryEmail = `remembered-items-stale-${Date.now()}@test.example`
+    const secondaryEmail = `remembered-items-stale-other-${Date.now()}@test.example`
+    const { user: primaryUser, household: primaryHousehold } = await createHouseholdUser(primaryEmail, password)
+    const { user: secondaryUser, household: secondaryHousehold } = await createHouseholdUser(
+      secondaryEmail,
+      password
+    )
+    let foreignCategoryId: string | null = null
+    let localCategoryId: string | null = null
+
+    try {
+      const list = await createTestList(primaryHousehold.id, 'Fallbackliste')
+      localCategoryId = (await createTestCategory(primaryHousehold.id, 'Lokal kategori', 10)).id
+      foreignCategoryId = (await createTestCategory(secondaryHousehold.id, 'Fremmed kategori', 10)).id
+
+      await seedRememberedItem({
+        householdId: primaryHousehold.id,
+        name: 'Melk',
+        categoryId: foreignCategoryId,
+        useCount: 2,
+        lastUsedAt: '2026-03-12T09:00:00.000Z',
+      })
+
+      await loginAndOpenList(page, primaryEmail, password, list.id)
+      await page.getByTestId('add-item-input').fill('m')
+      await page.getByTestId('remembered-suggestion-row').first().click()
+
+      await expect(page.locator('dialog[open]')).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Velg kategori' })).toBeVisible()
+    } finally {
+      await clearRememberedItems(primaryHousehold.id)
+      if (localCategoryId) {
+        await deleteTestCategory(localCategoryId)
+      }
+      if (foreignCategoryId) {
+        await deleteTestCategory(foreignCategoryId)
+      }
+      await Promise.all([deleteTestUser(primaryUser.id), deleteTestUser(secondaryUser.id)])
     }
   })
 })

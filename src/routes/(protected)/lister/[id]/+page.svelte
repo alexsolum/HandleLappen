@@ -170,16 +170,21 @@
 
   function handleRememberedSuggestionSelect(suggestion: RememberedItem) {
     rememberedQueryText = ''
+    const rememberedCategoryStillValid =
+      suggestion.lastCategoryId != null &&
+      ((categoriesQuery.data?.length ?? 0) === 0 ||
+        (categoriesQuery.data ?? []).some((category) => category.id === suggestion.lastCategoryId))
+    const categoryId = rememberedCategoryStillValid ? suggestion.lastCategoryId : null
 
     addItemMutation.mutate(
       {
         name: suggestion.itemName,
         quantity: 1,
-        categoryId: suggestion.lastCategoryId,
+        categoryId,
       },
       {
         onSuccess: (newItem) => {
-          if (suggestion.lastCategoryId == null) {
+          if (categoryId == null) {
             pendingCategoryItem = { id: newItem.id, name: newItem.name }
           }
         },
