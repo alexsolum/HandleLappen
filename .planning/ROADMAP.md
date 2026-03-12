@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions (completed 2026-03-12)
 - [x] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability (completed 2026-03-12)
 - [x] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit (completed 2026-03-12)
-- [ ] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed
+- [x] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed (completed 2026-03-12)
 - [ ] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state
 - [ ] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry
 
@@ -175,9 +175,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Audit and fix viewport overflow sources, modal widths, and container constraints for signed-in mobile screens
-- [ ] 09-02-PLAN.md — Rework bottom navigation sizing, safe-area spacing, and fixed positioning for mobile/PWA use
-- [ ] 09-03-PLAN.md — Add focused mobile viewport verification for dialogs, horizontal overflow, and fixed-nav behavior
+- [x] 09-01-PLAN.md — Audit and fix viewport overflow sources, modal widths, and container constraints for signed-in mobile screens
+- [x] 09-02-PLAN.md — Rework bottom navigation sizing, safe-area spacing, and fixed positioning for mobile/PWA use
+- [x] 09-03-PLAN.md — Add focused mobile viewport verification for dialogs, horizontal overflow, and fixed-nav behavior
 
 ### Phase 10: Inline Quantity Controls
 **Goal**: Users can adjust quantities quickly from the shopping list itself, and newly added items always start from a predictable quantity of `1`
@@ -226,7 +226,7 @@ Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases.
 | 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
 | 8. Traceability Reconciliation and Milestone Re-Audit | 2/2 | Complete | 2026-03-12 |
-| 9. Mobile Layout Hardening | 0/3 | Planned | - |
+| 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 0/2 | Planned | - |
 | 11. Household Item Memory and Suggestions | 0/3 | Planned | - |
 
