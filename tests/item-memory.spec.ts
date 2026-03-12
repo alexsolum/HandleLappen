@@ -222,6 +222,7 @@ test.describe('remembered item memory', () => {
 
       await expect(page.getByRole('checkbox', { name: /Melk/ }).first()).toBeVisible()
       await expect(page.locator('dialog[open]')).toHaveCount(0)
+      await expect(page.getByTestId('remembered-suggestions')).toHaveCount(0)
       await expect(page.getByText('Meieri')).toBeVisible()
     } finally {
       await clearRememberedItems(household.id)
@@ -254,6 +255,7 @@ test.describe('remembered item memory', () => {
 
       const melkRows = page.getByRole('checkbox', { name: /Melk/ })
       await expect(melkRows).toHaveCount(2)
+      await expect(page.getByTestId('remembered-suggestions')).toHaveCount(0)
       await expect(page.getByText('Drikke')).toBeVisible()
       await expect(melkRows.last().getByTestId('item-quantity')).toHaveText('1')
       await expect(page.locator('dialog[open]')).toHaveCount(0)
@@ -299,6 +301,7 @@ test.describe('remembered item memory', () => {
       await page.getByTestId('remembered-suggestion-row').first().click()
 
       await expect(page.locator('dialog[open]')).toBeVisible()
+      await expect(page.getByTestId('remembered-suggestions')).toHaveCount(0)
       await expect(page.getByRole('heading', { name: 'Velg kategori' })).toBeVisible()
     } finally {
       await clearRememberedItems(primaryHousehold.id)
