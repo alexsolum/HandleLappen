@@ -13,10 +13,12 @@
     items: Item[]
     onToggle: (id: string, checked: boolean) => void
     onDelete: (id: string) => void
+    onIncrement: (item: Item) => void
+    onDecrement: (item: Item) => void
     onLongPress: (item: Item) => void
   }
 
-  let { categoryName, items, onToggle, onDelete, onLongPress }: Props = $props()
+  let { categoryName, items, onToggle, onDelete, onIncrement, onDecrement, onLongPress }: Props = $props()
 
   void onLongPress
 </script>
@@ -30,6 +32,8 @@
     {item}
     onToggle={() => onToggle(item.id, !item.is_checked)}
     onDelete={() => onDelete(item.id)}
+    onIncrement={() => onIncrement(item)}
+    onDecrement={() => onDecrement(item)}
     onLongPress={() => onLongPress(item)}
   />
 {/each}

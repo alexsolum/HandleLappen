@@ -3,6 +3,7 @@
     createItemsQuery,
     createAddItemMutation,
     createDeleteItemMutation,
+    createChangeQuantityMutation,
     createCheckOffMutation,
     createAssignCategoryMutation,
     createUpdateItemMutation,
@@ -73,6 +74,7 @@
   const storesQuery = createStoresQuery(data.supabase, data.householdId)
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)
+  const changeQuantityMutation = createChangeQuantityMutation(data.supabase, data.listId)
   const checkOffMutation = createCheckOffMutation(data.supabase, data.listId, data.user.id)
   const assignCategoryMutation = createAssignCategoryMutation(data.supabase, data.listId)
   const updateItemMutation = createUpdateItemMutation(data.supabase, data.listId)
@@ -167,6 +169,22 @@
 
   function handleDelete(itemId: string) {
     deleteItemMutation.mutate({ id: itemId })
+  }
+
+  function handleIncrement(item: Item) {
+    changeQuantityMutation.mutate({
+      id: item.id,
+      currentQuantity: item.quantity,
+      delta: 1,
+    })
+  }
+
+  function handleDecrement(item: Item) {
+    changeQuantityMutation.mutate({
+      id: item.id,
+      currentQuantity: item.quantity,
+      delta: -1,
+    })
   }
 
   function handleGroupToggle(itemId: string, checked: boolean) {
@@ -290,6 +308,7 @@
   {#if
     addItemMutation.isError ||
     deleteItemMutation.isError ||
+    changeQuantityMutation.isError ||
     checkOffMutation.isError ||
     assignCategoryMutation.isError ||
     updateItemMutation.isError
@@ -327,6 +346,8 @@
             items={group.items}
             onToggle={handleGroupToggle}
             onDelete={handleDelete}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
             onLongPress={(item) => (detailSheetItem = item)}
           />
         {/each}

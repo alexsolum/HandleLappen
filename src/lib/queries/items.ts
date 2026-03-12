@@ -18,6 +18,11 @@ type Item = {
 type AddItemVariables = { name: string; quantity?: number | null }
 type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number }
 type DeleteItemVariables = { id: string }
+type ChangeQuantityVariables = {
+  id: string
+  currentQuantity: number | null
+  delta: 1 | -1
+}
 type ToggleItemVariables = {
   itemId: string
   isChecked: boolean
@@ -32,6 +37,7 @@ type AssignCategoryVariables = { itemId: string; categoryId: string | null }
 type UpdateItemVariables = { id: string; name: string; quantity: number | null }
 type MutationContext = { previous: Item[] | undefined }
 type AddOrIncrementResult = { action: 'added' | 'incremented'; itemId: string }
+type ChangeQuantityResult = { action: 'updated' | 'deleted'; quantity: number | null }
 
 export function itemsQueryKey(listId: string) {
   return ['items', listId]
@@ -159,6 +165,47 @@ export function createDeleteItemMutation(supabase: SupabaseClient, listId: strin
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<Item[]>(queryKey)
       queryClient.setQueryData<Item[]>(queryKey, (old = []) => old.filter((item) => item.id !== id))
+      return { previous }
+    },
+    onError: (_err: unknown, _vars: unknown, context: any) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  }))
+}
+
+export function createChangeQuantityMutation(supabase: SupabaseClient, listId: string) {
+  const queryClient = useQueryClient()
+  const queryKey = itemsQueryKey(listId)
+
+  return createMutation<ChangeQuantityResult, Error, ChangeQuantityVariables, MutationContext>(() => ({
+    mutationFn: async ({ id, currentQuantity, delta }) => {
+      const nextQuantity = Math.max((currentQuantity ?? 1) + delta, 0)
+
+      if (nextQuantity < 1) {
+        const { error } = await supabase.from('list_items').delete().eq('id', id)
+        if (error) throw error
+        return { action: 'deleted', quantity: null }
+      }
+
+      const { error } = await supabase.from('list_items').update({ quantity: nextQuantity }).eq('id', id)
+      if (error) throw error
+
+      return { action: 'updated', quantity: nextQuantity }
+    },
+    onMutate: async ({ id, currentQuantity, delta }) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<Item[]>(queryKey)
+      const nextQuantity = Math.max((currentQuantity ?? 1) + delta, 0)
+
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) => {
+        if (nextQuantity < 1) {
+          return old.filter((item) => item.id !== id)
+        }
+
+        return old.map((item) => (item.id === id ? { ...item, quantity: nextQuantity } : item))
+      })
+
       return { previous }
     },
     onError: (_err: unknown, _vars: unknown, context: any) => {
