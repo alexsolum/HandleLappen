@@ -58,71 +58,73 @@
 <dialog
   bind:this={dialogEl}
   onclick={handleBackdropClick}
-  class="fixed bottom-0 left-0 right-0 m-0 w-full max-w-none rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40"
+  class="fixed inset-0 m-0 h-dvh w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/40"
 >
-  <div class="mx-auto w-full max-w-lg rounded-t-2xl bg-white px-4 pb-6 pt-5">
-    <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-gray-900">Rediger vare</h2>
-      <button
-        type="button"
-        class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-        onclick={onClose}
-        aria-label="Lukk varedetaljer"
-      >
-        ✕
-      </button>
-    </div>
+  <div class="flex min-h-full items-end justify-center p-2 sm:p-4">
+    <div class="mx-auto flex max-h-[calc(100dvh-1rem)] w-[calc(100%-0.5rem)] max-w-lg flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-100 px-4 pb-4 pt-5">
+        <h2 class="text-lg font-semibold text-gray-900">Rediger vare</h2>
+        <button
+          type="button"
+          class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          onclick={onClose}
+          aria-label="Lukk varedetaljer"
+        >
+          ✕
+        </button>
+      </div>
 
-    <div class="space-y-4">
-      <label class="block space-y-2">
-        <span class="text-sm font-medium text-gray-700">Navn</span>
-        <input
-          bind:value={draftName}
-          type="text"
-          class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-        />
-      </label>
+      <div class="min-h-0 space-y-4 overflow-y-auto px-4 py-4">
+        <label class="block space-y-2">
+          <span class="text-sm font-medium text-gray-700">Navn</span>
+          <input
+            bind:value={draftName}
+            type="text"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          />
+        </label>
 
-      <label class="block space-y-2">
-        <span class="text-sm font-medium text-gray-700">Antall</span>
-        <input
-          bind:value={draftQuantity}
-          type="number"
-          min="1"
-          class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-        />
-      </label>
+        <label class="block space-y-2">
+          <span class="text-sm font-medium text-gray-700">Antall</span>
+          <input
+            bind:value={draftQuantity}
+            type="number"
+            min="1"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          />
+        </label>
 
-      <div class="space-y-2">
-        <span class="text-sm font-medium text-gray-700">Kategori</span>
-        <div class="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-2">
-          {#each categories as category (category.id)}
+        <div class="space-y-2">
+          <span class="text-sm font-medium text-gray-700">Kategori</span>
+          <div class="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-2">
+            {#each categories as category (category.id)}
+              <button
+                type="button"
+                class={`w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition ${
+                  draftCategoryId === category.id
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+                onclick={() => (draftCategoryId = category.id)}
+              >
+                {category.name}
+              </button>
+            {/each}
+
             <button
               type="button"
               class={`w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition ${
-                draftCategoryId === category.id
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                draftCategoryId == null ? 'bg-green-100 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
-              onclick={() => (draftCategoryId = category.id)}
+              onclick={() => (draftCategoryId = null)}
             >
-              {category.name}
+              Andre varer
             </button>
-          {/each}
-
-          <button
-            type="button"
-            class={`w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition ${
-              draftCategoryId == null ? 'bg-green-100 text-green-700' : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-            onclick={() => (draftCategoryId = null)}
-          >
-            Andre varer
-          </button>
+          </div>
         </div>
       </div>
 
-      <div class="flex gap-3 pt-2">
+      <div class="sticky bottom-0 flex gap-3 border-t border-gray-100 bg-white px-4 pb-4 pt-3" data-testid="sheet-actions">
         <button
           type="button"
           class="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"

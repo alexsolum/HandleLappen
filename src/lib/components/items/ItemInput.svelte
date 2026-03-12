@@ -68,8 +68,6 @@
     const trimmed = name.trim()
     if (!trimmed) return
 
-    // CRITICAL (Pitfall 6): focus SYNCHRONOUSLY before any async work
-    // to keep iOS keyboard open during rapid entry
     nameInput.focus()
 
     const qty = quantity !== '' ? parseInt(quantity, 10) : null
@@ -117,52 +115,54 @@
   }
 </script>
 
-<div class="fixed bottom-16 left-0 right-0 border-t border-gray-200 bg-white px-4 py-3 shadow-lg">
-  <div class="mx-auto flex max-w-lg flex-col gap-2 sm:flex-row sm:items-center">
-    <div class="flex min-w-0 flex-1 items-center gap-2">
-      <input
-        bind:this={nameInput}
-        bind:value={name}
-        type="text"
-        placeholder="Legg til vare…"
-        class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-        disabled={!isOnline}
-        title={!isOnline ? offlineLabel : undefined}
-        aria-label={!isOnline ? offlineLabel : 'Legg til vare'}
-        onkeydown={handleKeydown}
-      />
-      <input
-        bind:value={quantity}
-        type="number"
-        min="1"
-        placeholder="Antall"
-        class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-        disabled={!isOnline}
-        title={!isOnline ? offlineLabel : undefined}
-        aria-label={!isOnline ? offlineLabel : 'Antall'}
-        onkeydown={handleKeydown}
-      />
-    </div>
+<div class="fixed inset-x-0 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-30 px-3">
+  <div class="mx-auto max-w-lg rounded-[1.5rem] border border-gray-200 bg-white/95 px-3 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.12)] backdrop-blur">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div class="flex min-w-0 flex-1 items-center gap-2">
+        <input
+          bind:this={nameInput}
+          bind:value={name}
+          type="text"
+          placeholder="Legg til vare…"
+          class="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+          disabled={!isOnline}
+          title={!isOnline ? offlineLabel : undefined}
+          aria-label={!isOnline ? offlineLabel : 'Legg til vare'}
+          onkeydown={handleKeydown}
+        />
+        <input
+          bind:value={quantity}
+          type="number"
+          min="1"
+          placeholder="Antall"
+          class="w-24 rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+          disabled={!isOnline}
+          title={!isOnline ? offlineLabel : undefined}
+          aria-label={!isOnline ? offlineLabel : 'Antall'}
+          onkeydown={handleKeydown}
+        />
+      </div>
 
-    <div class="flex items-center gap-2 sm:flex-none">
-      <button
-        type="button"
-        onclick={openScanner}
-        class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 sm:flex-none"
-        disabled={!isOnline}
-        title={!isOnline ? offlineLabel : undefined}
-      >
-        Scan
-      </button>
-      <button
-        type="button"
-        onclick={handleSubmit}
-        class="flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 sm:flex-none"
-        disabled={!isOnline}
-        title={!isOnline ? offlineLabel : undefined}
-      >
-        Legg til
-      </button>
+      <div class="flex items-center gap-2 sm:flex-none">
+        <button
+          type="button"
+          onclick={openScanner}
+          class="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 sm:flex-none"
+          disabled={!isOnline}
+          title={!isOnline ? offlineLabel : undefined}
+        >
+          Scan
+        </button>
+        <button
+          type="button"
+          onclick={handleSubmit}
+          class="flex-1 rounded-xl bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 sm:flex-none"
+          disabled={!isOnline}
+          title={!isOnline ? offlineLabel : undefined}
+        >
+          Legg til
+        </button>
+      </div>
     </div>
   </div>
 </div>

@@ -90,17 +90,17 @@
 </script>
 
 <QueryClientProvider client={queryClient}>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen overflow-x-clip bg-gray-50">
     <header class="border-b border-gray-200 bg-white px-4 py-3">
       <div class="mx-auto flex max-w-5xl items-center gap-4">
         <a href="/" class="text-lg font-semibold text-green-700">HandleAppen</a>
       </div>
     </header>
 
-    <main class="pb-16">
+    <main class="overflow-x-clip pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {#if syncToast}
         <div
-          class="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full bg-gray-800 px-4 py-2 text-sm text-white shadow-lg"
+          class="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-gray-800 px-4 py-2 text-sm text-white shadow-lg"
           role="status"
           aria-live="polite"
           data-testid="sync-toast"

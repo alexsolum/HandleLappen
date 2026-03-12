@@ -163,60 +163,62 @@
 <dialog
   bind:this={dialogEl}
   onclick={handleBackdropClick}
-  class="fixed bottom-0 left-0 right-0 m-0 w-full max-w-none rounded-t-2xl border-0 p-0 shadow-2xl backdrop:bg-black/40"
+  class="fixed inset-0 m-0 h-dvh w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/40"
 >
-  <div class="mx-auto w-full max-w-lg rounded-t-2xl bg-white px-4 pb-6 pt-5">
-    <div class="mb-4 flex items-center justify-between">
-      <div>
-        <h2 class="text-lg font-semibold text-gray-900">Scan strekkode</h2>
-        <p class="mt-1 text-sm text-gray-500">{message}</p>
-      </div>
-      <button
-        type="button"
-        class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-        onclick={() => void handleClose()}
-        aria-label="Lukk skanner"
-      >
-        ✕
-      </button>
-    </div>
-
-    <div class="space-y-4">
-      <div
-        class="overflow-hidden rounded-2xl border border-gray-200 bg-gray-950"
-        data-testid="barcode-preview-shell"
-      >
-        <div
-          id={previewId}
-          data-testid="barcode-preview"
-          class="relative flex min-h-64 items-center justify-center bg-gray-950 text-center text-sm text-white"
+  <div class="flex min-h-full items-end justify-center p-2 sm:p-4">
+    <div class="mx-auto flex max-h-[calc(100dvh-1rem)] w-[calc(100%-0.5rem)] max-w-lg flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-100 px-4 pb-4 pt-5">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Scan strekkode</h2>
+          <p class="mt-1 text-sm text-gray-500">{message}</p>
+        </div>
+        <button
+          type="button"
+          class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          onclick={() => void handleClose()}
+          aria-label="Lukk skanner"
         >
-          {#if state === 'loading'}
-            <p class="px-6 text-gray-200">Starter kamera…</p>
-          {:else if state === 'scanning'}
-            <div class="w-full">
-              <div class="pointer-events-none absolute inset-4 rounded-2xl border-2 border-dashed border-white/70"></div>
-              <p class="absolute inset-x-0 bottom-4 text-xs text-white/80">
-                Vi stopper automatisk ved første gyldige barcode.
-              </p>
-            </div>
-          {:else if state === 'permission-denied'}
-            <div class="space-y-2 px-6 py-10">
-              <p class="font-medium text-white">Kameratilgang mangler</p>
-              <p class="text-sm text-gray-200">Gi tilgang i nettleseren og prøv igjen, eller bruk manuell EAN.</p>
-            </div>
-          {:else if state === 'camera-failure'}
-            <div class="space-y-2 px-6 py-10">
-              <p class="font-medium text-white">Kameraet kunne ikke startes</p>
-              <p class="text-sm text-gray-200">Dette kan skyldes manglende kamera eller at enheten allerede bruker det.</p>
-            </div>
-          {:else}
-            <p class="px-6 text-gray-200">Trykk på nytt for å starte skanneren.</p>
-          {/if}
+          ✕
+        </button>
+      </div>
+
+      <div class="min-h-0 space-y-4 overflow-y-auto px-4 py-4">
+        <div
+          class="overflow-hidden rounded-2xl border border-gray-200 bg-gray-950"
+          data-testid="barcode-preview-shell"
+        >
+          <div
+            id={previewId}
+            data-testid="barcode-preview"
+            class="relative flex min-h-64 items-center justify-center bg-gray-950 text-center text-sm text-white"
+          >
+            {#if state === 'loading'}
+              <p class="px-6 text-gray-200">Starter kamera…</p>
+            {:else if state === 'scanning'}
+              <div class="w-full">
+                <div class="pointer-events-none absolute inset-4 rounded-2xl border-2 border-dashed border-white/70"></div>
+                <p class="absolute inset-x-0 bottom-4 text-xs text-white/80">
+                  Vi stopper automatisk ved første gyldige barcode.
+                </p>
+              </div>
+            {:else if state === 'permission-denied'}
+              <div class="space-y-2 px-6 py-10">
+                <p class="font-medium text-white">Kameratilgang mangler</p>
+                <p class="text-sm text-gray-200">Gi tilgang i nettleseren og prøv igjen, eller bruk manuell EAN.</p>
+              </div>
+            {:else if state === 'camera-failure'}
+              <div class="space-y-2 px-6 py-10">
+                <p class="font-medium text-white">Kameraet kunne ikke startes</p>
+                <p class="text-sm text-gray-200">Dette kan skyldes manglende kamera eller at enheten allerede bruker det.</p>
+              </div>
+            {:else}
+              <p class="px-6 text-gray-200">Trykk på nytt for å starte skanneren.</p>
+            {/if}
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-2 sm:flex-row">
+      <div class="sticky bottom-0 flex flex-col gap-2 border-t border-gray-100 bg-white px-4 pb-4 pt-3 sm:flex-row" data-testid="sheet-actions">
         {#if state === 'permission-denied' || state === 'camera-failure'}
           <button
             type="button"
