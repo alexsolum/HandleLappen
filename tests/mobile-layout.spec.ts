@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { createHouseholdUser, deleteTestUser } from './helpers/auth'
 import { createTestItem, createTestList } from './helpers/lists'
+import { clearRememberedItems, seedRememberedItem } from './helpers/remembered-items'
 
 test.use({
   viewport: { width: 390, height: 844 },
@@ -109,6 +110,58 @@ test.describe('mobile layout hardening', () => {
 
       expect(box.x + box.width).toBeLessThanOrEqual(390)
     } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('remembered suggestions stay inside the add-bar shell on a phone viewport', async ({ page }) => {
+    const email = `mobile-layout-remembered-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+
+    try {
+      const list = await createTestList(household.id, 'Mobilforslag')
+      await Promise.all([
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melk',
+          useCount: 4,
+          lastUsedAt: '2026-03-12T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melon',
+          useCount: 3,
+          lastUsedAt: '2026-03-11T09:00:00.000Z',
+        }),
+        seedRememberedItem({
+          householdId: household.id,
+          name: 'Melkesjokolade',
+          useCount: 2,
+          lastUsedAt: '2026-03-10T09:00:00.000Z',
+        }),
+      ])
+
+      await loginAndOpenList(page, email, password, list.id)
+      await page.getByTestId('add-item-input').fill('m')
+
+      const shell = page.getByTestId('add-bar-shell')
+      const dropdown = page.getByTestId('remembered-suggestions')
+      await expect(dropdown).toBeVisible()
+      await expectNoHorizontalOverflow(page)
+
+      const shellBox = await shell.boundingBox()
+      const dropdownBox = await dropdown.boundingBox()
+
+      if (!shellBox || !dropdownBox) {
+        throw new Error('Expected add-bar shell and remembered dropdown bounding boxes')
+      }
+
+      expect(dropdownBox.x).toBeGreaterThanOrEqual(shellBox.x)
+      expect(dropdownBox.x + dropdownBox.width).toBeLessThanOrEqual(shellBox.x + shellBox.width)
+      expect(dropdownBox.y + dropdownBox.height).toBeLessThanOrEqual(844)
+    } finally {
+      await clearRememberedItems(household.id)
       await deleteTestUser(user.id)
     }
   })

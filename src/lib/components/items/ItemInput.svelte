@@ -234,7 +234,7 @@
         <div class="border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
           Nylig brukt i husstanden
         </div>
-        <div class="max-h-60 overflow-y-auto">
+        <div class="max-h-[min(15rem,40vh)] overflow-y-auto overscroll-contain">
           {#each visibleSuggestions as suggestion (suggestion.normalizedName)}
             <button
               type="button"
