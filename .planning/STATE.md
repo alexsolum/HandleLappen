@@ -5,7 +5,7 @@ milestone_name: milestone
 status: completed
 stopped_at: v1.0 Final Audit Passed
 last_updated: "2026-03-12T10:05:00.000Z"
-last_activity: 2026-03-12 — Passed v1.0 final audit; milestone closed.
+last_activity: 2026-03-12 - Completed quick task 1: Add Google Auth using Supabase
 progress:
   total_phases: 8
   completed_phases: 8
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 Phase: 8 of 8 (Traceability Reconciliation and Milestone Re-Audit)
 Plan: 2 of 2 in current phase
 Status: Completed
-Last activity: 2026-03-12 — Passed v1.0 final audit; milestone closed.
+Last activity: 2026-03-12 - Completed quick task 1: Add Google Auth using Supabase
 
 Progress: [██████████] 100%
 
@@ -51,3 +51,9 @@ Progress: [██████████] 100%
 
 ### Blockers/Concerns
 - None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Add Google Auth using Supabase | 2026-03-12 | 6019636 | [1-add-google-auth-using-supabase](./quick/1-add-google-auth-using-supabase/) |
