@@ -62,7 +62,7 @@ test.describe('items', () => {
       await page.waitForLoadState('networkidle')
 
       // Tap item row to check off
-      await page.getByRole('button', { name: 'Brød' }).click()
+      await page.getByRole('checkbox', { name: /Brød/ }).click()
 
       // Item should appear in "Handlet" section header
       await expect(page.locator('text=Handlet (1)')).toBeVisible()
@@ -97,7 +97,7 @@ test.describe('items', () => {
       const historyWritePromise = page.waitForResponse(
         (res) => res.url().includes('item_history') && res.request().method() === 'POST'
       )
-      await page.getByRole('button', { name: 'Ost' }).click()
+      await page.getByRole('checkbox', { name: /Ost/ }).click()
       await historyWritePromise
 
       // Also confirm the UI shows the item as checked

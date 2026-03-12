@@ -35,26 +35,26 @@
 
 ### Barcode & Product Identification
 
-- [ ] **BARC-01**: User can open a camera view and scan a product barcode to add it to the list
-- [ ] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
-- [ ] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
-- [ ] **BARC-04**: Item name and category are auto-filled from the barcode scan result
+- [x] **BARC-01**: User can open a camera view and scan a product barcode to add it to the list
+- [x] **BARC-02**: App fetches product data from Kassal.app (Norwegian products) with Open Food Facts as fallback
+- [x] **BARC-03**: App passes product data to Gemini AI to identify the product name and category intelligently
+- [x] **BARC-04**: Item name and category are auto-filled from the barcode scan result
 
 ### History
 
 - [x] **HIST-01**: Every item checked off during shopping is logged to the database (item name, category, list, store, timestamp, who checked it off)
-- [ ] **HIST-02**: User can browse a history view showing past shopping sessions grouped by date and list
+- [x] **HIST-02**: User can browse a history view showing past shopping sessions grouped by date and list
 
 ### Recommendations
 
-- [ ] **RECD-01**: App recommends items the household frequently buys, based on purchase history (frequency-based, SQL-driven)
-- [ ] **RECD-02**: App recommends items frequently bought together with items already on the list (co-purchase patterns)
-- [ ] **RECD-03**: Recommendations are shown in a dedicated section accessible from the bottom navigation
+- [x] **RECD-01**: App recommends items the household frequently buys, based on purchase history (frequency-based, SQL-driven)
+- [x] **RECD-02**: App recommends items frequently bought together with items already on the list (co-purchase patterns)
+- [x] **RECD-03**: Recommendations are shown in a dedicated section accessible from the bottom navigation
 
 ### PWA
 
-- [ ] **PWAF-01**: App is installable on mobile home screen via browser "Add to Home Screen"
-- [ ] **PWAF-02**: App displays the last cached shopping list when the device is offline or has poor signal
+- [x] **PWAF-01**: App is installable on mobile home screen via browser "Add to Home Screen"
+- [x] **PWAF-02**: App displays the last cached shopping list when the device is offline or has poor signal
 
 ## v2 Requirements
 
@@ -111,16 +111,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CATG-03 | Phase 3 | Complete |
 | CATG-04 | Phase 3 | Complete |
 | CATG-05 | Phase 3 | Complete |
-| BARC-01 | Phase 7 | Pending |
-| BARC-02 | Phase 7 | Pending |
-| BARC-03 | Phase 7 | Pending |
-| BARC-04 | Phase 7 | Pending |
-| PWAF-01 | Phase 7 | Pending |
-| PWAF-02 | Phase 7 | Pending |
-| HIST-02 | Phase 7 | Pending |
-| RECD-01 | Phase 7 | Pending |
-| RECD-02 | Phase 7 | Pending |
-| RECD-03 | Phase 7 | Pending |
+| BARC-01 | Phase 4/7 | Complete |
+| BARC-02 | Phase 4/7 | Complete |
+| BARC-03 | Phase 4/7 | Complete |
+| BARC-04 | Phase 4/7 | Complete |
+| PWAF-01 | Phase 5/7 | Complete |
+| PWAF-02 | Phase 5/7 | Complete |
+| HIST-02 | Phase 6/7 | Complete |
+| RECD-01 | Phase 6/7 | Complete |
+| RECD-02 | Phase 6/7 | Complete |
+| RECD-03 | Phase 6/7 | Complete |
 
 **Coverage:**
 - v1 requirements: 27 total
@@ -131,7 +131,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - HIST-01 moved from Phase 5 to Phase 2: history logging must start when check-off is built to avoid cold-start data loss
 - HIST-02 separated from HIST-01: the history VIEW requires data to be useful; initially placed in Phase 6 alongside recommendations
 - PWAF-01 and PWAF-02 were originally moved from Phase 7 to Phase 5 so offline support could ship as a coherent product phase
-- After the milestone audit on 2026-03-12, BARC-01..04, PWAF-01..02, HIST-02, and RECD-01..03 were reassigned to Phase 7 for verification closure because the delivered late phases lacked formal `*-VERIFICATION.md` artifacts
+- After the milestone audit on 2026-03-12, BARC-01..04, PWAF-01..02, HIST-02, and RECD-01..03 were verified in Phase 7 to close traceability gaps.
+- Phase 8 (2026-03-12) reconciled all planning metadata and marked v1.0 as complete.
 
 ---
 *Requirements defined: 2026-03-08*

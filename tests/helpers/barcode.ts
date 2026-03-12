@@ -86,3 +86,17 @@ export function buildGeminiNormalizedResponse(
     ...overrides,
   }
 }
+
+export function buildOffFallbackNormalizedResponse(
+  overrides: Partial<BarcodeLookupDto> = {}
+): BarcodeLookupDto {
+  return {
+    ean: '7044610878304',
+    found: true,
+    itemName: 'Pepsi Max',
+    canonicalCategory: 'drikke',
+    confidence: 0.81,
+    source: 'open_food_facts+gemini',
+    ...overrides,
+  }
+}

@@ -15,11 +15,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Auth and Household Foundation** - Authenticated users in a household context; load-bearing RLS patterns established
 - [x] **Phase 2: Shopping Lists and Core Loop** - Create list, add item, check off, real-time sync; history logging starts here (completed 2026-03-10)
 - [x] **Phase 3: Store Layouts and Category Ordering** - Categories sorted by Norwegian store layout; per-store overrides (completed 2026-03-10)
-- [ ] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS
-- [ ] **Phase 5: PWA and Offline Support** - Installable PWA with offline mutation queue and conflict resolution
-- [ ] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions
-- [ ] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability
-- [ ] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit
+- [x] **Phase 4: Barcode Scanning** - Camera scan to add item via Edge Function proxy; WASM polyfill for iOS (completed 2026-03-11)
+- [x] **Phase 5: PWA and Offline Support** - Installable PWA with offline mutation queue and conflict resolution (completed 2026-03-12)
+- [x] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions (completed 2026-03-12)
+- [x] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability (completed 2026-03-12)
+- [x] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit (completed 2026-03-12)
 
 ## Phase Details
 
@@ -53,10 +53,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — DB migration (lists/list_items/item_history + RLS + realtime publication), TanStack Query setup in protected layout, Wave 0 test scaffolds
-- [ ] 02-02-PLAN.md — Lister home screen (list CRUD UI), BottomNav component, swipeLeft action, list query factories, logout relocated to Husstand tab
-- [ ] 02-03-PLAN.md — List detail view: item add/remove/check-off with optimistic mutations, DoneSection, item_history write on check-off (HIST-01)
-- [ ] 02-04-PLAN.md — Supabase Realtime subscriptions on list_items and lists tables, two-context Playwright sync test
+- [x] 02-01-PLAN.md — DB migration (lists/list_items/item_history + RLS + realtime publication), TanStack Query setup in protected layout, Wave 0 test scaffolds
+- [x] 02-02-PLAN.md — Lister home screen (list CRUD UI), BottomNav component, swipeLeft action, list query factories, logout relocated to Husstand tab
+- [x] 02-03-PLAN.md — List detail view: item add/remove/check-off with optimistic mutations, DoneSection, item_history write on check-off (HIST-01)
+- [x] 02-04-PLAN.md — Supabase Realtime subscriptions on list_items and lists tables, two-context Playwright sync test
 
 ### Phase 3: Store Layouts and Category Ordering
 **Goal**: Items in every shopping list are grouped by category and ordered the way a Norwegian grocery store is laid out — and any family member can create a per-store layout that overrides the default order
@@ -91,7 +91,7 @@ Plans:
 Plans:
 - [x] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
 - [x] 04-02: Barcode scanner UI component — iOS-safe scanner library/polyfill, rear-camera preference, explicit scan trigger, manual EAN fallback
-- [ ] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
+- [x] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
 
 ### Phase 5: PWA and Offline Support
 **Goal**: The app is installable on a mobile home screen and continues to work for core shopping actions when in-store connectivity is poor or absent — syncing queued changes when the connection returns
@@ -106,9 +106,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — `@vite-pwa/sveltekit` + injectManifest config, custom service-worker.ts (precache + Supabase NetworkFirst), PWA icons, SW registration in root layout, Wave 0 test stubs
-- [ ] 05-02-PLAN.md — IndexedDB queue (idb-keyval), offline.svelte.ts global store, checkOff mutation offline intercept, BottomNav offline badge, ItemInput disabled when offline
-- [ ] 05-03-PLAN.md — Queue drain on reconnect + next-open replay (Safari), success toast "Endringer synkronisert", monotone OR conflict resolution, full Playwright offline test suite
+- [x] 05-01-PLAN.md — `@vite-pwa/sveltekit` + injectManifest config, custom service-worker.ts (precache + Supabase NetworkFirst), PWA icons, SW registration in root layout, Wave 0 test stubs
+- [x] 05-02-PLAN.md — IndexedDB queue (idb-keyval), offline.svelte.ts global store, checkOff mutation offline intercept, BottomNav offline badge, ItemInput disabled when offline
+- [x] 05-03-PLAN.md — Queue drain on reconnect + next-open replay (Safari), success toast "Endringer synkronisert", monotone OR conflict resolution, full Playwright offline test suite
 
 ### Phase 6: History View and Recommendations
 **Goal**: Users can browse their household's shopping history and receive useful item suggestions derived from purchase frequency and co-purchase patterns — using real data that has been accumulating since Phase 2
@@ -123,9 +123,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: History view UI — query `item_history` grouped by date/list, per-member attribution, household-scoped RLS verified
-- [ ] 06-02: Frequency recommendations SQL (top items, last 90 days, per household), co-purchase SQL (JOIN on session time window), cold-start gate (min 10 sessions)
-- [ ] 06-03: Recommendations tab in bottom nav, add-to-list action from history/recommendations, end-to-end flow tested with seeded history data
+- [x] 06-01: History view UI — query `item_history` grouped by date/list, per-member attribution, household-scoped RLS verified
+- [x] 06-02: Frequency recommendations SQL (top items, last 90 days, per household), co-purchase SQL (JOIN on session time window), cold-start gate (min 10 sessions)
+- [x] 06-03: Recommendations tab in bottom nav, add-to-list action from history/recommendations, end-to-end flow tested with seeded history data
 
 ### Phase 7: Verification and Evidence Closure
 **Goal**: Restore the missing verification chain for the delivered late-phase work so barcode, offline/PWA, and history/recommendation requirements can pass milestone audit
@@ -140,9 +140,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Verify Phase 4 barcode delivery against code, tests, and any required manual checkpoints; write `04-VERIFICATION.md`
-- [ ] 07-02-PLAN.md — Verify Phase 5 PWA/offline delivery against code, tests, and UAT; write `05-VERIFICATION.md`
-- [ ] 07-03-PLAN.md — Verify Phase 6 history/recommendation delivery against code, tests, and UAT; write `06-VERIFICATION.md`
+- [x] 07-01-PLAN.md — Verify Phase 4 barcode delivery against code, tests, and any required manual checkpoints; write `04-VERIFICATION.md`
+- [x] 07-02-PLAN.md — Verify Phase 5 PWA/offline delivery against code, tests, and UAT; write `05-VERIFICATION.md`
+- [x] 07-03-PLAN.md — Verify Phase 6 history/recommendation delivery against code, tests, and UAT; write `06-VERIFICATION.md`
 
 ### Phase 8: Traceability Reconciliation and Milestone Re-Audit
 **Goal**: Bring central planning state back into sync with the delivered and newly verified milestone so v1.0 can pass audit cleanly
@@ -157,7 +157,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Reconcile roadmap progress and phase completion metadata after Phase 7 verification artifacts exist
+- [x] 08-01-PLAN.md — Reconcile roadmap progress and phase completion metadata after Phase 7 verification artifacts exist
 - [ ] 08-02-PLAN.md — Reconcile requirement traceability/checklists, rerun milestone audit, and record milestone closure readiness
 
 ## Progress
@@ -172,8 +172,9 @@ Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned pro
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
-| 4. Barcode Scanning | 2/3 | In Progress | - |
-| 5. PWA and Offline Support | 0/3 | Planned | - |
-| 6. History View and Recommendations | 0/3 | Not started | - |
-| 7. Verification and Evidence Closure | 0/3 | Planned | - |
-| 8. Traceability Reconciliation and Milestone Re-Audit | 0/2 | Planned | - |
+| 4. Barcode Scanning | 3/3 | Complete | 2026-03-11 |
+| 5. PWA and Offline Support | 3/3 | Complete | 2026-03-12 |
+| 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
+| 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
+| 8. Traceability Reconciliation and Milestone Re-Audit | 2/2 | Complete | 2026-03-12 |
+

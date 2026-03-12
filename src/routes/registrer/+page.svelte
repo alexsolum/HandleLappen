@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import { Button } from '$lib/components/ui/button'
   import { Input } from '$lib/components/ui/input'
 
@@ -33,11 +32,18 @@
 
     loading = false
     if (authError) {
+      if (
+        authError.message.includes('Failed to fetch') ||
+        authError.message.includes('fetch')
+      ) {
+        error = 'Kunne ikke koble til Supabase lokalt. Start Docker og kjør `npx supabase start`.'
+        return
+      }
       error = 'Kunne ikke opprette konto. Prøv igjen.'
       return
     }
 
-    goto('/velkommen')
+    window.location.href = '/velkommen'
   }
 
   async function handleGoogleSignIn() {

@@ -95,6 +95,9 @@ export type Database = {
           item_id: string | null
           item_name: string
           list_id: string
+          list_name: string | null
+          store_id: string | null
+          store_name: string | null
         }
         Insert: {
           checked_at?: string
@@ -103,6 +106,9 @@ export type Database = {
           item_id?: string | null
           item_name: string
           list_id: string
+          list_name?: string | null
+          store_id?: string | null
+          store_name?: string | null
         }
         Update: {
           checked_at?: string
@@ -111,6 +117,9 @@ export type Database = {
           item_id?: string | null
           item_name?: string
           list_id?: string
+          list_name?: string | null
+          store_id?: string | null
+          store_name?: string | null
         }
         Relationships: [
           {
@@ -125,6 +134,13 @@ export type Database = {
             columns: ["list_id"]
             isOneToOne: false
             referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_history_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -308,7 +324,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      copurchase_recommendations: {
+        Args: { p_limit?: number; p_list_id: string }
+        Returns: {
+          item_name: string
+          last_checked_at: string
+          paired_with: string | null
+          purchase_count: number
+        }[]
+      }
+      frequency_recommendations: {
+        Args: { p_limit?: number }
+        Returns: {
+          item_name: string
+          last_checked_at: string
+          purchase_count: number
+        }[]
+      }
       generate_invite_code: { Args: never; Returns: string }
+      history_session_count: { Args: never; Returns: number }
       my_household_id: { Args: never; Returns: string }
       seed_default_categories: {
         Args: { p_household_id: string }

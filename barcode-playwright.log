@@ -1,0 +1,11 @@
+[dotenv@17.3.1] injecting env (3) from .env.local -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+
+Running 4 tests using 1 worker
+
+[dotenv@17.3.1] injecting env (0) from .env.local -- tip: ⚙️  write to custom object with { processEnv: myObject }
+  ✓  1 tests\barcode.spec.ts:64:3 › barcode scanner entry › scan entry opens the sheet with live preview shell (4.2s)
+  ✓  2 tests\barcode.spec.ts:92:3 › barcode scanner entry › permission denied shows recovery state and manual fallback (3.6s)
+  ✓  3 tests\barcode.spec.ts:119:3 › barcode scanner entry › manual ean form validation works (3.6s)
+  ✓  4 tests\barcode.spec.ts:157:3 › barcode scanner entry › scan entry closes and reopens without duplicate preview state (3.3s)
+
+  4 passed (18.0s)

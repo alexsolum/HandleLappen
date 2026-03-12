@@ -30,6 +30,18 @@
   let removeVisibilityCleanup: (() => void) | null = null
   let removeRouteCleanup: (() => void) | null = null
 
+  function getMockMode() {
+    if (!browser) return null
+
+    const mock = (
+      window as Window & {
+        __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: { mode?: 'active' | 'permission-denied' }
+      }
+    ).__HANDLEAPPEN_BARCODE_SCANNER_MOCK__
+
+    return mock?.mode ?? null
+  }
+
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === dialogEl) {
       void handleClose()
@@ -59,6 +71,38 @@
     state = 'loading'
     message = 'Vi starter kameraet og ser etter strekkoden.'
     await teardownScanner()
+
+    if (getMockMode() === 'active') {
+      const handleMockDetected = async (event: Event) => {
+        const barcode = (event as CustomEvent<string>).detail
+        state = 'idle'
+        await onDetected(barcode)
+      }
+
+      window.addEventListener('handleappen:barcode-detected', handleMockDetected as EventListener)
+
+      session = {
+        scanner: {
+          isScanning: true,
+          stop: async () => {
+            window.removeEventListener('handleappen:barcode-detected', handleMockDetected as EventListener)
+          },
+          clear: async () => {
+            window.removeEventListener('handleappen:barcode-detected', handleMockDetected as EventListener)
+          },
+        },
+        elementId: previewId,
+        status: 'running',
+        stopped: false,
+        lastValue: null,
+      }
+
+      state = 'scanning'
+      message = 'Hold strekkoden rolig foran kameraet. Vi stopper ved første gyldige treff.'
+      removeVisibilityCleanup = bindVisibilityCleanup(() => teardownScanner())
+      removeRouteCleanup = createRouteCleanup(() => teardownScanner())
+      return
+    }
 
     try {
       session = await startScanner({

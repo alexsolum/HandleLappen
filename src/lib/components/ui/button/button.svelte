@@ -5,6 +5,7 @@
     variant = 'default',
     class: className = '',
     type = 'button',
+    onclick,
     children,
     ...rest
   }: HTMLButtonAttributes & { variant?: 'default' | 'outline' } = $props()
@@ -17,6 +18,6 @@
   }
 </script>
 
-<button type={type} class={`${base} ${variants[variant]} ${className}`} {...rest}>
+<button type={type} class={`${base} ${variants[variant]} ${className}`} onclick={onclick} {...rest}>
   {@render children?.()}
 </button>

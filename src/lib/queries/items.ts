@@ -1,7 +1,7 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { enqueue } from '$lib/offline/queue'
-import { refreshPendingCount } from '$lib/stores/offline.svelte'
+import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
 
 type Item = {
   id: string
@@ -16,11 +16,22 @@ type Item = {
 }
 
 type AddItemVariables = { name: string; quantity?: number | null }
+type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number }
 type DeleteItemVariables = { id: string }
-type ToggleItemVariables = { itemId: string; isChecked: boolean; itemName: string }
+type ToggleItemVariables = {
+  itemId: string
+  isChecked: boolean
+  itemName: string
+  historyContext?: {
+    listName?: string | null
+    storeId?: string | null
+    storeName?: string | null
+  }
+}
 type AssignCategoryVariables = { itemId: string; categoryId: string | null }
 type UpdateItemVariables = { id: string; name: string; quantity: number | null }
 type MutationContext = { previous: Item[] | undefined }
+type AddOrIncrementResult = { action: 'added' | 'incremented'; itemId: string }
 
 export function itemsQueryKey(listId: string) {
   return ['items', listId]
@@ -82,6 +93,59 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
   }))
 }
 
+export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
+  const queryClient = useQueryClient()
+
+  return createMutation<AddOrIncrementResult, Error, AddOrIncrementItemVariables>(() => ({
+    mutationFn: async ({ listId, name, amount = 1 }) => {
+      const trimmedName = name.trim()
+      const normalizedName = trimmedName.toLowerCase()
+
+      const { data: existingItems, error: existingError } = await supabase
+        .from('list_items')
+        .select('id, name, quantity, is_checked')
+        .eq('list_id', listId)
+
+      if (existingError) throw existingError
+
+      const matchingItems = (existingItems ?? []).filter(
+        (item) => item.name.trim().toLowerCase() === normalizedName
+      )
+      const existingItem = matchingItems.find((item) => !item.is_checked)
+
+      if (existingItem) {
+        const nextQuantity = (existingItem.quantity ?? 1) + amount
+        const { error: updateError } = await supabase
+          .from('list_items')
+          .update({ quantity: nextQuantity })
+          .eq('id', existingItem.id)
+
+        if (updateError) throw updateError
+
+        return { action: 'incremented', itemId: existingItem.id }
+      }
+
+      const { data: insertedItem, error: insertError } = await supabase
+        .from('list_items')
+        .insert({
+          list_id: listId,
+          name: trimmedName,
+          quantity: amount,
+        })
+        .select('id')
+        .single()
+
+      if (insertError) throw insertError
+
+      return { action: 'added', itemId: insertedItem.id }
+    },
+    onSettled: (_result, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: itemsQueryKey(variables.listId) })
+      queryClient.invalidateQueries({ queryKey: ['lists'] })
+    },
+  }))
+}
+
 export function createDeleteItemMutation(supabase: SupabaseClient, listId: string) {
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
@@ -108,51 +172,88 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
 
-  return createMutation<void, Error, ToggleItemVariables, MutationContext>(() => ({
-    mutationFn: async ({ itemId, isChecked, itemName }) => {
-      if (!navigator.onLine) {
-        const timestamp = new Date().toISOString()
+  async function enqueueToggle(itemId: string, isChecked: boolean, itemName: string) {
+    const timestamp = new Date().toISOString()
 
-        await enqueue({
-          id: itemId,
-          type: 'toggle',
-          payload: {
-            itemId,
-            listId,
-            isChecked,
-            itemName,
-            userId,
-            timestamp,
-          },
-          enqueuedAt: timestamp,
-        })
-        await refreshPendingCount()
-        return
+    await enqueue({
+      id: itemId,
+      type: 'toggle',
+      payload: {
+        itemId,
+        listId,
+        isChecked,
+        itemName,
+        userId,
+        timestamp,
+      },
+      enqueuedAt: timestamp,
+    })
+    await refreshPendingCount()
+  }
+
+  async function runOnlineToggle(
+    itemId: string,
+    isChecked: boolean,
+    itemName: string,
+    historyContext?: ToggleItemVariables['historyContext']
+  ) {
+    const timestamp = new Date().toISOString()
+
+    const { error: itemError } = await supabase
+      .from('list_items')
+      .update({
+        is_checked: isChecked,
+        checked_at: isChecked ? timestamp : null,
+      })
+      .eq('id', itemId)
+    if (itemError) throw itemError
+
+    if (isChecked) {
+      const { error: histError } = await supabase.from('item_history').insert({
+        list_id: listId,
+        item_id: itemId,
+        item_name: itemName,
+        checked_by: userId,
+        checked_at: timestamp,
+        list_name: historyContext?.listName ?? null,
+        store_id: historyContext?.storeId ?? null,
+        store_name: historyContext?.storeName ?? null,
+      })
+      if (histError) throw histError
+    }
+  }
+
+  async function runWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('offline-toggle-timeout')), timeoutMs)
+        }),
+      ])
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }
+
+  return createMutation<boolean, Error, ToggleItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ itemId, isChecked, itemName, historyContext }) => {
+      if (isOfflineMode()) {
+        await enqueueToggle(itemId, isChecked, itemName)
+        return true
       }
 
-      const timestamp = new Date().toISOString()
-
-      // Step 1: Toggle the item
-      const { error: itemError } = await supabase
-        .from('list_items')
-        .update({
-          is_checked: isChecked,
-          checked_at: isChecked ? timestamp : null,
-        })
-        .eq('id', itemId)
-      if (itemError) throw itemError
-
-      // Step 2: Write history row when checking off (HIST-01)
-      // checked_by is explicitly provided — do NOT rely on auth.uid() at DB level
-      if (isChecked) {
-        const { error: histError } = await supabase.from('item_history').insert({
-          list_id: listId,
-          item_id: itemId,
-          item_name: itemName,
-          checked_by: userId,
-          checked_at: timestamp,
-        })
-        if (histError) throw histError
+      try {
+        await runWithTimeout(runOnlineToggle(itemId, isChecked, itemName, historyContext), 5_000)
+        return false
+      } catch (error) {
+        void error
+        await enqueueToggle(itemId, isChecked, itemName)
+        return true
       }
     },
     onMutate: async ({ itemId, isChecked }) => {
@@ -170,8 +271,8 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: () => {
-      if (navigator.onLine) {
+    onSettled: (queued) => {
+      if (!queued && !isOfflineMode()) {
         queryClient.invalidateQueries({ queryKey })
       }
     },

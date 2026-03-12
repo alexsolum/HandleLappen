@@ -16,20 +16,58 @@ export type QueuedMutation = {
 }
 
 const QUEUE_KEY = 'offline-mutation-queue'
+const FALLBACK_QUEUE_KEY = 'handleappen-offline-mutation-queue'
+
+function readFallbackQueue(): QueuedMutation[] {
+	if (typeof window === 'undefined') return []
+
+	const raw = window.localStorage.getItem(FALLBACK_QUEUE_KEY)
+	if (!raw) return []
+
+	try {
+		return JSON.parse(raw) as QueuedMutation[]
+	} catch {
+		return []
+	}
+}
+
+function writeFallbackQueue(queue: QueuedMutation[]) {
+	if (typeof window === 'undefined') return
+	window.localStorage.setItem(FALLBACK_QUEUE_KEY, JSON.stringify(queue))
+}
+
+async function readQueue(): Promise<QueuedMutation[]> {
+	try {
+		return ((await get(QUEUE_KEY)) as QueuedMutation[] | undefined) ?? readFallbackQueue()
+	} catch {
+		return readFallbackQueue()
+	}
+}
+
+async function writeQueue(queue: QueuedMutation[]): Promise<void> {
+	try {
+		await set(QUEUE_KEY, queue)
+	} catch {
+		writeFallbackQueue(queue)
+		return
+	}
+
+	writeFallbackQueue(queue)
+}
 
 export async function enqueue(mutation: QueuedMutation): Promise<void> {
-	const existing = ((await get(QUEUE_KEY)) as QueuedMutation[] | undefined) ?? []
+	const existing = await readQueue()
 	const filtered = existing.filter((entry) => entry.id !== mutation.id)
 
-	await set(QUEUE_KEY, [...filtered, mutation])
+	await writeQueue([...filtered, mutation])
 }
 
 export async function getAll(): Promise<QueuedMutation[]> {
-	return ((await get(QUEUE_KEY)) as QueuedMutation[] | undefined) ?? []
+	return readQueue()
 }
 
 export async function clear(): Promise<void> {
-	await set(QUEUE_KEY, [])
+	await writeQueue([])
 }
 
 export async function replayMutation(

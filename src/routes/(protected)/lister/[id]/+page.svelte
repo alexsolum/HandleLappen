@@ -10,12 +10,19 @@
   } from '$lib/queries/items'
   import { createCategoriesQuery, createStoreLayoutQuery } from '$lib/queries/categories'
   import { createStoresQuery } from '$lib/queries/stores'
+  import {
+    createBarcodeLookupMutation,
+    resolveCanonicalCategoryId,
+    type BarcodeSheetModel,
+  } from '$lib/queries/barcode'
   import CategorySection from '$lib/components/items/CategorySection.svelte'
+  import BarcodeLookupSheet from '$lib/components/barcode/BarcodeLookupSheet.svelte'
   import CategoryPickerModal from '$lib/components/items/CategoryPickerModal.svelte'
   import ItemInput from '$lib/components/items/ItemInput.svelte'
   import ItemDetailSheet from '$lib/components/items/ItemDetailSheet.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
+  import { setActiveList } from '$lib/stores/active-list.svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { onDestroy } from 'svelte'
 
@@ -31,6 +38,10 @@
   let selectedStoreId = $state<string | null>(null)
   let pendingCategoryItem = $state<{ id: string; name: string } | null>(null)
   let detailSheetItem = $state<Item | null>(null)
+  let barcodeResumeFlow = $state<'scanner' | 'manual' | null>(null)
+  let barcodeLookupState = $state<'closed' | 'loading' | 'found' | 'not_found' | 'error'>('closed')
+  let barcodeLookupResult = $state<BarcodeSheetModel | null>(null)
+  let barcodeLookupEan = $state<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -65,9 +76,16 @@
   const checkOffMutation = createCheckOffMutation(data.supabase, data.listId, data.user.id)
   const assignCategoryMutation = createAssignCategoryMutation(data.supabase, data.listId)
   const updateItemMutation = createUpdateItemMutation(data.supabase, data.listId)
+  const barcodeLookupMutation = createBarcodeLookupMutation(data.supabase, {
+    listId: data.listId,
+    getCategories: () => categoriesQuery.data ?? [],
+  })
 
   const activeItems = $derived((itemsQuery.data?.filter((i) => !i.is_checked) ?? []) as Item[])
   const doneItems = $derived(itemsQuery.data?.filter((i) => i.is_checked) ?? [])
+  const barcodeSubmitting = $derived(
+    barcodeLookupState !== 'closed' && (addItemMutation.isPending || assignCategoryMutation.isPending)
+  )
   const groupingPending = $derived(
     categoriesQuery.isPending || (selectedStoreId != null && storeLayoutQuery.isPending)
   )
@@ -98,6 +116,26 @@
 
     return groups
   })
+  const selectedStoreName = $derived(
+    storesQuery.data?.find((store) => store.id === selectedStoreId)?.name ?? null
+  )
+
+  $effect(() => {
+    setActiveList({ id: data.listId, name: data.listName })
+  })
+
+  $effect(() => {
+    if (!barcodeLookupResult?.canonicalCategory || barcodeLookupResult.categoryId != null) return
+    if ((categoriesQuery.data?.length ?? 0) === 0) return
+
+    barcodeLookupResult = {
+      ...barcodeLookupResult,
+      categoryId: resolveCanonicalCategoryId(
+        categoriesQuery.data ?? [],
+        barcodeLookupResult.canonicalCategory
+      ),
+    }
+  })
 
   function handleAdd(name: string, quantity: number | null) {
     // Focus is called synchronously in ItemInput before this fires
@@ -113,7 +151,18 @@
 
   function handleUncheck(itemId: string) {
     const item = doneItems.find((i) => i.id === itemId)
-    if (item) checkOffMutation.mutate({ itemId, isChecked: false, itemName: item.name })
+    if (item) {
+      checkOffMutation.mutate({
+        itemId,
+        isChecked: false,
+        itemName: item.name,
+        historyContext: {
+          listName: data.listName,
+          storeId: selectedStoreId,
+          storeName: selectedStoreName,
+        },
+      })
+    }
   }
 
   function handleDelete(itemId: string) {
@@ -127,6 +176,11 @@
         itemId,
         isChecked: checked,
         itemName: item.name,
+        historyContext: {
+          listName: data.listName,
+          storeId: selectedStoreId,
+          storeName: selectedStoreName,
+        },
       })
     }
   }
@@ -149,6 +203,75 @@
     }
 
     detailSheetItem = null
+  }
+
+  function closeBarcodeLookupFlow() {
+    barcodeLookupState = 'closed'
+    barcodeLookupResult = null
+    barcodeLookupEan = null
+  }
+
+  function handleBarcodeResumeHandled() {
+    barcodeResumeFlow = null
+  }
+
+  function handleBarcodeEntry(ean: string) {
+    barcodeLookupEan = ean
+    barcodeLookupState = 'loading'
+    barcodeLookupResult = null
+
+    barcodeLookupMutation.mutate(
+      { ean },
+      {
+        onSuccess: (result) => {
+          barcodeLookupResult = result
+          barcodeLookupState = result.state
+        },
+        onError: () => {
+          barcodeLookupState = 'error'
+        },
+      }
+    )
+  }
+
+  function reopenScannerFlow() {
+    barcodeLookupState = 'closed'
+    barcodeLookupResult = null
+    barcodeResumeFlow = 'scanner'
+  }
+
+  function reopenManualBarcodeFlow() {
+    barcodeLookupState = 'closed'
+    barcodeLookupResult = null
+    barcodeResumeFlow = 'manual'
+  }
+
+  function finalizeBarcodeAdd() {
+    closeBarcodeLookupFlow()
+  }
+
+  function handleBarcodeConfirm(input: { name: string; quantity: number | null; categoryId: string | null }) {
+    addItemMutation.mutate(
+      {
+        name: input.name,
+        quantity: input.quantity,
+      },
+      {
+        onSuccess: (newItem) => {
+          if (input.categoryId) {
+            assignCategoryMutation.mutate(
+              { itemId: newItem.id, categoryId: input.categoryId },
+              {
+                onSuccess: finalizeBarcodeAdd,
+              }
+            )
+            return
+          }
+
+          finalizeBarcodeAdd()
+        },
+      }
+    )
   }
 </script>
 
@@ -224,7 +347,26 @@
 </div>
 
 <!-- Persistent bottom input bar -->
-<ItemInput onAdd={handleAdd} />
+<ItemInput
+  onAdd={handleAdd}
+  onDetected={handleBarcodeEntry}
+  onManualSubmit={handleBarcodeEntry}
+  resumeBarcodeFlow={barcodeResumeFlow}
+  onResumeHandled={handleBarcodeResumeHandled}
+/>
+
+<BarcodeLookupSheet
+  open={barcodeLookupState !== 'closed'}
+  ean={barcodeLookupEan}
+  viewState={barcodeLookupState === 'closed' ? 'loading' : barcodeLookupState}
+  result={barcodeLookupResult}
+  categories={categoriesQuery.data ?? []}
+  submitting={barcodeSubmitting}
+  onClose={closeBarcodeLookupFlow}
+  onRetry={reopenScannerFlow}
+  onOpenManualEntry={reopenManualBarcodeFlow}
+  onConfirm={handleBarcodeConfirm}
+/>
 
 {#if pendingCategoryItem !== null}
   <CategoryPickerModal

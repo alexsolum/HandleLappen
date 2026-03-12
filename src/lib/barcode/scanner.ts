@@ -42,6 +42,14 @@ type MockScannerController = {
   start: (options: StartScannerOptions) => Promise<MockScannerHandle | void> | MockScannerHandle | void
 }
 
+type MockScannerState = {
+  mode?: 'active' | 'permission-denied'
+  starts?: number
+  stops?: number
+  clears?: number
+  emit?: (ean: string) => Promise<void>
+}
+
 export type ScannerSession = {
   scanner: ScannerInstance
   elementId: string
@@ -58,8 +66,14 @@ export type StartScannerOptions = {
 
 declare global {
   interface Window {
-    __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: MockScannerController
+    __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: MockScannerController | MockScannerState
   }
+}
+
+function isMockScannerController(
+  value: MockScannerController | MockScannerState | undefined
+): value is MockScannerController {
+  return typeof (value as MockScannerController | undefined)?.start === 'function'
 }
 
 function normalizeRetailBarcode(value: string): string | null {
@@ -128,7 +142,8 @@ export async function startScanner({
   onDetected,
   onError,
 }: StartScannerOptions): Promise<ScannerSession> {
-  const mockController = typeof window !== 'undefined' ? window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ : undefined
+  let mockController =
+    typeof window !== 'undefined' ? window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ : undefined
   const scanner = mockController
     ? ({
         isScanning: true,
@@ -148,7 +163,7 @@ export async function startScanner({
   }
 
   try {
-    if (mockController) {
+    if (mockController && isMockScannerController(mockController)) {
       const mockHandle = (await mockController.start({ elementId, onDetected, onError })) ?? {}
       session.scanner = {
         isScanning: true,
@@ -157,6 +172,31 @@ export async function startScanner({
         },
         clear: async () => {
           await mockHandle.clear?.()
+        },
+      }
+    } else if (mockController) {
+      const mockState = { ...mockController }
+      window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ = mockState
+      mockController = mockState
+      mockController.starts = (mockController.starts ?? 0) + 1
+
+      if (mockController.mode === 'permission-denied') {
+        const error = new Error('NotAllowedError')
+        error.name = 'NotAllowedError'
+        throw error
+      }
+
+      mockController.emit = async (ean: string) => {
+        await onDetected(ean)
+      }
+
+      session.scanner = {
+        isScanning: true,
+        stop: async () => {
+          mockController.stops = (mockController.stops ?? 0) + 1
+        },
+        clear: async () => {
+          mockController.clears = (mockController.clears ?? 0) + 1
         },
       }
     } else {

@@ -23,14 +23,21 @@ test('email signup invalid credentials', async () => {
 
 // AUTH-03: Session persists across browser reload
 test('session persistence @smoke', async ({ page, context }) => {
-  test.skip(true, 'Requires test user setup via tests/helpers/auth.ts')
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set')
+    return
+  }
+
+  const seeded = await createHouseholdUser(`session-${Date.now()}@example.com`, 'testpass123')
+  testUserId = seeded.user.id
 
   await page.goto('/logg-inn')
-  await page.fill('input[type="email"]', 'test@example.com')
+  await page.fill('input[type="email"]', seeded.user.email!)
   await page.fill('input[type="password"]', 'testpassword123')
   await page.click('button:has-text("Logg inn")')
 
-  await page.waitForURL(/\/(velkommen|$)/)
+  await page.waitForURL('/')
 
   const newPage = await context.newPage()
   await newPage.goto('/')

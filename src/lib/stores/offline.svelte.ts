@@ -6,22 +6,45 @@ export const offlineStore = $state({
 })
 
 let initialized = false
+let currentIsOnline = true
+
+function setPendingDebugCount(count: number) {
+	if (typeof window === 'undefined') return
+	;(window as Window & { __pendingQueueCount?: number }).__pendingQueueCount = count
+}
+
+function syncOnlineState() {
+	if (typeof window === 'undefined') return true
+
+	currentIsOnline = navigator.onLine
+	offlineStore.isOnline = currentIsOnline
+	return currentIsOnline
+}
+
+export function isOfflineMode(): boolean {
+	if (typeof window === 'undefined') return false
+	return !syncOnlineState()
+}
 
 export function initOfflineStore(): void {
 	if (typeof window === 'undefined' || initialized) return
 
 	initialized = true
-	offlineStore.isOnline = navigator.onLine
+	syncOnlineState()
 	void refreshPendingCount()
 
-	window.addEventListener('online', () => {
-		offlineStore.isOnline = true
-	})
+	const handleConnectivityChange = () => {
+		syncOnlineState()
 
-	window.addEventListener('offline', () => {
-		offlineStore.isOnline = false
-		void refreshPendingCount()
-	})
+		if (!offlineStore.isOnline) {
+			void refreshPendingCount()
+		}
+	}
+
+	window.addEventListener('online', handleConnectivityChange)
+	window.addEventListener('offline', handleConnectivityChange)
+	window.addEventListener('focus', handleConnectivityChange)
+	document.addEventListener('visibilitychange', handleConnectivityChange)
 }
 
 export async function refreshPendingCount(): Promise<void> {
@@ -29,6 +52,7 @@ export async function refreshPendingCount(): Promise<void> {
 
 	const entries = await getAll()
 	offlineStore.pendingCount = entries.length
+	setPendingDebugCount(entries.length)
 }
 
 if (typeof window !== 'undefined') {

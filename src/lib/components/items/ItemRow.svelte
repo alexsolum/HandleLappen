@@ -116,7 +116,9 @@
     onclick={handleClick}
     class="relative flex cursor-pointer items-center gap-3 bg-white px-4 py-3"
     style="touch-action: pan-y;"
-    role="button"
+    role="checkbox"
+    aria-checked={item.is_checked}
+    data-testid="item-checkbox"
     tabindex="0"
     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
   >
