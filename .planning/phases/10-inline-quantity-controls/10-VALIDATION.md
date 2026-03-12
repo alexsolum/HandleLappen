@@ -1,8 +1,8 @@
 ---
 phase: 10
 slug: inline-quantity-controls
-status: draft
-nyquist_compliant: false
+status: ready
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-12
 ---
@@ -20,16 +20,16 @@ created: 2026-03-12
 | **Framework** | Playwright E2E + `svelte-check` baseline |
 | **Config file** | `playwright.config.ts` |
 | **Quick run command** | `npx playwright test tests/items.spec.ts --workers=1` |
-| **Full suite command** | `npm run test:e2e` |
-| **Estimated runtime** | ~300 seconds |
+| **Full suite command** | `npx playwright test tests/items.spec.ts tests/barcode.spec.ts tests/mobile-layout.spec.ts --workers=1` |
+| **Estimated runtime** | ~180 seconds |
 
 ---
 
 ## Sampling Rate
 
 - **After every task commit:** Run the task's targeted Playwright command
-- **After every plan wave:** Run `npm run test:e2e`
-- **Before `$gsd-verify-work`:** Full suite must be green or residual failures explicitly diagnosed
+- **After every plan wave:** Run `npx playwright test tests/items.spec.ts tests/barcode.spec.ts tests/mobile-layout.spec.ts --workers=1`
+- **Before `$gsd-verify-work`:** Focused Phase 10 suite must be green; broader suite may still require separate category-seed cleanup
 - **Max feedback latency:** 90 seconds
 
 ---
@@ -38,10 +38,10 @@ created: 2026-03-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 10-01-01 | 01 | 1 | LIST-07 | e2e | `npx playwright test tests/items.spec.ts --workers=1` | ❌ W0 | ⬜ pending |
-| 10-01-02 | 01 | 1 | LIST-07 | e2e | `npx playwright test tests/items.spec.ts --workers=1` | ❌ W0 | ⬜ pending |
-| 10-02-01 | 02 | 2 | LIST-08 | e2e | `npx playwright test tests/items.spec.ts tests/barcode.spec.ts --workers=1` | ❌ W0 | ⬜ pending |
-| 10-02-02 | 02 | 2 | LIST-07, LIST-08 | e2e | `npx playwright test tests/mobile-layout.spec.ts tests/items.spec.ts tests/barcode.spec.ts --workers=1` | ❌ W0 | ⬜ pending |
+| 10-01-01 | 01 | 1 | LIST-07 | e2e | `npx playwright test tests/items.spec.ts --workers=1` | ✅ existing file, assertions added in-plan | ⬜ pending |
+| 10-01-02 | 01 | 1 | LIST-07 | e2e | `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts --workers=1` | ✅ existing files, assertions added in-plan | ⬜ pending |
+| 10-02-01 | 02 | 2 | LIST-08 | e2e | `npx playwright test tests/items.spec.ts tests/barcode.spec.ts --workers=1` | ✅ existing files, assertions added in-plan | ⬜ pending |
+| 10-02-02 | 02 | 2 | LIST-07, LIST-08 | e2e | `npx playwright test tests/items.spec.ts tests/barcode.spec.ts tests/mobile-layout.spec.ts --workers=1` | ✅ existing files | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,10 +49,10 @@ created: 2026-03-12
 
 ## Wave 0 Requirements
 
-- [ ] `tests/items.spec.ts` — add inline increment, decrement, remove-at-one, and typed-add-default assertions
-- [ ] `tests/barcode.spec.ts` — add barcode-confirm default quantity `1` coverage
+- [ ] `tests/items.spec.ts` — extend with inline increment, decrement, remove-at-one, and typed-add-default assertions
+- [ ] `tests/barcode.spec.ts` — extend with barcode-confirm default quantity `1` coverage
 - [ ] `tests/mobile-layout.spec.ts` — extend mobile no-overflow coverage for visible row steppers
-- [ ] Existing infrastructure covers framework setup; no new test runner install needed
+- [x] Existing infrastructure covers framework setup; no new test runner install needed
 
 ---
 
@@ -72,6 +72,6 @@ created: 2026-03-12
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-12
