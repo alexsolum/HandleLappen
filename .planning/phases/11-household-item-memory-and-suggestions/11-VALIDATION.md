@@ -19,8 +19,8 @@ created: 2026-03-12
 |----------|-------|
 | **Framework** | Playwright E2E + `svelte-check` baseline |
 | **Config file** | `playwright.config.ts` |
-| **Quick run command** | `npx playwright test tests/items.spec.ts --workers=1` |
-| **Full suite command** | `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts tests/recommendations.spec.ts --workers=1` |
+| **Quick run command** | `npx playwright test tests/item-memory.spec.ts --workers=1` |
+| **Full suite command** | `npx playwright test tests/item-memory.spec.ts tests/mobile-layout.spec.ts --workers=1` |
 | **Estimated runtime** | ~180 seconds |
 
 ---
@@ -28,7 +28,7 @@ created: 2026-03-12
 ## Sampling Rate
 
 - **After every task commit:** Run the task's targeted Playwright command
-- **After every plan wave:** Run `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts tests/recommendations.spec.ts --workers=1`
+- **After every plan wave:** Run `npx playwright test tests/item-memory.spec.ts tests/mobile-layout.spec.ts --workers=1`
 - **Before `$gsd-verify-work`:** Focused Phase 11 suite must be green
 - **Max feedback latency:** 90 seconds
 
@@ -38,12 +38,12 @@ created: 2026-03-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 11-01-01 | 01 | 1 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/items.spec.ts tests/recommendations.spec.ts --workers=1` | ✅ existing files, assertions/helpers added in-plan | ⬜ pending |
-| 11-01-02 | 01 | 1 | SUGG-03 | e2e | `npx playwright test tests/items.spec.ts tests/recommendations.spec.ts --workers=1` | ✅ existing files, assertions/helpers added in-plan | ⬜ pending |
-| 11-02-01 | 02 | 2 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts --workers=1` | ✅ existing files, assertions added in-plan | ⬜ pending |
-| 11-02-02 | 02 | 2 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts --workers=1` | ✅ existing files | ⬜ pending |
-| 11-03-01 | 03 | 3 | SUGG-03 | e2e | `npx playwright test tests/items.spec.ts tests/recommendations.spec.ts --workers=1` | ✅ existing files, assertions/helpers added in-plan | ⬜ pending |
-| 11-03-02 | 03 | 3 | SUGG-01, SUGG-02, SUGG-03 | e2e | `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts tests/recommendations.spec.ts --workers=1` | ✅ existing files | ⬜ pending |
+| 11-01-01 | 01 | 1 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/item-memory.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
+| 11-01-02 | 01 | 1 | SUGG-03 | e2e | `npx playwright test tests/item-memory.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
+| 11-02-01 | 02 | 2 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/item-memory.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
+| 11-02-02 | 02 | 2 | SUGG-01, SUGG-02 | e2e | `npx playwright test tests/item-memory.spec.ts tests/mobile-layout.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
+| 11-03-01 | 03 | 3 | SUGG-03 | e2e | `npx playwright test tests/item-memory.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
+| 11-03-02 | 03 | 3 | SUGG-01, SUGG-02, SUGG-03 | e2e | `npx playwright test tests/item-memory.spec.ts tests/mobile-layout.spec.ts --workers=1` | ❌ Wave 0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +51,9 @@ created: 2026-03-12
 
 ## Wave 0 Requirements
 
-- [ ] `tests/items.spec.ts` — add remembered-suggestion visibility, narrowing, immediate-add, and category-bypass assertions
+- [ ] `tests/item-memory.spec.ts` — dedicated remembered-suggestion visibility, narrowing, immediate-add, and category-reuse assertions
 - [ ] `tests/mobile-layout.spec.ts` — add narrow-phone assertions for the inline suggestion dropdown and no-overflow contract
-- [ ] `tests/recommendations.spec.ts` or a new remembered-items helper — seed recurring household items with recency/category variants
+- [ ] `tests/helpers/remembered-items.ts` — seed recurring household items with recency/category variants
 - [x] Existing infrastructure covers framework setup; no new test runner install needed
 
 ---

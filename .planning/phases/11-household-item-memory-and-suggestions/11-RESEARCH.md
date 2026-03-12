@@ -1,238 +1,407 @@
 # Phase 11: Household Item Memory and Suggestions - Research
 
-**Date:** 2026-03-12
-**Status:** Ready for planning
+**Researched:** 2026-03-12
+**Domain:** Household-scoped remembered-item suggestions for the fixed mobile add flow, with category reuse and compact inline dropdown behavior
+**Confidence:** HIGH
 
-## What Already Exists
+---
 
-- `src/lib/components/items/ItemInput.svelte` already owns the fixed mobile add bar, the text field, and the visible default quantity `1`.
-- `src/routes/(protected)/lister/[id]/+page.svelte` is the orchestration point for typed adds, barcode-assisted adds, category fallback, and list-level realtime invalidation.
-- `src/lib/queries/items.ts` already has the shared mutation surface the phase should reuse:
-  - `createAddItemMutation` inserts new rows with default quantity `1`
-  - `createAssignCategoryMutation` attaches a category after insert
-  - `createAddOrIncrementItemMutation` is prior art for normalized-name matching and household-adjacent recurring behavior
-- `src/lib/components/items/CategoryPickerModal.svelte` is the current fallback path for uncategorized typed adds.
-- `src/lib/queries/history.ts` and `supabase/migrations/20260311000002_phase6_recommendations.sql` already show household-scoped history access patterns and normalized-name aggregation patterns.
+<user_constraints>
+## User Constraints (from CONTEXT.md)
 
-## Key Implementation Findings
+### Locked Decisions
 
-### 1. `item_history` alone is not enough for remembered-category reuse
+- **Suggestion surface:** Suggestions appear as an inline dropdown directly under the add field.
+- **Suggestion timing:** Suggestions appear after the first typed letter.
+- **Dropdown size:** Show up to 5 suggestions so the dropdown stays mobile-friendly.
+- **Selection behavior:** Tapping a remembered suggestion adds the item immediately.
+- **Selection friction:** Suggestion selection should not require an extra confirm or review step.
+- **Narrowing:** Suggestions should narrow as more letters are typed.
+- **Ranking:** Among matching items, household frequency should be the primary ranking signal.
+- **Category reuse:** Picking a remembered suggestion should silently reuse the last known category for that item name.
+- **Category conflict rule:** If the same item name has been used with different categories, reuse the most recent category.
 
-Phase 6 recommendations are household-scoped and already aggregate normalized item names from `item_history`, so they prove the query style is viable. But `item_history` stores only `item_name`, not `category_id`, which means it cannot satisfy `SUGG-03` by itself.
+### Claude's Discretion
 
-Planning implication:
-- Reusing the existing history query directly would give frequency and recency, but not the "last known category" the user asked for
-- The phase needs a remembered-item source that stores both normalized name and the latest category choice
+- Exact matching strategy beyond the visible rules, such as prefix vs substring balancing
+- Empty-state copy when no suggestions match
+- Keyboard highlight treatment and focus behavior for the dropdown
+- Exact row styling, spacing, and iconography in the dropdown
 
-Recommended direction:
-- Add a dedicated household-scoped memory source instead of overloading `item_history`
-- Shape it around:
-  - `household_id`
-  - normalized item name
-  - display name
-  - last used category id
-  - last used timestamp
-  - use count
+### Deferred Ideas (OUT OF SCOPE)
 
-This keeps search cheap, preserves category reuse, and avoids coupling autocomplete to the history view model.
+- Broader recommendation surfaces or a second recommendation tab treatment
+- ML ranking or semantic similarity search
+- Cross-household memory or shared global product suggestions
 
-### 2. Memory should be updated on item add, not only on check-off
+</user_constraints>
 
-The product requirement is "items previously added in that household", not only items that made it into completed shopping history. Today history is written on check-off, which is too late and too lossy for this feature.
+---
 
-Planning implication:
-- If the phase only watches `item_history`, suggestions will miss items that were added and removed before checkout, items still active on a list, and items never checked off yet
-- The remembered-item store should update at the same time the item is added or categorized
+<phase_requirements>
+## Phase Requirements
 
-Recommended direction:
-- Write remembered-item records from the shared add flow in Phase 11
-- Treat category changes as a memory refresh when the user later categorizes or re-categorizes an item
-- Keep the write path inside the existing list-item mutation layer so typed, future suggested, and future add variants converge on one rule
+| ID | Description | Research Support |
+|----|-------------|-----------------|
+| SUGG-01 | As user types an item name, the app shows suggestions from items previously added in that household | Add a household-scoped remembered-item source and a lightweight query path suitable for inline typeahead |
+| SUGG-02 | Suggestions narrow as the typed query becomes more specific | Use normalized-name filtering with prefix-first matching and deterministic ordering rules |
+| SUGG-03 | When user picks a remembered item suggestion, the app reuses its last known category automatically | Extend the add path to insert `category_id` in the same write or attach it before fallback category prompting runs |
+</phase_requirements>
 
-### 3. The current typed-add flow has a clean interception point for remembered suggestions
+---
 
-`lister/[id]/+page.svelte` currently does this for manual typed adds:
-1. `ItemInput` emits `(name, quantity)`
-2. `handleAdd` calls `addItemMutation`
-3. successful insert opens `CategoryPickerModal`
+## Summary
 
-That means the phase does not need to replace the add flow. It only needs a second path for "remembered add" that carries a category with it and suppresses the uncategorized fallback.
+Phase 11 should not be built as a direct read over `item_history` alone. `item_history` is already household-scoped and excellent for ranking by recency/frequency, but it currently stores only `item_name`, `list_id`, `checked_by`, `checked_at`, and store/list labels. It does **not** retain `category_id` or `category_name`, which means it cannot satisfy the category reuse requirement on its own. The current add flow also inserts a new item first and only assigns category afterward through a second mutation, which would make suggestion-based immediate add feel laggy or briefly uncategorized.
 
-Planning implication:
-- The remembered suggestion selection path should not emit the same "plain add" event as free text
-- It needs a separate callback or richer payload so the list page can distinguish:
-  - typed free text without a remembered category
-  - remembered suggestion with a category to attach immediately
+The strongest planning direction is:
+- introduce a dedicated household-scoped remembered-item source optimized for autocomplete
+- use it as the single data source for inline suggestion queries
+- extend the add-item mutation so a suggestion can insert `name + quantity + category_id` in one operation
 
-Recommended direction:
-- Expand `ItemInput` to accept:
-  - the current text value
-  - suggestion rows to render
-  - a selection callback for immediate-add suggestion picks
-- Keep mutation ownership in the list page, not inside `ItemInput`
-- On remembered selection:
-  - insert item with quantity `1`
-  - assign remembered category immediately
-  - skip `CategoryPickerModal` unless the remembered category is missing or invalid
+That gives the phase three clean layers:
+1. Data model and query path for remembered items.
+2. Inline mobile dropdown in `ItemInput.svelte`.
+3. Immediate-add flow that bypasses `CategoryPickerModal` when a remembered category exists.
 
-### 4. A small RPC or focused query layer is safer than client-side scanning of household history
+This keeps the user interaction exactly as requested: type one letter, see compact suggestions, tap one, and get the item inserted with the right category and default quantity `1`.
 
-The app already uses household-scoped SQL functions for Phase 6 recommendations. That is a better fit here than downloading many historical rows into the browser on every list page load.
+**Primary recommendation:** Use a dedicated `remembered_items` table (or similarly named household memory table) rather than trying to infer everything live from `item_history` + `list_items` on every keystroke.
 
-Planning implication:
-- Client-side scanning of `list_items` or `item_history` would be wasteful and would make ranking logic drift between app and database
-- Prefix filtering, recency, and frequency ordering belong close to the data
+---
 
-Recommended direction:
-- Add a Supabase RPC for remembered-item search, for example `search_household_item_memory(p_query text, p_limit integer default 5)`
-- Ranking order should be:
-  1. prefix matches before broader contains matches if both are allowed
-  2. higher use count
-  3. more recent use
-- Normalize by `lower(trim(name))` and keep one canonical display name per normalized item, refreshed to the most recent user-facing spelling
+## Existing Code Reality
 
-This keeps `SUGG-01` and `SUGG-02` deterministic and easy to test.
+### Current add flow
 
-### 5. The inline dropdown must behave like an extension of the fixed add bar, not a floating desktop autocomplete
+- `src/lib/components/items/ItemInput.svelte`
+  - Owns the fixed add bar and currently submits only `name` and `quantity`.
+  - Resets `name` to `''` and `quantity` to `1` after submit.
+  - Is already mobile-constrained and now sits above the Phase 9 dock stack, so any dropdown must fit inside this fixed interaction zone.
 
-Phase 9 already hardened the mobile shell against overflow. `ItemInput` sits inside a fixed bottom container, so the suggestion UI must stay within that contract.
+- `src/routes/(protected)/lister/[id]/+page.svelte`
+  - Wires `ItemInput` into `handleAdd`.
+  - After a normal typed add, it opens `CategoryPickerModal` by setting `pendingCategoryItem`.
+  - Barcode adds can already carry a category, but they still do so via a follow-up `assignCategoryMutation` after the insert succeeds.
 
-Planning implication:
-- The dropdown should be anchored inside the same max-width container as the add bar
-- It must cap its height, scroll vertically, and never increase viewport width
-- It must remain usable when the mobile keyboard is open
+- `src/lib/queries/items.ts`
+  - `createAddItemMutation` inserts `list_items` with `name` and `quantity`, but not `category_id`.
+  - `createAssignCategoryMutation` applies category later.
+  - `createAddOrIncrementItemMutation` already shows there is a precedent for normalized-name logic and “fast add” behavior, but it currently does not know about remembered categories.
 
-Recommended direction:
-- Render the suggestion list directly below the text input inside the fixed add-bar card
-- Keep it compact:
-  - max 5 rows
-  - max-height cap with internal scroll
-  - truncation on long names
-- Preserve the visible mini quantity stepper and action buttons from Phase 10
-- Hide the dropdown when:
-  - query length is 0
-  - the user selects a suggestion
-  - the typed text exactly matches the selected suggestion and the item is already added
+### Household-scoped history and recommendation data
 
-### 6. Category reuse should be driven by the most recent categorized occurrence of a name
+- `src/lib/queries/history.ts`
+  - Reads from `item_history`, which is household-scoped through RLS and already accepted as a household-level memory source for display/history.
+- `src/lib/queries/recommendations.ts`
+  - Uses SQL RPC functions that normalize item names and rank by `purchase_count` then `last_checked_at`.
+  - This is the strongest existing signal for how the product already thinks about historical household item ranking.
 
-The user decision is explicit: if an item name has been used with multiple categories, reuse the most recent category. That means ranking frequency and category selection are related but not identical.
+### Schema limitation that matters
 
-Planning implication:
-- The data model must distinguish:
-  - use count for ranking
-  - last categorized category for reuse
-- Updating frequency alone is not sufficient if the latest category differs from the most common one
+From `src/lib/types/database.ts` and migrations:
+- `item_history` has `item_name`, `item_id`, `list_id`, `checked_by`, `checked_at`, `list_name`, `store_id`, `store_name`
+- `item_history` does **not** have `category_id`
+- `list_items` has `category_id`, but only for currently active items
 
-Recommended direction:
-- Store both `use_count` and `last_category_id`
-- Refresh `last_category_id` only when the add/categorize path has a concrete category available
-- When the remembered category no longer exists in the household, degrade gracefully:
-  - still allow the suggestion
-  - reopen the normal category picker after add
+This means:
+- current history is enough to know **what** a household buys often
+- current history is **not** enough to know the last known category for a remembered item over time
 
-## Risks and Constraints
+---
 
-### Memory drift risk
+## Best Data Source for Remembered Items
 
-If remembered-item writes happen only on one add path, typed and future suggestion-assisted adds will drift. The phase should centralize memory writes in the shared mutation surface or an adjacent helper used by all add flows.
+### Recommendation: dedicated `remembered_items` table
 
-### Query-chattiness risk
+Best fit for Phase 11:
 
-Suggestions begin after one typed letter, which can create frequent network requests. The plan should include a small debounce or query gating so one-character searches remain responsive without flooding Supabase.
+```text
+remembered_items
+- id
+- household_id
+- normalized_name
+- display_name
+- use_count
+- last_used_at
+- last_category_id
+- created_at
+- updated_at
+```
 
-### Name-normalization risk
+Why this is the best source:
+- household-scoped by design
+- query is cheap and predictable for each keystroke
+- stores ranking signals directly (`use_count`, `last_used_at`)
+- stores the exact category reuse signal (`last_category_id`)
+- avoids expensive live joins/grouping across `item_history` and active `list_items`
+- avoids mixing “current active list row state” with long-lived item memory
 
-Items like `Melk`, ` melk `, and `MELK` should collapse into one remembered record. The phase needs a single normalization rule and consistent test fixtures around it.
+### Why not use `item_history` directly
 
-### Deleted-category risk
+`item_history` is a strong ranking input but a weak direct autocomplete source:
+- it only captures checked-off items, not every previously added item
+- it does not store category snapshots
+- raw item history would require repeated aggregation/grouping on every search
+- it would make the add path dependent on historical checkout behavior rather than remembered entry behavior
 
-Remembered records may point at a category that was removed or renamed later. The add flow must treat missing category ids as fallback-to-picker, not as a hard error.
+### Why not use `list_items` directly
 
-## Testing and Wave 0 Guidance
+`list_items` is wrong as the primary memory source:
+- it only represents the current contents of lists
+- items disappear when deleted or completed
+- it does not provide household-wide long-term frequency ranking
+- current rows can be duplicated across lists and would need heavy normalization
 
-Existing Playwright coverage around item entry and recommendations is enough to extend. Phase 11 does not need a new framework, but it does need dedicated suggestion-path coverage.
+### Recommended write strategy
 
-Recommended coverage:
+Treat `remembered_items` as a denormalized autocomplete index maintained by the app/backend:
+- on any typed add, barcode-confirm add, or suggestion add:
+  - upsert the remembered row by `(household_id, normalized_name)`
+  - increment `use_count`
+  - update `display_name` to the latest visible spelling
+  - update `last_used_at`
+- on category assignment or item edit category change:
+  - update `last_category_id` for that normalized name
 
-1. Suggestions appear after one typed letter
-- Start typing into the add field
-- Assert up to five household-specific suggestions render beneath the input
+This gives the planner a clear mutation ownership model and avoids recomputing memory from scratch during normal user interaction.
 
-2. Suggestions narrow as query grows
-- Seed multiple remembered items with a shared prefix
-- Type additional letters
-- Assert the list shrinks to the tighter match set
+---
 
-3. Suggestion selection adds immediately with quantity `1`
-- Tap a suggestion
-- Assert the row appears in the active list without needing the `Legg til` button
-- Assert quantity renders as `1`
+## Category Reuse Path
 
-4. Remembered category bypasses the picker
-- Select a remembered item with a valid stored category
-- Assert `CategoryPickerModal` does not appear
-- Assert the item lands in the correct category group
+### Recommendation: add category on the initial insert path
 
-5. Most recent category wins
-- Seed the same normalized item with two different categories at different timestamps
-- Assert selection uses the latest category, not the most frequent one
+For Phase 11, suggestion-based add should not:
+1. insert uncategorized item
+2. open fallback category picker
+3. assign category later
 
-6. Missing remembered category falls back cleanly
-- Seed a remembered record whose category has been deleted or is absent
-- Assert the item still adds
-- Assert the normal category picker opens
+Instead, the add mutation should accept an optional `categoryId` and write it directly into `list_items`.
 
-7. Mobile layout remains contained
-- Reuse the narrow-phone viewport from Phase 9
-- Assert the suggestion dropdown stays within the fixed add bar width and does not reintroduce horizontal overflow
+Recommended mutation shape:
+
+```ts
+type AddItemVariables = {
+  name: string
+  quantity?: number | null
+  categoryId?: string | null
+}
+```
+
+Then the insert path becomes:
+
+```ts
+.insert({
+  list_id: listId,
+  name,
+  quantity: quantity ?? 1,
+  category_id: categoryId ?? null
+})
+```
+
+Why this is important:
+- immediate suggestion add feels instant
+- no flicker through “Andre varer”
+- `CategoryPickerModal` stays only as the fallback for truly unknown items
+- SUGG-03 is satisfied through one add path, not a chained mutation
+
+### Fallback behavior
+
+If the remembered row has `last_category_id = null` or the category no longer exists:
+- fall back to the current uncategorized add path
+- if needed, continue to use `CategoryPickerModal`
+
+This keeps the phase robust without overcomplicating the normal case.
+
+---
+
+## Ranking and Narrowing Approach
+
+### Recommended normalization
+
+Use the same kind of normalization pattern already seen in recommendation logic:
+- trim whitespace
+- lowercase
+- collapse repeated spaces
+- optionally strip diacritics for matching, while preserving original display name
+
+Suggested stored/search fields:
+- `display_name` for UI
+- `normalized_name` for filtering/ranking
+
+### Recommended narrowing strategy
+
+For query `q` after the first typed letter:
+
+1. Normalize the input.
+2. Filter remembered rows where `normalized_name` contains the query.
+3. Split matches into tiers:
+   - Tier 1: exact prefix match
+   - Tier 2: word-boundary or token-prefix match
+   - Tier 3: substring match
+4. Order within each tier by:
+   - `use_count DESC`
+   - `last_used_at DESC`
+   - `display_name ASC`
+5. Return top 5.
+
+This satisfies the user-visible rule:
+- suggestions narrow as more letters are typed
+- household frequent items win among matching rows
+
+### Why prefix-first is important
+
+On mobile, inline dropdowns must stay compact. Prefix-first reduces noisy matches and keeps the top 5 useful. Substring-only matching would produce wider, noisier result sets and feel unstable as the user types.
+
+---
+
+## Mobile-Friendly Inline Dropdown Constraints
+
+### Constraint 1: dropdown lives inside a fixed bottom input zone
+
+`ItemInput.svelte` is already a fixed bottom component. The suggestion UI must not:
+- create sideways overflow
+- cover the entire screen
+- fight the dock/input stack introduced in Phase 9
+
+Recommended UI shape:
+- anchor dropdown directly above or immediately below the text input inside the input card
+- max 5 rows
+- capped height with internal scroll if needed
+- full width of the name field region, not the entire screen
+
+### Constraint 2: tapping a suggestion must be faster than normal add
+
+Because the decision is “tap suggestion = add immediately,” the dropdown should not introduce:
+- a detail preview
+- a second confirm button
+- a category sub-step
+
+Each row should show just enough information:
+- item name
+- optional small secondary line or badge for category
+- optional subtle frequency/recency cue only if it fits without clutter
+
+### Constraint 3: keep quantity semantics intact
+
+Phase 10 established default quantity `1`. Suggestion adds should:
+- use quantity `1` by default
+- not require the user to adjust quantity before tapping a suggestion
+- leave future inline quantity editing to the main list, not to the suggestion dropdown
+
+### Constraint 4: keyboard friendliness is secondary but should not block touch
+
+Touch is the main mode, but the planner can still add:
+- arrow-key highlight if cheap
+- Enter to accept highlighted suggestion if the implementation stays simple
+
+This should remain discretionary, not phase-critical.
+
+---
+
+## Planning Implications
+
+The cleanest phase breakdown is:
+
+1. Data model and query layer
+   - migration for `remembered_items`
+   - household-scoped select/upsert helpers
+   - optional backfill from existing household history
+
+2. Add-flow integration
+   - update `createAddItemMutation` to accept `categoryId`
+   - wire suggestion selection to immediate add
+   - update category assignment/edit flows to keep `remembered_items.last_category_id` fresh
+
+3. UI + verification
+   - compact inline dropdown in `ItemInput.svelte`
+   - mobile-focused Playwright coverage
+
+The main design risk is trying to avoid the dedicated memory table and deriving everything ad hoc. That would save one migration, but it would make both ranking and category reuse less reliable and harder to test.
+
+---
+
+## Focused Testing Strategy
+
+### Recommended automated coverage
+
+Add a dedicated Playwright file such as `tests/item-memory.spec.ts`.
+
+Core scenarios:
+- type first letter -> dropdown appears with up to 5 remembered suggestions
+- type more letters -> list narrows
+- tap suggestion -> item is added immediately to the list
+- remembered category is applied automatically and `CategoryPickerModal` does not appear
+- if remembered category is missing/null, normal fallback category picker behavior still works
+- suggestions are household-scoped and do not leak between test households
+
+Recommended lower-level coverage if ranking logic is extracted:
+- unit tests for normalization and ranking helper
+- examples:
+  - prefix beats substring
+  - higher frequency beats lower frequency within same match tier
+  - newer `last_used_at` breaks ties
+
+### Test-data strategy
+
+Use seeded remembered rows or a deterministic helper that creates household memory records directly. Do not rely on building 10+ history sessions through recommendations just to test Phase 11 autocomplete behavior.
+
+### UI assertions that matter most
+
+- dropdown visibility and max row count
+- row tap adds item without extra modal friction
+- category grouping after add shows the item under the remembered category
+
+---
 
 ## Validation Architecture
 
-### Test framework and commands
+### Test Framework
 
-- Framework: Playwright E2E + existing `svelte-check` baseline
-- Quick targeted runs:
-  - `npx playwright test tests/items.spec.ts --workers=1`
-  - `npx playwright test tests/mobile-layout.spec.ts --workers=1`
-  - `npx playwright test tests/recommendations.spec.ts --workers=1`
-- Full focused suite:
-  - `npx playwright test tests/items.spec.ts tests/mobile-layout.spec.ts tests/recommendations.spec.ts --workers=1`
+| Property | Value |
+|----------|-------|
+| Framework | Playwright ^1.58.2, plus optional lightweight unit tests if a ranking helper is extracted |
+| Config file | `playwright.config.ts` |
+| Quick run command | `npm run test:e2e -- tests/item-memory.spec.ts` |
+| Full suite command | `npm run test:e2e` |
 
-### Sampling plan
+### Phase Requirements -> Test Map
 
-- After remembered-search query work: run targeted recurring-item/spec coverage
-- After add-flow integration work: run `items` plus mobile layout coverage
-- After category-reuse fallback work: run the full focused Phase 11 suite
-- Before phase verification: rerun the focused suite and note any unrelated pre-existing type-check failures separately
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| SUGG-01 | Typing in the add field shows household-scoped remembered suggestions after the first letter | integration | `npm run test:e2e -- tests/item-memory.spec.ts` | ❌ Wave 0 |
+| SUGG-02 | Suggestions narrow as the query gets more specific | integration | `npm run test:e2e -- tests/item-memory.spec.ts` | ❌ Wave 0 |
+| SUGG-02 | Ranking prefers higher-frequency household matches among equivalent text matches | unit or integration | `npm run test:e2e -- tests/item-memory.spec.ts` or unit command if helper extracted | ❌ Wave 0 |
+| SUGG-03 | Tapping a suggestion adds the item immediately with remembered category and bypasses `CategoryPickerModal` | integration | `npm run test:e2e -- tests/item-memory.spec.ts` | ❌ Wave 0 |
+| SUGG-03 | If remembered category is unavailable, fallback add path remains valid | integration | `npm run test:e2e -- tests/item-memory.spec.ts` | ❌ Wave 0 |
 
-### Wave 0 needs
+### Sampling Rate
 
-- Extend existing Playwright helpers to seed remembered-item records and category variants quickly
-- Add focused assertions in:
-  - `tests/items.spec.ts`
-  - `tests/mobile-layout.spec.ts`
-- Either extend `tests/recommendations.spec.ts` for shared normalized-name fixtures or add a dedicated remembered-items helper if that keeps test setup cleaner
+- **Per task commit:** `npm run test:e2e -- tests/item-memory.spec.ts`
+- **Per wave merge:** `npm run test:e2e`
+- **Phase gate:** full suite green before verification/UAT
 
-### Manual-only checks
+### Wave 0 Gaps
 
-- Real-phone keyboard check:
-  - confirm the dropdown remains tappable above the keyboard and does not push actions out of reach
-- Real-device recurrence check:
-  - add an item manually once, then start typing it again and confirm the suggestion appears with the expected category reuse
+- [ ] `tests/item-memory.spec.ts` — focused Phase 11 E2E coverage
+- [ ] test helper to seed remembered household items directly
+- [ ] stable selectors or `data-testid` hooks for suggestion dropdown and rows
+- [ ] optional unit test harness if ranking/normalization is extracted into a pure helper
 
-## Recommended Plan Split
+### Manual-Only Verifications
 
-Phase 11 still matches the roadmap’s three-plan shape:
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Dropdown feels compact and non-intrusive above the fixed mobile add bar | SUGG-01, SUGG-02 | Real mobile ergonomics are hard to judge headlessly | Open a list on a phone, type one letter, confirm the dropdown stays compact and does not overwhelm the fixed add area |
+| Tapping a suggestion feels faster than normal add flow | SUGG-03 | Subjective interaction quality | On a phone, type a known item and tap the suggestion, confirm the item appears immediately with no extra picker or dialog |
 
-- `11-01`: database and query layer for household item memory, normalized search, and ranking
-- `11-02`: inline mobile suggestion UI in `ItemInput` and list-page orchestration for immediate-add selection
-- `11-03`: remembered-category persistence, fallback behavior, and end-to-end verification
+---
 
-## Planning Takeaways
+## Planning Notes
 
-- Do not build suggestions on raw `item_history` reads; it lacks category memory
-- Add a dedicated household-scoped remembered-item source with normalized-name search
-- Keep `ItemInput` as the visual host, but keep mutation ownership in `lister/[id]/+page.svelte`
-- Treat remembered selection as a separate add path that skips the category picker when category memory is valid
-- Preserve the Phase 9/10 mobile-shell contract while adding the dropdown
+- Prefer a dedicated memory source over live aggregation.
+- Update add mutation shape early so category reuse can happen in the first insert.
+- Keep the dropdown compact and fully inside the fixed add bar zone.
+- Reuse the recommendation system’s normalization/ranking ideas, but do not reuse its UI surface.
+
