@@ -2,7 +2,7 @@
 
 ## Overview
 
-HandleAppen delivers a store-layout-aware family grocery PWA in eight dependency-ordered phases. Phase 1 establishes the auth and household foundation that every other phase depends on. Phase 2 ships the testable core loop — create list, add item, check off, sync in real-time — and begins writing purchase history from day one. Phase 3 implements the product's primary differentiator: categories sorted by Norwegian store layout, with per-store overrides. Phase 4 adds barcode scanning via a server-proxied Edge Function, normalized provider fallback, and an iOS-safe scanner implementation. Phase 5 converts the working online app into an offline-capable PWA. Phase 6 surfaces the history data accumulated since Phase 2 as a history view and frequency-based recommendations. Phase 7 closes the missing verification/evidence chain for the late phases, and Phase 8 reconciles central planning state so milestone v1.0 can be re-audited cleanly.
+HandleAppen shipped its v1.0 foundation in eight phases covering auth, shared lists, store-layout ordering, barcode scanning, offline/PWA behavior, and recommendations. Milestone v1.1 continues from that base with three tightly scoped phases focused on mobile usability and faster recurring-item entry. The work starts at Phase 9 to preserve the existing milestone history and keeps each new requirement mapped to exactly one phase.
 
 ## Phases
 
@@ -20,6 +20,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: History View and Recommendations** - Browse past sessions; frequency-based and co-purchase suggestions (completed 2026-03-12)
 - [x] **Phase 7: Verification and Evidence Closure** - Produce formal verification artifacts for Phases 4-6 and restore requirement-level auditability (completed 2026-03-12)
 - [x] **Phase 8: Traceability Reconciliation and Milestone Re-Audit** - Align roadmap/requirements bookkeeping with delivered work and rerun milestone audit (completed 2026-03-12)
+- [ ] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed
+- [ ] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state
+- [ ] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry
 
 ## Phase Details
 
@@ -158,14 +161,60 @@ Plans:
 
 Plans:
 - [x] 08-01-PLAN.md — Reconcile roadmap progress and phase completion metadata after Phase 7 verification artifacts exist
-- [ ] 08-02-PLAN.md — Reconcile requirement traceability/checklists, rerun milestone audit, and record milestone closure readiness
+- [x] 08-02-PLAN.md — Reconcile requirement traceability/checklists, rerun milestone audit, and record milestone closure readiness
+
+### Phase 9: Mobile Layout Hardening
+**Goal**: The app behaves like a stable mobile app on phone screens, with dialogs fully contained in the viewport and a bottom navigation that is fixed and easy to tap
+**Depends on**: Phase 5
+**Requirements**: MOBL-01, MOBL-02, MOBL-03
+**Success Criteria** (what must be TRUE):
+  1. Add-item and related dialogs fit within common mobile viewport widths without any content rendering off-screen
+  2. Horizontal scrolling is eliminated across the primary signed-in app views and dialogs on mobile-sized screens
+  3. The bottom navigation stays pinned to the viewport bottom during list use and each tab has a larger, thumb-friendly tap target
+  4. Mobile layout fixes do not regress desktop usability or break existing PWA standalone behavior
+**Plans**: 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Audit and fix viewport overflow sources, modal widths, and container constraints for signed-in mobile screens
+- [ ] 09-02-PLAN.md — Rework bottom navigation sizing, safe-area spacing, and fixed positioning for mobile/PWA use
+- [ ] 09-03-PLAN.md — Add focused mobile viewport verification for dialogs, horizontal overflow, and fixed-nav behavior
+
+### Phase 10: Inline Quantity Controls
+**Goal**: Users can adjust quantities quickly from the shopping list itself, and newly added items always start from a predictable quantity of `1`
+**Depends on**: Phase 2
+**Requirements**: LIST-07, LIST-08
+**Success Criteria** (what must be TRUE):
+  1. Each list item exposes clear inline controls to increase or decrease quantity without opening the detail sheet
+  2. Inline quantity updates feel immediate and stay in sync across devices using the existing list mutation flow
+  3. New typed, suggested, and barcode-assisted item adds default to quantity `1` unless the user changes the value before saving
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Add inline quantity controls and optimistic quantity mutations to the list UI
+- [ ] 10-02-PLAN.md — Normalize item-creation paths so new items always persist with quantity `1` by default and verify the behavior
+
+### Phase 11: Household Item Memory and Suggestions
+**Goal**: Recurring household items become fast to re-add through typeahead suggestions that remember prior category choices
+**Depends on**: Phases 2 and 3
+**Requirements**: SUGG-01, SUGG-02, SUGG-03
+**Success Criteria** (what must be TRUE):
+  1. Typing in the add-item field shows household-specific suggestions from previously added items
+  2. The suggestion list narrows as the user types more characters and remains usable on small mobile screens
+  3. Selecting a suggestion fills the item name and restores its remembered category automatically
+  4. Remembered-item behavior works for both manual entry and recurring shopping across multiple lists in the same household
+**Plans**: 3 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Add household item-memory data source and queries for suggestion search
+- [ ] 11-02-PLAN.md — Build mobile-friendly typeahead suggestion UI and selection behavior in the add-item flow
+- [ ] 11-03-PLAN.md — Persist and reuse remembered categories for suggested items, then verify recurring-item behavior end to end
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 
-Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned products map into the category system built there, while Phase 5 remains independently plannable after Phase 2.
+Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases. Phase 10 builds on the existing list mutation loop from Phase 2. Phase 11 depends on the item and category systems already delivered in Phases 2 and 3.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -177,4 +226,7 @@ Note: Phase 3 depends on Phase 2. Phase 4 depends on Phase 3 because scanned pro
 | 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
 | 8. Traceability Reconciliation and Milestone Re-Audit | 2/2 | Complete | 2026-03-12 |
+| 9. Mobile Layout Hardening | 0/3 | Planned | - |
+| 10. Inline Quantity Controls | 0/2 | Planned | - |
+| 11. Household Item Memory and Suggestions | 0/3 | Planned | - |
 
