@@ -97,7 +97,7 @@
         onclick={handleGoogleSignIn}
         disabled={oauthLoading}
         class="w-full"
-        data-google-oauth-callback={getGoogleRedirectTo()}
+        data-google-oauth-callback={typeof window !== 'undefined' ? getGoogleRedirectTo() : ''}
       >
         {oauthLoading ? 'Sender deg til Google…' : 'Fortsett med Google'}
       </Button>
