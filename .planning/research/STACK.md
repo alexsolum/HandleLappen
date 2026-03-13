@@ -1,173 +1,274 @@
 # Stack Research
 
 **Domain:** Family grocery shopping PWA with Supabase backend
-**Researched:** 2026-03-08
-**Confidence:** HIGH (core stack verified via npm, official Supabase docs, and official SvelteKit/Svelte docs)
+**Researched:** 2026-03-13 (updated for v1.2)
+**Confidence:** HIGH
 
 ---
 
-## Recommended Stack
+## Existing Stack (validated, do not re-research)
 
-### Core Technologies
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| SvelteKit | 2.53.4 | App framework, routing, SSR/SSG, PWA shell | Ships 50-70% less JS than Next.js for equivalent features; compiles away at build time; no runtime overhead; #1 satisfaction in State of JS. For a mobile-first PWA used while physically in a store, TTI and bundle size matter more than ecosystem breadth. |
-| Svelte | 5.53.7 | UI component language | Runes system ($state, $derived, $effect) replaces stores for local and shared reactive state; compiler-driven — no virtual DOM. Global shared state lives in `.svelte.ts` files using $state. |
-| TypeScript | 5.9.3 | Type safety across entire codebase | SvelteKit is TypeScript-first; the Supabase JS client ships full types generated from your schema; barcode lookup responses from external APIs need typed guards. Non-negotiable for this complexity level. |
-| Supabase JS | 2.98.0 | Auth, database queries, realtime subscriptions, edge function calls | Official client for all Supabase services. Use @supabase/ssr (0.9.0) alongside it for server-side cookie-based auth in SvelteKit hooks and load functions. |
-| Tailwind CSS | 4.2.1 | Utility-first styling | v4 ships as a Vite plugin (`@tailwindcss/vite`) — zero PostCSS config, zero tailwind.config.js. SvelteKit CLI now scaffolds Tailwind v4 by default. Rapid mobile UI development without context-switching to CSS files. |
-
-### Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| @vite-pwa/sveltekit | 1.1.0 | Service worker generation, web manifest, offline caching, install prompt | Use from day 1. Wraps Workbox and integrates cleanly with SvelteKit's SSR/SSG adapter pipeline. Handles the rebuild step SvelteKit requires after build. |
-| @tailwindcss/vite | 4.2.1 | Vite plugin for Tailwind v4 | Required for Tailwind v4 — replaces the PostCSS plugin approach entirely. |
-| @tanstack/svelte-query | 6.1.0 | Server-state management: caching, background refetch, optimistic updates | Use for all Supabase data fetching. v6 fully migrated to Svelte 5 runes syntax. Pattern: TanStack Query for data fetching + Supabase Realtime to call `invalidateQueries()` when events arrive. This avoids manually stitching together initial query results with incremental Realtime change events. |
-| barcode-detector (npm) | 3.1.0 | Barcode Detection API polyfill for iOS Safari | The native BarcodeDetector Web API works in Chrome/Android but not on iOS Safari (as of early 2026). Use the `barcode-detector` ponyfill which bundles ZXing-C++ compiled to WebAssembly. Supports EAN-13 (the standard format for European/Norwegian grocery barcodes). Import the polyfill path to register globally only when native is absent. |
-| workbox-window | 7.4.0 | Service worker lifecycle management from app code | Needed when implementing manual "update available" prompts. @vite-pwa/sveltekit wraps this internally, but version-pin to avoid mismatches. |
-| idb | 8.0.3 | IndexedDB wrapper for offline queue | Use for queuing item mutations when the device is offline (during poor in-store connectivity). Provides a Promise-based API over raw IndexedDB. Used by the offline sync layer only — not for primary data. |
-| shadcn-svelte | 1.1.1 | Headless, accessible, unstyled component library | Use for form inputs, dialogs, bottom sheets, dropdowns. Built on bits-ui and Tailwind — components are copied into source (not a black-box dependency), which matters for a Svelte 5 + Tailwind v4 setup. |
-
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| Vite | Build tool, dev server | Bundled with SvelteKit — no separate install. vite-plugin-pwa and @tailwindcss/vite both hook into it. |
-| Supabase CLI | Local dev stack (Postgres + Auth + Realtime + Storage) | `npx supabase start` launches a full local Supabase via Docker. Required for offline dev and safe schema iteration without touching production. |
-| supabase-js type generation | TypeScript types from DB schema | Run `supabase gen types typescript` after every migration. Import the generated `Database` type into your Supabase client for end-to-end type safety on queries. |
-| ESLint + Prettier | Code quality and formatting | SvelteKit's official scaffolder includes both with svelte-specific plugins. Keep defaults. |
-| Playwright | E2E testing | SvelteKit's official test scaffold. Useful for testing the realtime sync across two browser windows — a scenario unit tests cannot cover. |
+| Package | Version in package.json | Status |
+|---------|------------------------|--------|
+| `@sveltejs/kit` | ^2.50.2 | Validated |
+| `svelte` | ^5.51.0 | Validated, Svelte 5 runes in use |
+| `tailwindcss` + `@tailwindcss/vite` | ^4.2.1 | Tailwind v4, no config file |
+| `@supabase/supabase-js` | ^2.98.0 | Validated |
+| `@supabase/ssr` | ^0.9.0 | Validated |
+| `@tanstack/svelte-query` | ^6.1.0 | Validated |
+| `idb-keyval` | ^6.2.2 | Validated |
+| `@vite-pwa/sveltekit` | ^1.1.0 | Validated |
+| `svelte-dnd-action` | ^0.9.69 | Validated |
+| `html5-qrcode` | ^2.3.8 | Validated (barcode scanning) |
 
 ---
 
-## Installation
+## v1.2 New Capabilities: Stack Analysis
+
+### 1. Recipe Cover Images + Item Pictures (Supabase Storage)
+
+**Verdict: Zero new npm packages required.**
+
+`@supabase/supabase-js` already includes the full Storage client. The Storage API is available immediately via the existing Supabase client instance.
+
+**What the existing client provides:**
+
+```typescript
+// Upload a file
+await supabase.storage.from('recipe-covers').upload(path, file, { upsert: false })
+
+// Get a public URL (serves original — works on all plans)
+const { data } = supabase.storage.from('recipe-covers').getPublicUrl(path)
+
+// Get a resized URL via Supabase CDN transform (Pro plan required — see warnings)
+const { data } = supabase.storage.from('recipe-covers').getPublicUrl(path, {
+  transform: { width: 800, height: 600, quality: 80 }
+})
+```
+
+**Client-side resize before upload — use native Canvas API:**
+
+Do not add `browser-image-compression` (npm). It is at v2.0.2, last published 3 years ago, and marked inactive by npm maintainer activity metrics. The browser's `OffscreenCanvas` + `convertToBlob` achieves the same result with zero dependencies and is supported on all target platforms (Chrome for Android 69+, Safari 16.4+):
+
+```typescript
+// No npm package — native browser API
+async function resizeBeforeUpload(file: File, maxDimension = 1200): Promise<Blob> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height))
+  const canvas = new OffscreenCanvas(
+    Math.round(bitmap.width * scale),
+    Math.round(bitmap.height * scale)
+  )
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  return canvas.convertToBlob({ type: 'image/webp', quality: 0.85 })
+}
+```
+
+This outputs WebP at 85% quality, capping at 1200px on the longest edge — appropriate for recipe covers and item thumbnails.
+
+**Supabase Storage bucket configuration** (via migration, not npm):
+
+```sql
+-- Create buckets
+insert into storage.buckets (id, name, public)
+values ('recipe-covers', 'recipe-covers', true);
+
+insert into storage.buckets (id, name, public)
+values ('item-pictures', 'item-pictures', true);
+
+-- RLS: household members write, public reads
+create policy "Household members upload recipe covers"
+  on storage.objects for insert
+  with check (auth.uid() is not null and bucket_id = 'recipe-covers');
+
+create policy "Public reads recipe covers"
+  on storage.objects for select
+  using (bucket_id = 'recipe-covers');
+```
+
+**Path convention:** `{household_id}/{entity_id}.webp` — scopes uploads per household and makes RLS straightforward.
+
+**Upsert strategy:** Upload to a new path (append a random suffix or timestamp) when replacing a cover, then update the DB row with the new URL. Overwriting the same storage path causes CDN cache staleness — Supabase's own docs recommend new paths over `upsert: true` for images served via CDN.
+
+---
+
+### 2. Dark Mode Toggle with Persisted Preference
+
+**Verdict: Zero new npm packages required.** Tailwind v4 + `localStorage` + one inline script.
+
+**Step 1 — Tailwind v4 dark variant** (edit `src/app.css`):
+
+Tailwind v4 has no `tailwind.config.js`. Dark mode is configured in CSS via `@custom-variant`:
+
+```css
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+This replaces the `darkMode: 'class'` config entry from Tailwind v3. After this, `dark:` utility classes respond to the `.dark` class on `<html>`.
+
+**Step 2 — Anti-FOUC script** (add to `src/app.html` inside `<body>`, before `%sveltekit.body%`):
+
+```html
+<script>
+  ;(function () {
+    var stored = localStorage.getItem('theme')
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (stored === 'dark' || (!stored && prefersDark)) {
+      document.documentElement.classList.add('dark')
+    }
+  })()
+</script>
+```
+
+This runs before any component renders, preventing a flash of the wrong theme on load.
+
+**Step 3 — Theme store** (Svelte 5 runes, no library):
+
+```typescript
+// src/lib/stores/theme.svelte.ts
+let dark = $state(false)
+
+export const theme = {
+  get dark() { return dark },
+  init() {
+    dark = document.documentElement.classList.contains('dark')
+  },
+  toggle() {
+    dark = !dark
+    document.documentElement.classList.toggle('dark', dark)
+    localStorage.setItem('theme', dark ? 'dark' : 'light')
+  }
+}
+```
+
+Call `theme.init()` in `onMount` inside the protected layout to sync the store with the actual DOM state set by the inline script.
+
+**Why `localStorage` over cookies:** Dark mode is a client-local preference. Mixing it into server-read cookies adds unnecessary SSR complexity. The existing auth cookie flow via `@supabase/ssr` should remain focused on sessions only.
+
+---
+
+### 3. Admin Hub with Subpage Navigation
+
+**Verdict: Zero new npm packages required.** SvelteKit route groups and nested layouts — built-in.
+
+**Recommended route structure:**
+
+```
+src/routes/(protected)/
+  admin/
+    +layout.svelte          ← Admin shell: secondary nav tabs + {@render children()}
+    +page.svelte            ← Redirect to first tab or empty state
+    butikker/
+      +page.svelte          ← Moved from (protected)/butikker/
+    husstand/
+      +page.svelte          ← Moved from (protected)/husstand/
+    items/
+      +page.svelte          ← New: item management (edit name, category, picture)
+      [id]/
+        +page.svelte        ← Optional: single item edit page
+    historikk/
+      +page.svelte          ← Moved if currently exists separately
+    innstillinger/
+      +page.svelte          ← New: user settings (dark mode toggle)
+```
+
+The four-tab bottom nav (already in `BottomNav.svelte`) gets updated to point to `/admin` as the fourth tab. The `admin/+layout.svelte` renders a secondary horizontal tab strip for the subpages, then `{@render children()}`.
+
+**No route group wrapper needed for `admin/`:** It sits directly inside `(protected)/`, inheriting the auth guard and bottom nav from `(protected)/+layout.svelte`. The admin shell adds only its own secondary nav on top.
+
+**Existing routes to relocate:**
+- `(protected)/butikker/` → `(protected)/admin/butikker/`
+- `(protected)/husstand/` → `(protected)/admin/husstand/`
+
+Any internal `goto()` calls or `href` links pointing to the old paths need updating. SvelteKit's type-safe routing (`$app/navigation`) will surface broken paths at compile time if using path literals.
+
+---
+
+### 4. Recipe Management (Data Layer)
+
+**Verdict: Zero new npm packages required.** TanStack Query + Supabase — same pattern already in use for lists.
+
+Recipes are a new Supabase table group. The fetch/mutate pattern is identical to the existing shopping list pattern:
+
+- Fetch: `useQuery` with Supabase `.select()` filtered by `household_id`
+- Mutate: `useMutation` for create/update/delete
+- Realtime sync: Subscribe to `postgres_changes` on `recipes` table; on event call `queryClient.invalidateQueries({ queryKey: ['recipes'] })`
+- Cover image URL stored as a `text` column in the `recipes` table (the Storage public URL)
+
+No new package. No state management library. Same architecture as lists.
+
+---
+
+## New Packages for v1.2: None
+
+All four feature areas are covered by dependencies already present or browser-native APIs.
+
+| Capability | Solution | Package Status |
+|------------|----------|---------------|
+| Image upload to Supabase | `supabase.storage.from().upload()` | Already installed (`@supabase/supabase-js`) |
+| Image resize before upload | `OffscreenCanvas.convertToBlob()` | Browser-native, no package |
+| Serving images | `supabase.storage.from().getPublicUrl()` | Already installed |
+| Dark mode class toggle | `@custom-variant dark` in Tailwind v4 CSS | Already installed (`tailwindcss ^4.2.1`) |
+| Dark mode persistence | `localStorage` | Browser-native, no package |
+| Dark mode FOUC prevention | Inline script in `app.html` | No package |
+| Admin hub routing | SvelteKit route groups + nested layouts | Already installed (`@sveltejs/kit`) |
+| Admin subpage tabs | Tailwind-styled nav component | No additional package |
+| Recipe data | TanStack Query + Supabase | Already installed |
 
 ```bash
-# Scaffold project (choose TypeScript, Tailwind when prompted)
-npx sv create handleappen
-cd handleappen
-
-# Supabase client libraries
-npm install @supabase/supabase-js @supabase/ssr
-
-# TanStack Query for Svelte 5 (v6 = runes-native)
-npm install @tanstack/svelte-query
-
-# PWA support
-npm install -D @vite-pwa/sveltekit
-
-# Barcode scanning polyfill
-npm install barcode-detector
-
-# Offline queue (IndexedDB)
-npm install idb
-
-# Component library (run interactively)
-npx shadcn-svelte@latest init
-
-# Dev tooling
-npm install -D supabase
+# No new packages to install for v1.2
+# npm install (no changes to package.json)
 ```
+
+---
+
+## What NOT to Add
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `browser-image-compression` | Unmaintained — v2.0.2, last published 3 years ago, npm flags as inactive. Adds ~40KB for functionality the browser provides natively. | `OffscreenCanvas` + `convertToBlob` |
+| `svelte-dark-mode` (metonym) | Thin wrapper over 5 lines of vanilla JS; last meaningful commit 2022; adds a dependency for trivial logic. | Plain `localStorage` + Svelte 5 `$state` |
+| Flowbite Svelte / Skeleton UI | Adds bundle weight and version coupling for tab components that Tailwind handles natively. | Tailwind utility classes for the admin tab strip |
+| Supabase Storage image transforms (`transform: { width, height }`) in `getPublicUrl` | **Requires Supabase Pro plan.** Will silently serve the original image on the free/hobby tier without error. Unreliable unless the project is on Pro. | Client-side resize before upload (serves original at correct size) |
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| SvelteKit | Next.js 15 | Your team is already deeply invested in React and cannot take the Svelte learning curve. React ecosystem is genuinely needed (e.g., complex charting with Recharts, heavy form libraries). Not recommended here — no meaningful advantage for this app's scope. |
-| SvelteKit | Remix | If your app is heavily form-driven and you want to co-locate mutations with routes. Not applicable — this app is realtime-driven, not form-driven. |
-| Svelte 5 runes ($state) | Zustand | Zustand is a React solution. In Svelte 5, reactive `.svelte.ts` state files replace Zustand. No extra dependency needed. |
-| @tanstack/svelte-query v6 | Manual Supabase Realtime + writable stores | Works for simple cases but breaks down quickly: you must manually merge initial snapshot data with incremental change events, handle race conditions, and re-implement caching. TanStack Query solves all of this. |
-| barcode-detector polyfill | @zxing/browser | @zxing/browser is in maintenance mode (no active maintainers), performance is weaker on poorly-lit barcodes, and the recognition rate for small 1D barcodes (EAN-13 on grocery packaging) is lower than the ZXing-C++ WASM backing `barcode-detector`. |
-| barcode-detector polyfill | Scanbot SDK | Scanbot is significantly more accurate but costs money (commercial license). Acceptable if recognition rate proves insufficient in testing, but start with the free polyfill. |
-| Tailwind CSS v4 | Tailwind CSS v3 | If you are on an existing project locked to v3, staying on v3 is fine. For greenfield with SvelteKit 2+, v4's Vite-native integration is cleaner and faster — no PostCSS pipeline needed. |
-| @vite-pwa/sveltekit | Manual service worker (src/service-worker.ts) | SvelteKit supports hand-authored service workers natively, but you lose Workbox's pre-caching, routing strategies, and background sync. Use manual only if your caching needs are trivial (they are not for this app). |
-| shadcn-svelte | Skeleton UI | Skeleton is good but its Svelte 5 support lagged behind. shadcn-svelte v1 is runes-native and actively maintained. |
+| Recommended | Alternative | When Alternative Makes Sense |
+|-------------|-------------|------------------------------|
+| `OffscreenCanvas` (native) | `browser-image-compression` npm | If supporting browsers older than Safari 16.4 / Chrome 69 (not a concern for this app's target audience) |
+| `localStorage` dark mode | Cookie-based dark mode | If SSR needs to render the correct theme server-side (e.g., no `app.html` script injection possible). Not needed here — SvelteKit SSR does not render theme-sensitive content before JS hydrates. |
+| `@custom-variant dark` (Tailwind v4 CSS) | `darkMode: 'class'` in `tailwind.config.js` | Only relevant for Tailwind v3 — this project is on v4, which has no config file. |
+| SvelteKit nested layouts for admin nav | A tab component library | If the admin hub needed complex tab behaviors (animated underlines, keyboard navigation beyond basic). Plain `<a>` tags with `aria-current` and Tailwind active styles are sufficient. |
 
 ---
 
-## What NOT to Use
+## Version Compatibility (v1.2 relevant)
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Redux / Redux Toolkit | React-specific, massively overengineered for Svelte. In Svelte 5, reactive `.svelte.ts` files cover 90% of Redux use cases with zero boilerplate. | Svelte 5 $state in `.svelte.ts` + TanStack Query for server state |
-| Pinia / Vue stores | Vue-ecosystem. Irrelevant in a Svelte project. | Svelte 5 runes |
-| QuaggaJS / Quagga2 | CPU-intensive pure-JS 1D barcode decoder; struggles on low-light grocery barcodes; no active maintainer for the original; Quagga2 fork is community-maintained but inconsistent accuracy on EAN-13. | barcode-detector (ZXing-C++ WASM polyfill) |
-| @zxing/browser | In maintenance mode as of 2024; maintainers openly stated they no longer have time for active development; lower recognition accuracy than WASM-backed alternatives. | barcode-detector npm polyfill |
-| Firebase Realtime Database | Redundant given Supabase is already chosen. Adding a second real-time backend creates sync hell. | Supabase Realtime |
-| react-query / @tanstack/react-query | React-specific package. The Svelte adapter is @tanstack/svelte-query. | @tanstack/svelte-query v6 |
-| next-pwa | Next.js-specific PWA wrapper. Irrelevant with SvelteKit. | @vite-pwa/sveltekit |
-| Tailwind CSS v3 (for new installs) | v4 is GA and the SvelteKit CLI scaffolds it by default. v3 requires PostCSS config that v4 eliminates. Starting on v3 now means migrating later. | Tailwind CSS v4 + @tailwindcss/vite |
-| @supabase/auth-helpers-sveltekit | Deprecated in favour of @supabase/ssr. Do not use — the old package is unmaintained and relies on cookie patterns that break on modern SvelteKit. | @supabase/ssr |
-
----
-
-## Stack Patterns by Variant
-
-**For the Supabase Realtime sync pattern (shared shopping list):**
-- Subscribe to Postgres changes (`postgres_changes`) filtered by `household_id` or `list_id`
-- On any `INSERT`, `UPDATE`, or `DELETE` event, call `queryClient.invalidateQueries({ queryKey: ['list', listId] })`
-- TanStack Query then re-fetches the full list — this is simpler and more correct than manually applying diffs
-- Unsubscribe in the component's `onDestroy` or SvelteKit layout's `onDestroy` to prevent memory leaks
-- Enable Row-Level Security on all tables — Realtime respects RLS since Supabase Realtime v2
-
-**For barcode scanning (mobile PWA):**
-- Use the `BarcodeDetector` API (native where available, polyfill elsewhere) with `formats: ['ean_13', 'ean_8']`
-- Stream camera via `getUserMedia` with `facingMode: 'environment'` (rear camera)
-- Run detection in a `requestAnimationFrame` loop; stop the loop on successful scan to save battery
-- Show a viewfinder overlay using a canvas element positioned over the video feed
-- Fallback: manual EAN entry text input if camera permission is denied
-
-**For Kassal.app API integration (barcode lookup):**
-- Primary: `GET https://kassal.app/api/v1/products/ean/{ean}` — returns product name, category, image, and prices across Norwegian stores
-- Fallback: Open Food Facts `GET https://world.openfoodfacts.net/api/v2/product/{barcode}` — broader global coverage, useful when Kassal has no entry for niche products
-- Call from a Supabase Edge Function rather than directly from the client — this hides API keys, centralises error handling, and makes it easy to cache lookups in your own `products` table to avoid redundant API calls
-- Cache successful lookups in Postgres: if `products` table already has the EAN, skip the external API call entirely
-
-**For offline support during shopping:**
-- Cache the app shell (HTML, JS, CSS) with `CacheFirst` strategy via @vite-pwa/sveltekit's Workbox config
-- Cache Supabase REST API responses with `NetworkFirst` strategy (serve stale if network fails)
-- Queue mutations (add item, remove item, check off) to IndexedDB using `idb` when offline
-- Replay the queue via Background Sync when connectivity returns (Workbox `BackgroundSyncPlugin`)
-
-**For Norwegian language support:**
-- SvelteKit has no built-in i18n — use `paraglide-js` (from the same org as SvelteKit, Inlang) as it's compiler-based and produces zero-overhead typed i18n
-- Norwegian Bokmål (nb) as primary locale, English (en) as fallback
-- Store the user's preferred locale in Supabase user metadata
-
----
-
-## Version Compatibility
-
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| @tanstack/svelte-query@6 | Svelte 5, SvelteKit 2 | v6 is required for Svelte 5 runes. v5 has buggy runes compatibility. Do not use v5. |
-| @vite-pwa/sveltekit@1.1.0 | SvelteKit 2, Vite 5/6 | Requires the extra `pwa:build` script step in package.json after SvelteKit build completes. |
-| @supabase/ssr@0.9.0 | @supabase/supabase-js@2.x | Must be used together. Handles cookie storage for auth sessions across SvelteKit hooks, server load, and client. |
-| barcode-detector@3.1.0 | All modern browsers | Registers native BarcodeDetector when absent. Import: `import 'barcode-detector/pure'` for the ponyfill variant or `import 'barcode-detector/polyfill'` to override globally. |
-| Tailwind CSS@4.x | Vite 5+, SvelteKit 2 | Use `@tailwindcss/vite` plugin. No PostCSS, no `tailwind.config.js`. Config lives in CSS via `@theme`. Not compatible with PostCSS-based shadcn-svelte versions — use shadcn-svelte v1+ which supports v4. |
-| shadcn-svelte@1.x | Svelte 5, Tailwind v4 | v1 is a breaking change from v0. v1 is Svelte 5 runes-native and Tailwind v4 compatible. Do not mix with shadcn-svelte v0. |
+| Package | Version | Notes |
+|---------|---------|-------|
+| `@supabase/supabase-js` | ^2.98.0 (latest: ~2.99.1) | Storage `.upload()` and `.getPublicUrl()` with `transform` are stable across all 2.x releases |
+| `tailwindcss` | ^4.2.1 | `@custom-variant dark` is the v4 idiom — replaces `darkMode: 'class'` config. Do not use the v3 config approach. |
+| `@sveltejs/kit` | ^2.50.2 | Route groups `(name)/`, nested layouts, `+layout.svelte` — stable since SvelteKit 1.x |
+| `svelte` | ^5.51.0 | Runes (`$state`, `$props`) used for theme store — requires Svelte 5 (already in use) |
+| `@tanstack/svelte-query` | ^6.1.0 | Same fetch/invalidate pattern for recipes as for shopping lists — no API changes needed |
 
 ---
 
 ## Sources
 
-- npm registry (verified via `npm show`) — versions for all packages above
-- [Supabase Docs — SvelteKit Quickstart](https://supabase.com/docs/guides/getting-started/quickstarts/sveltekit) — MEDIUM confidence (official docs, verified current)
-- [Supabase Docs — Server-Side Auth for SvelteKit](https://supabase.com/docs/guides/auth/server-side/sveltekit) — HIGH confidence (official)
-- [Supabase Docs — Realtime](https://supabase.com/docs/guides/realtime) — HIGH confidence (official)
-- [Vite PWA — SvelteKit framework guide](https://vite-pwa-org.netlify.app/frameworks/sveltekit) — HIGH confidence (official plugin docs)
-- [TanStack Query — Svelte v5 docs](https://tanstack.com/query/v5/docs/framework/svelte/overview) — HIGH confidence (official)
-- [Kassal.app API docs](https://kassal.app/api/docs) — MEDIUM confidence (endpoint structure confirmed; auth mechanism not fully documented publicly)
-- [barcode-detector polyfill on npm](https://www.npmjs.com/package/barcode-detector) — HIGH confidence (npm-verified)
-- [Svelte 5 runes — global state patterns](https://mainmatter.com/blog/2025/03/11/global-state-in-svelte-5/) — MEDIUM confidence (community article, current)
-- [ZXing maintenance mode announcement](https://github.com/zxing-js/library) — HIGH confidence (GitHub repo, maintainer statement)
-- [Tailwind CSS v4 + SvelteKit official guide](https://tailwindcss.com/docs/guides/sveltekit) — HIGH confidence (official Tailwind docs)
-- WebSearch cross-references for SvelteKit vs Next.js 2026 — LOW-MEDIUM confidence (aggregated from multiple community comparisons)
+- Supabase Storage standard uploads (official docs) — upload API, 6MB limit, upsert guidance: https://supabase.com/docs/guides/storage/uploads/standard-uploads
+- Supabase Storage image transformations (official docs) — `transform` option in `getPublicUrl`, Pro plan requirement: https://supabase.com/docs/guides/storage/serving/image-transformations
+- Tailwind CSS dark mode (official docs, v4.2) — `@custom-variant dark`, localStorage toggle pattern: https://tailwindcss.com/docs/dark-mode
+- SvelteKit advanced routing (official docs) — route groups, nested layouts: https://svelte.dev/docs/kit/advanced-routing
+- `browser-image-compression` npm — maintenance status (v2.0.2, last published 3 years ago): https://www.npmjs.com/package/browser-image-compression
+- `@supabase/supabase-js` npm — current version ~2.99.1: https://www.npmjs.com/package/@supabase/supabase-js
+- CaptainCodeman dark mode implementation — FOUC prevention pattern, localStorage vs cookie tradeoff: https://www.captaincodeman.com/implementing-dark-mode-in-sveltekit
+- Svelte Tutorial: Route Groups — confirmed `(name)` directory behavior: https://svelte.dev/tutorial/kit/route-groups
 
 ---
-*Stack research for: HandleAppen — family grocery shopping PWA*
-*Researched: 2026-03-08*
+*Stack research for: HandleAppen v1.2 — recipes, image upload, dark mode, admin hub*
+*Researched: 2026-03-13*

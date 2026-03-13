@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { sanitizeOAuthNextPath } from '$lib/auth/oauth'
 
 export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
   const code = url.searchParams.get('code')
-  const nextParam = url.searchParams.get('next') ?? '/'
-  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/'
+  const next = sanitizeOAuthNextPath(url.searchParams.get('next'))
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)

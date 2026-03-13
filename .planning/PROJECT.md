@@ -1,14 +1,15 @@
 # HandleAppen
 
-## Current Milestone: v1.1 Mobile UX and Smart Item Entry
+## Current Milestone: v1.2 Navbar Restructure and Recipes
 
-**Goal:** Make the shopping flow feel like a real mobile app and reduce friction when adding recurring items.
+**Goal:** Restructure navigation around the four most-used areas and introduce a household recipe feature that makes weekly dinner planning drive the shopping list.
 
 **Target features:**
-- Mobile-safe dialogs and layouts with no horizontal overflow
-- Larger fixed bottom navigation with better touch ergonomics
-- Inline quantity controls on the main list with default quantity `1`
-- Household item memory with typeahead suggestions and remembered categories
+- Four-tab bottom nav: Handleliste, Oppskrifter, Anbefalinger, Admin
+- Recipes: household-shared recipe list with cover images and ingredients linked to household items; add all or individual ingredients to a chosen list
+- Admin hub page consolidating Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
+- Item management: edit name/category and add pictures to any household item
+- User settings: dark mode toggle (placeholder for more preferences)
 
 ## What This Is
 
@@ -30,11 +31,12 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 
 ### Active
 
-- [ ] Mobile dialogs fit fully within the viewport and never cause sideways scrolling
-- [ ] Bottom navigation stays fixed to the screen bottom and is easier to tap with a thumb
-- [ ] Quantity can be adjusted directly from the main list and defaults to `1` for new items
-- [ ] Previously added household items appear as typeahead suggestions while typing
-- [ ] Picking a remembered item suggestion reuses its last known category automatically
+- [ ] Bottom navigation has four tabs: Handleliste, Oppskrifter, Anbefalinger, Admin
+- [ ] Household-shared recipes with cover images and ingredient lists linked to household items
+- [ ] Recipe ingredients can be added individually or all at once to a chosen shopping list
+- [ ] Admin hub consolidates Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
+- [ ] All household items are editable (name, category, picture) from Admin → Items
+- [ ] User can toggle dark mode from Brukerinnstillinger
 
 ### Out of Scope
 
@@ -70,6 +72,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | Kassal.app + Open Food Facts for barcodes | Best coverage for Norwegian products — try Kassal first, fall back to Open Food Facts | — Pending |
 | Default layout + per-store overrides | Reduces setup burden while allowing store-specific precision | — Pending |
 | v1.1 targets mobile UX before broad feature expansion | Current user pain is interaction friction on phones, not missing major workflows | — Pending |
+| v1.2 restructures nav and adds recipes | Weekly dinner planning drives shopping — recipes as first-class objects reduces manual item entry | — Pending |
 
 ---
-*Last updated: 2026-03-12 after starting milestone v1.1*
+*Last updated: 2026-03-13 after starting milestone v1.2*

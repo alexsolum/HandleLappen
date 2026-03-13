@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button'
   import { Input } from '$lib/components/ui/input'
+  import { buildOAuthCallbackUrl, sanitizeOAuthNextPath } from '$lib/auth/oauth'
 
   let { data } = $props()
 
@@ -12,12 +13,7 @@
   let oauthLoading = $state(false)
 
   function getNextPath() {
-    const next = new URLSearchParams(window.location.search).get('next')
-    if (next && next.startsWith('/') && !next.startsWith('//')) {
-      return next
-    }
-
-    return '/velkommen'
+    return sanitizeOAuthNextPath(new URLSearchParams(window.location.search).get('next'), '/velkommen')
   }
 
   async function handleSignUp() {
@@ -60,8 +56,7 @@
     oauthLoading = true
     error = null
 
-    const redirectTo = new URL('/auth/callback', window.location.origin)
-    redirectTo.searchParams.set('next', getNextPath())
+    const redirectTo = buildOAuthCallbackUrl(window.location.origin, getNextPath(), '/velkommen')
 
     const { error: authError } = await data.supabase.auth.signInWithOAuth({
       provider: 'google',

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button'
   import { Input } from '$lib/components/ui/input'
+  import { buildOAuthCallbackUrl, sanitizeOAuthNextPath } from '$lib/auth/oauth'
 
   let { data } = $props()
 
@@ -11,8 +12,11 @@
   let oauthLoading = $state(false)
 
   function getNextPath() {
-    const next = new URLSearchParams(window.location.search).get('next')
-    return next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+    return sanitizeOAuthNextPath(new URLSearchParams(window.location.search).get('next'))
+  }
+
+  function getGoogleRedirectTo() {
+    return buildOAuthCallbackUrl(window.location.origin, getNextPath()).toString()
   }
 
   async function handleSignIn() {
@@ -41,8 +45,7 @@
     oauthLoading = true
     error = null
 
-    const redirectTo = new URL('/auth/callback', window.location.origin)
-    redirectTo.searchParams.set('next', getNextPath())
+    const redirectTo = buildOAuthCallbackUrl(window.location.origin, getNextPath())
 
     const { error: authError } = await data.supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -89,7 +92,13 @@
         <div class="relative flex justify-center text-xs text-gray-400"><span class="bg-white px-2">eller</span></div>
       </div>
 
-      <Button variant="outline" onclick={handleGoogleSignIn} disabled={oauthLoading} class="w-full">
+      <Button
+        variant="outline"
+        onclick={handleGoogleSignIn}
+        disabled={oauthLoading}
+        class="w-full"
+        data-google-oauth-callback={typeof window !== 'undefined' ? getGoogleRedirectTo() : ''}
+      >
         {oauthLoading ? 'Sender deg til Google…' : 'Fortsett med Google'}
       </Button>
     </div>

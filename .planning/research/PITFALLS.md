@@ -1,263 +1,360 @@
 # Pitfalls Research
 
-**Domain:** Family grocery shopping PWA with Supabase Realtime, household sharing, barcode scanning, store-layout-aware lists
-**Researched:** 2026-03-08
-**Confidence:** HIGH (Supabase limits and RLS patterns verified against official docs; iOS camera issues verified against Apple Developer Forums and STRICH knowledge base; barcode API verified against official Kassal.app docs)
+**Domain:** SvelteKit + Supabase PWA — adding navbar restructure, recipes, admin hub, item pictures, dark mode to existing v1 family grocery app
+**Researched:** 2026-03-13
+**Confidence:** HIGH (Tailwind v4 dark mode config verified against official docs; Supabase Storage RLS verified against official access control docs; SvelteKit await parent() waterfall verified against official docs and GitHub issues; PWA navigation behavior verified against vite-pwa/sveltekit docs; service worker image conflict verified against Supabase community reports)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Supabase Realtime Channels Never Cleaned Up (Memory Leak)
+### Pitfall 1: Dark Mode FOUC — Tailwind v4 Has No `darkMode` Config Key
 
 **What goes wrong:**
-Every call to `supabase.channel('name')` appends a new `RealtimeChannel` object to the client's internal channels array. In React, if the `useEffect` that creates the subscription does not call `supabase.removeChannel(channel)` in its cleanup function, each render/mount cycle grows the array without bound. After a long session (navigating between lists, going in and out of the shopping view), the browser accumulates hundreds of phantom subscriptions, all receiving events. This causes duplicate state updates, sluggish UI, and eventually crashes the tab on lower-end Android devices. React 18 Strict Mode doubles the effect — every channel is created twice in development, making the leak appear immediately.
+The existing `app.css` uses only `@import "tailwindcss"`. Tailwind v4 defaults to `prefers-color-scheme` (media query) for dark mode, meaning `dark:` classes react to the OS setting only. When the user's Brukerinnstillinger toggle needs to override OS preference, you need a class-based toggle. In Tailwind v4 there is **no `tailwind.config.js`** and no `darkMode: 'class'` key — developers who copy v3 tutorials will add `darkMode: 'class'` to a config file that no longer exists and wonder why `dark:` classes never activate.
+
+Even after configuring correctly with `@custom-variant`, there is a second problem: the toggle preference is stored in `localStorage`, which is not readable during SSR. On first load the SSR render has no idea what the user's stored preference is, so the page renders light, then JavaScript reads `localStorage` and switches to dark — causing a visible flash (FOUC). This is particularly jarring in the bottom nav, header, and full-page backgrounds.
 
 **Why it happens:**
-Supabase documentation examples historically did not emphasize cleanup. Developers copy-paste subscription code into `useEffect` without a return function. The channels array grows silently — there is no error, just degraded performance.
+Tailwind v4 moved all configuration to CSS (`@custom-variant`) but most tutorials still show v3's `tailwind.config.js` approach. Developers copy old examples. The FOUC happens because SvelteKit renders HTML on the server where `localStorage` is unavailable, and the theme class is applied client-side in `onMount` — which fires after the first paint.
 
 **How to avoid:**
-Always pair channel creation with removal in the same `useEffect`:
+Two distinct fixes required:
 
-```typescript
-useEffect(() => {
-  const channel = supabase
-    .channel('list-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'list_items' }, handler)
-    .subscribe();
+1. **Configure Tailwind v4 correctly** — in `app.css`, add the custom variant after the import:
+   ```css
+   @import "tailwindcss";
+   @custom-variant dark (&:where(.dark, .dark *));
+   ```
+   This makes `dark:` classes activate when `.dark` exists on any ancestor element, typically `<html>`.
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [listId]);
-```
+2. **Prevent FOUC with an inline blocking script** — in `app.html`, add a `<script>` tag *before* `%sveltekit.head%` that runs synchronously (blocking render). This reads `localStorage` and applies the class before first paint:
+   ```html
+   <script>
+     (function() {
+       try {
+         var theme = localStorage.getItem('theme');
+         if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+           document.documentElement.classList.add('dark');
+         }
+       } catch(e) {}
+     })();
+   </script>
+   ```
+   This runs synchronously during HTML parsing — before CSS applies, before SvelteKit hydrates. No FOUC.
 
-Use `supabase.getChannels()` in development to assert only N channels are open at any time. Never share a single channel reference across multiple components — create one per logical subscription scope.
+Do **not** use cookies to persist the theme. Cookie-based SSR approaches require hooks.server.ts changes, add overhead to every request, and create complexity when SvelteKit's prerendering is involved. LocalStorage + inline script is simpler and equally reliable.
 
 **Warning signs:**
-- Event handlers firing 2x, 4x, 8x per database change
-- `supabase.getChannels().length` growing over a session
-- Performance degrades after navigating between shopping lists multiple times
+- `dark:` classes have no effect even when `.dark` is on `<html>`
+- Screen flashes white for 100-200ms before switching to dark on hard reload
+- The toggle works in Chrome DevTools but not in the installed PWA on iOS (Safari's persistent storage is slower to initialize)
 
-**Phase to address:** Core real-time sync phase (when list subscriptions are first built)
+**Phase to address:** Dark mode / Brukerinnstillinger phase — both the Tailwind config fix and the inline script must land in the same phase; fixing one without the other produces a partially broken result.
 
 ---
 
-### Pitfall 2: Postgres Changes DELETE Events Are Not Filterable and Bypass RLS
+### Pitfall 2: Supabase Storage RLS — Household-Scoped Paths Require Four Separate Policies
 
 **What goes wrong:**
-Developers assume that setting up an RLS policy on the `list_items` table means only authorized users will receive DELETE events via Postgres Changes. This is wrong. Supabase's own documentation states: "RLS policies are not applied to DELETE statements" because Postgres cannot verify user access to an already-deleted row. Additionally, DELETE events cannot be filtered by column value. A subscription listening for `filter: 'list_id=eq.123'` will NOT reliably filter DELETE events. The client receives every deletion on the subscribed table, with only primary key data in the `old` record (unless `REPLICA IDENTITY FULL` is set).
+Developers create a storage bucket, add a single `INSERT` policy so uploads work, then discover that images don't display (SELECT is missing), that updating an image fails (UPDATE missing), and that deleting an old image before replacement is blocked (DELETE missing). Additionally, without path-based scoping in the policy, any authenticated user can upload to any path in the bucket — household A can overwrite household B's item images by guessing the path.
+
+The second mistake: making the bucket **public** to avoid writing SELECT policies, then being surprised that RLS on `storage.objects` still controls uploads. A public bucket only bypasses the auth check on *downloads via the public URL* — INSERT/UPDATE/DELETE still require explicit policies. Developers confuse "publicly readable" with "no RLS needed."
 
 **Why it happens:**
-The INSERT and UPDATE event documentation correctly shows filtered subscriptions working as expected. Developers assume DELETE follows the same rules. The limitation is buried in fine print in the Postgres Changes docs.
+The Supabase dashboard Storage UI shows a single "New policy" flow that prompts for only one operation at a time. It's easy to create an INSERT policy and consider the job done. The public bucket checkbox is labeled as controlling "access" which implies full access when checked.
 
 **How to avoid:**
-Two approaches, pick one:
-
-1. **Never rely on DELETE events for security.** Apply application-level filtering on the client after receiving the event: check that the deleted `id` belongs to your current context before acting on it.
-2. **Use Broadcast instead of Postgres Changes for mutations you control.** When a list item is deleted via an Edge Function or client call, emit a Broadcast event (`{ event: 'item-deleted', payload: { id, list_id } }`) on a channel scoped to the household. Broadcast is filterable and does not have the RLS limitation.
-
-For a grocery app where security is household-level (not per-item), approach (2) is cleaner: use Broadcast channels named `household:{household_id}` and manually emit change events. This also scales better — Postgres Changes processes on a single thread, Broadcast does not.
-
-**Warning signs:**
-- DELETE events arriving for items from other lists during integration testing
-- Client throwing "item not found" errors when processing deletions
-
-**Phase to address:** Real-time sync architecture phase — decide Postgres Changes vs. Broadcast before building any subscription code
-
----
-
-### Pitfall 3: RLS Policy Recursion on Household Membership Table
-
-**What goes wrong:**
-The natural data model has a `household_members` join table (`user_id`, `household_id`). To protect `lists` (which belong to a household), you write an RLS policy like:
+For item and recipe images, use a **private bucket** with four explicit policies on `storage.objects`. Scope all policies to `bucket_id = 'images'` and enforce a household-based folder structure (`households/{household_id}/{item_id}.jpg`):
 
 ```sql
--- BROKEN: causes infinite recursion
-CREATE POLICY "household members can see lists"
-ON lists FOR SELECT
+-- Upload (INSERT)
+CREATE POLICY "household members can upload images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'images' AND
+  (storage.foldername(name))[1] = 'households' AND
+  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
+);
+
+-- View (SELECT)
+CREATE POLICY "household members can view images"
+ON storage.objects FOR SELECT
+TO authenticated
 USING (
-  household_id IN (
-    SELECT household_id FROM household_members WHERE user_id = auth.uid()
-  )
+  bucket_id = 'images' AND
+  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
+);
+
+-- Replace (UPDATE) -- needed for upsert/replace
+CREATE POLICY "household members can update images"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'images' AND
+  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
+);
+
+-- Delete (DELETE)
+CREATE POLICY "household members can delete images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'images' AND
+  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
 );
 ```
 
-This works in isolation, but the moment `household_members` itself has an RLS policy (which it must, to prevent users from seeing other households' membership), Postgres enters infinite recursion: checking `lists` triggers a check on `household_members`, which triggers its own policy, which may reference back to `lists`. The error is `ERROR: infinite recursion detected in policy for relation "household_members"` and it breaks ALL queries on affected tables.
+This reuses the `get_my_household_ids()` SECURITY DEFINER function already established for table RLS (see PITFALLS.md from v1.0). All four policies reference the same function — changes to household membership propagate automatically.
+
+**Warning signs:**
+- Upload succeeds (HTTP 200) but image does not display in app (missing SELECT policy)
+- Replacing an item image with a new one returns 403 (missing UPDATE policy)
+- Old images accumulate in storage because delete fails silently on the client (missing DELETE policy)
+- `storage.objects` RLS check passes in Supabase Table Editor but fails in the running app (service role vs anon key confusion during testing)
+
+**Phase to address:** Admin hub / item picture phase — establish all four storage policies plus the path convention before writing any upload UI code. Do not iterate by adding policies one at a time as errors appear.
+
+---
+
+### Pitfall 3: Large Image Uploads from Mobile Cameras Exceeding Supabase Free Tier Limit
+
+**What goes wrong:**
+Modern phones (iPhone 15, Samsung Galaxy S24) produce HEIC/JPEG photos at 4–12 MB per image. Supabase Storage's free tier has a **50 MB global file size limit**, but more importantly the **standard upload API is suited for files up to 6 MB** — above that, Supabase recommends resumable uploads. A family member photographing a grocery item from their iPhone camera roll will silently fail or receive a 413 error if the raw photo exceeds the limit.
+
+Additionally: if the file is within the limit but is a large JPEG (3–4 MB), the Supabase Storage CDN URL served to other family members will be slow to load on mobile data. Item list views with 20+ product images become noticeably slow.
 
 **Why it happens:**
-RLS policies evaluate recursively. Developers write separate policies for each table without realizing they create a circular dependency when both tables reference each other.
+Developers test with small PNG files from their desktop. Mobile camera output is not considered. The standard `supabase.storage.from('images').upload(path, file)` call does not enforce client-side size checking.
 
 **How to avoid:**
-Wrap membership checks in a `SECURITY DEFINER` function. Security definer functions bypass RLS on the tables they query, breaking the recursion:
+Compress images client-side before upload using the `browser-image-compression` npm package (or `compressorjs`). Target output: ≤ 400 KB, max 800px on the longest side — sufficient for a grocery item thumbnail. Implement the compression step in the upload handler, not in a separate UI step. Show a size/compression progress indicator during the operation (mobile compression of a 10 MB HEIC can take 2–4 seconds on older devices).
 
-```sql
-CREATE OR REPLACE FUNCTION get_my_household_ids()
-RETURNS SETOF uuid
-LANGUAGE sql
-SECURITY DEFINER
-STABLE
-AS $$
-  SELECT household_id FROM household_members WHERE user_id = auth.uid();
-$$;
+```typescript
+import imageCompression from 'browser-image-compression';
 
--- Policy that uses the function (no recursion)
-CREATE POLICY "household members can see lists"
-ON lists FOR SELECT
-USING (household_id IN (SELECT get_my_household_ids()));
+const compressed = await imageCompression(file, {
+  maxSizeMB: 0.4,
+  maxWidthOrHeight: 800,
+  useWebWorker: true,
+});
+await supabase.storage.from('images').upload(path, compressed);
 ```
 
-Additionally, wrap `auth.uid()` calls in a `SELECT` subquery in all policies — this caches the result per query instead of re-evaluating per row, reducing policy overhead from ~179ms to ~9ms on large tables (measured by Supabase).
+Also enforce a client-side guard before compression: if `file.size > 50_000_000` (50 MB), reject immediately with a user-friendly message. This prevents attempting to compress a raw video file accidentally selected.
 
 **Warning signs:**
-- `infinite recursion detected` errors immediately after adding a second table's RLS policy
-- Queries returning empty results after enabling RLS (often confused with recursion when policies silently break)
+- Upload progress bar hangs at 0% for large files then fails with no error message shown
+- HTTP 413 errors in the Network tab during upload testing
+- Item list pages slow on mobile with many images visible simultaneously
 
-**Phase to address:** Auth and household data model phase — establish security definer pattern before writing any RLS policies
+**Phase to address:** Admin hub / item picture phase — compression is not an optimization to add later, it is a correctness requirement for the mobile use case.
 
 ---
 
-### Pitfall 4: iOS Safari PWA Camera Permissions Reset on Every Launch
+### Pitfall 4: Service Worker Caches Old Item/Recipe Images After Replacement
 
 **What goes wrong:**
-When a user adds the HandleAppen PWA to their iOS home screen (the `apple-mobile-web-app-capable` behavior), camera permissions are NOT persisted between sessions. Every time the user opens the app from the home screen and tries to scan a barcode, iOS prompts for camera access again. This is a known, long-standing WebKit bug (bug #215884 on the WebKit bug tracker). The permission also resets when the app is sent to the background and brought back. On iOS 18, the problem worsened — the Shape Detection API (which had partial barcode support) regressed and is reported broken as of the iOS 18 update.
+The existing service worker uses `CacheFirst` for the app shell and `NetworkFirst` for Supabase REST API calls. Supabase Storage serves images from a CDN URL like `https://{project}.supabase.co/storage/v1/object/public/images/households/{id}/item-123.jpg`. When a user replaces an item's picture, they upload a new file to the **same path** (upsert). The old image URL remains identical. The service worker (or the browser's HTTP cache) has the old image cached and serves it instead of the new one — the replacement appears to have failed from the user's perspective.
+
+This is a documented issue in the Supabase community: replace storage file with the same path and old image persists due to caching.
 
 **Why it happens:**
-PWA standalone mode on iOS runs in a separate WebKit process that does not share permission state with Safari. Apple has not fixed this despite it being reported since iOS 13.
+The current service worker does not explicitly handle `storage.supabase.co` URLs. The browser's default HTTP cache (`Cache-Control` headers from Supabase CDN) or Workbox's `CacheFirst` strategy may cache the original image. When the path is reused after upsert, there is no cache invalidation.
 
 **How to avoid:**
-Do not rely on the `BarcodeDetector` Web API on iOS — it is not implemented in WebKit/Safari at all, on any iOS version. Use a WebAssembly-based barcode library instead:
+Two-pronged approach:
 
-- **`barcode-detector` npm package (v3+)** — polyfills the `BarcodeDetector` API using ZXing-C++ WASM; works on iOS Safari
-- **`barcode-detector-polyfill`** — ZBar compiled to WASM via Emscripten; handles EAN-13, EAN-8, UPC-A, Code 128 (all formats needed for Norwegian grocery barcodes)
+1. **Never reuse the same storage path for updated images.** Include a version suffix or timestamp in the filename: `item-{id}-{timestamp}.jpg`. Delete the old file after uploading the new one. This makes the URL change on every update, which is a guaranteed cache-bust.
 
-For the camera permission reset: implement a graceful re-request flow. Show an explicit "Tap to activate camera" button that calls `getUserMedia()` on user gesture each session, instead of auto-starting the camera. This is less surprising than a repeated system prompt appearing automatically. Consider providing a manual EAN input field as the reliable fallback — many users will prefer typing in poor lighting anyway.
+2. **Explicitly exclude Supabase Storage URLs from the service worker cache.** In `service-worker.ts`, add a check that prevents the existing `NetworkFirst` Supabase cache from matching storage object URLs:
+   ```typescript
+   // In the existing Supabase REST handler, add this check:
+   url.pathname.startsWith('/rest/v1/') &&
+   !url.pathname.startsWith('/storage/') && // Add this line
+   !url.pathname.startsWith('/auth/')
+   ```
+   Storage image requests should go directly to the network (no service worker interception) so they always fetch the current CDN version.
+
+Option 1 alone is sufficient, but option 2 prevents the service worker from being the source of future confusion for any Supabase CDN content.
 
 **Warning signs:**
-- Barcode scanning "works on desktop/Android but not iPhone"
-- `BarcodeDetector is not defined` errors in console on iOS
-- Users report being asked for camera permission every time they open the app
+- User reports "I updated the picture but it still shows the old one"
+- Hard refresh in desktop Chrome shows new image, but the installed PWA on the phone still shows old image
+- Storage bucket shows the new file but the URL still resolves to the old image visually
 
-**Phase to address:** Barcode scanning phase — design around WASM from the start, not as an afterthought when iOS bugs appear
+**Phase to address:** Admin hub / item picture phase — apply both fixes before any image upload is wired up in the UI.
 
 ---
 
-### Pitfall 5: Store Layout Category Ordering Using Sequential Integers (The Position Column Trap)
+### Pitfall 5: Bottom Nav Restructure Breaks `page.url.pathname` Active State Detection for Deep Links
 
 **What goes wrong:**
-The obvious data model for ordered categories is a `position` integer column (1, 2, 3, ...). This works until a user reorders categories: moving "Frozen" from position 8 to position 3 requires updating every row between positions 3-8 to shift them. With 10-15 categories per store layout, this is 8 UPDATE statements in a transaction. With multiple family members editing layouts simultaneously, this creates write contention and Realtime events for every shifted row — flooding the subscription with irrelevant change events that appear as layout thrashing on other devices.
+The current `BottomNav.svelte` uses exact pathname matching (`page.url.pathname === href`) to determine which tab is active. After the restructure, the new tabs are: Handleliste (`/`), Oppskrifter (`/oppskrifter`), Anbefalinger (`/anbefalinger`), Admin (`/admin`). The Admin tab covers multiple sub-routes: `/admin/butikker`, `/admin/husstand`, `/admin/items`, `/admin/historikk`, `/admin/instillinger`. With exact matching, none of those sub-routes will mark the Admin tab as active — the user navigates into the admin hub and all four tabs appear inactive.
+
+The same problem applies to Handleliste: the current active route for shopping is `/lister/[id]`, not `/` — so navigating into a list makes the Lister tab go dark.
+
+Additionally: the `recommendationHref` currently appends `?list=...` to preserve the active list. If the tab href includes a query string and the pathname check ignores query params, the Anbefalinger tab may show inactive even when on that page.
 
 **Why it happens:**
-Sequential integers are the intuitive first choice. The mutation overhead only becomes apparent when implementing drag-and-drop reordering UI.
+Exact match is the simplest implementation and works for flat nav. It breaks the moment any tab has child routes or query parameters. It is easy to miss during development because developers navigate directly to `/admin` and see it highlighted, but don't test from a sub-route like `/admin/items`.
 
 **How to avoid:**
-Use **lexicographic fractional indexing** (also called "order key" pattern). Store position as a string or float with gaps:
+Replace exact pathname matching with a prefix check for tabs that own sub-routes:
 
-- Initial positions: `"a"`, `"b"`, `"c"` (or integers with gaps: 1000, 2000, 3000)
-- Moving "Frozen" between positions `"b"` and `"c"` produces `"bm"` (or 1500)
-- Only ONE row is updated per reorder operation
-
-For this app, the simplest safe implementation: use `NUMERIC` with gaps of 1000, start at 1000. When a user reorders, set the new position to `(prev_position + next_position) / 2`. Re-normalize positions (reset to 1000, 2000, ...) only when precision exhausts (detectable when gap < 1). This is one UPDATE per drag. Combined with optimistic UI, reordering feels instant and emits a single Realtime event.
-
-Apply the same pattern to the `list_items` table if item ordering within categories is needed.
-
-**Warning signs:**
-- Realtime subscription showing 10+ events for a single category reorder
-- Write conflicts on the layout table when two family members save changes simultaneously
-- Sluggish drag-and-drop UI during reordering
-
-**Phase to address:** Store layout / category management phase
-
----
-
-### Pitfall 6: Offline Conflict — Both Devices Check Off the Same Item
-
-**What goes wrong:**
-Family member A is shopping in-store with poor connectivity. They check off "Milk." Family member B, also shopping, checks off "Milk" offline two seconds later. Both devices queue the operation locally (IndexedDB). When connectivity resumes, both sync — resulting in either a duplicate "checked off" event or a conflict where one device's state clobbers the other. More problematically: if A also adds "Butter" while offline, and B deletes the list item category while offline, syncing produces an item without a valid category FK reference.
-
-**Why it happens:**
-Developers implement offline-first as a simple queue flush (send all pending operations on reconnect) without considering concurrent edits. For a shopping list, the naive last-write-wins approach based on wall-clock timestamps fails because device clocks are not synchronized and network delays skew ordering.
-
-**How to avoid:**
-For a **shopping list** specifically, conflict resolution is simpler than general document sync because the operations are coarse and largely commutative:
-
-1. **Checked-off is idempotent.** Both devices checking off the same item produces the same result. Model the `checked` field as a monotone boolean: `true` wins over `false`, always. Never "un-check" based on a stale timestamp. In the DB, use: `UPDATE list_items SET checked = checked OR $1`.
-
-2. **Additions are additive.** Two devices adding the same named item results in a duplicate — acceptable for v1, or de-duplicate on name + category on sync.
-
-3. **Deletions are the risky case.** Do not hard-delete items on the client while offline. Queue a delete operation with a `client_timestamp`. On sync, the server applies the delete only if the item has not been checked off by another user since the client timestamp. Use soft deletes (`deleted_at TIMESTAMPTZ`) and resolve on the server via an Edge Function.
-
-4. **Category FK integrity.** Apply foreign key constraints with `ON DELETE SET NULL` for `category_id`, not `ON DELETE CASCADE`. This prevents a category deletion from silently removing all items assigned to it.
-
-**Warning signs:**
-- Items appearing/disappearing when connectivity is restored
-- Duplicate items in the list after a shared shopping session
-- Test: put two browser tabs in offline mode, make conflicting changes, bring both online — observe the result
-
-**Phase to address:** Offline sync phase — define conflict policy per operation type before implementing the sync queue
-
----
-
-### Pitfall 7: Over-Engineering the Recommendation Engine
-
-**What goes wrong:**
-The recommendation section is scoped to "history-based + co-purchase suggestions." Teams frequently interpret this as requiring collaborative filtering across users, a separate ML model, or a vector similarity service. They spend 2-3 phases building a recommendation pipeline before verifying that families actually click on suggestions. The real dataset at launch is a single household's purchase history — typically 100-500 item entries — far too small for collaborative filtering, which degrades with sparse data.
-
-**Why it happens:**
-Collaborative filtering is the well-known "Amazon does this" pattern. Engineers reach for it by default. The complexity also feels proportional to the feature's prominence in the nav bar.
-
-**How to avoid:**
-For v1, recommendations should be purely frequency-based SQL:
-
-```sql
--- "You usually buy these" — items checked off most in last 90 days
-SELECT item_name, category_id, COUNT(*) as frequency
-FROM shopping_history
-WHERE household_id = $1
-  AND checked_at > NOW() - INTERVAL '90 days'
-GROUP BY item_name, category_id
-ORDER BY frequency DESC
-LIMIT 20;
+```typescript
+function isActive(tab: Tab): boolean {
+  const pathname = page.url.pathname;
+  if (tab.href === '/') {
+    // Lister tab: active on / and all /lister/* routes
+    return pathname === '/' || pathname.startsWith('/lister/');
+  }
+  if (tab.href === '/admin') {
+    // Admin tab: active on /admin and all /admin/* routes
+    return pathname === '/admin' || pathname.startsWith('/admin/');
+  }
+  if (tab.href === '/anbefalinger') {
+    return pathname === '/anbefalinger';
+  }
+  // Default: prefix match
+  return pathname.startsWith(tab.href);
+}
 ```
 
-Co-purchase suggestions (items bought together): a simple JOIN on the same `shopping_session_id` grouping, counting co-occurrence pairs. This is a single SQL query, no ML pipeline needed.
-
-Collaborative filtering across households requires: shared data consent model, household privacy considerations, minimum data volume to produce non-garbage results. None of these are designed for in the current requirements. The Norwegian market is also small — cross-household similarity data will be sparse for months.
-
-**Build the simplest thing that could be useful, gate on engagement data before adding complexity.** If family members don't tap the recommendation section in the first two weeks, the entire feature is lower priority than assumed.
+Also verify that the PWA `start_url: "/"` in `vite.config.ts` still resolves correctly after the nav restructure. The current config sets `start_url: "/"` which maps to the Handleliste tab root — this is correct and should not change.
 
 **Warning signs:**
-- Planning a separate service or vector database for recommendations
-- Spending more than one phase on the recommendation feature before shipping
-- Designing a schema that requires cross-household data without a privacy model
+- Installing the updated PWA and navigating into `/admin/items` shows no tab highlighted
+- The "back" gesture from a list detail page lands on a route where no tab is active
+- Anbefalinger tab shows as inactive when the user is on that page with a `?list=` parameter
 
-**Phase to address:** Recommendation section phase — explicitly constrain scope to frequency SQL in the phase definition
+**Phase to address:** Navbar restructure phase — fix the active detection logic as part of the nav component rewrite, not as a follow-up fix.
 
 ---
 
-### Pitfall 8: Kassal.app API Used Directly from the Client (Key Exposure + Rate Limits)
+### Pitfall 6: PWA Standalone Mode Back-Navigation Trap After Nav Restructure
 
 **What goes wrong:**
-The Kassal.app API requires a Bearer token. If a barcode lookup call is made directly from the browser (client-side fetch), the API key is visible in browser DevTools network tab and JavaScript bundles. Additionally, the free hobby plan is capped at 60 requests/minute. A family of 4 scanning barcodes simultaneously while setting up their initial list could exhaust the rate limit in seconds, returning HTTP 429 errors with no user-visible explanation.
+In the current app, the bottom nav's four tabs link to: `/`, `/husstand`, `/butikker`, `/anbefalinger`. After restructure, Husstand and Butikker move under `/admin`. Users who installed the PWA before the update have browser history entries pointing to `/husstand` and `/butikker`. When they tap a bottom nav tab after the update, SvelteKit's client-side router loads the new route. But if they press the Android back button or use iOS swipe-back, the history stack may try to navigate to now-removed top-level routes that no longer exist (or redirect), creating a confusing experience.
+
+More critically: in PWA standalone mode on iOS, there is **no URL bar**. If the app somehow navigates to a route that isn't precached and connectivity is poor, the user sees a blank screen with no way to recover except force-quitting the app.
 
 **Why it happens:**
-The simplest implementation of barcode lookup is a direct client fetch. Supabase's client-side SDK makes this feel natural. The API key exposure risk is easy to overlook when iterating quickly.
+Navigation restructuring changes the URL space. Existing history entries don't automatically update. The service worker's precached routes from the previous build do not include new routes (new routes are only precached after the updated service worker installs).
 
 **How to avoid:**
-Route all barcode lookups through a **Supabase Edge Function**:
+1. **Add SvelteKit redirects** for all removed top-level routes. In `+layout.server.ts` or via `src/routes/husstand/+server.ts` (a redirect endpoint), send 301 redirects from `/husstand` and `/butikker` to their new homes under `/admin/husstand` and `/admin/butikker`. This ensures old bookmarks and back-navigation history entries still resolve.
 
-1. The Edge Function holds the Kassal.app API key in environment secrets (never exposed to the client)
-2. The Edge Function can implement response caching: cache barcode-to-product mappings in the Supabase database's `product_cache` table. Norwegian EAN codes do not change — a barcode lookup result is valid indefinitely. After the first lookup, subsequent requests for the same EAN are served from DB, not the external API.
-3. With caching, the 60 req/min limit only matters for first-time lookups of new EANs — in practice, a family's common products are scanned repeatedly and are cached after the first time.
+2. **Verify the service worker's `SKIP_WAITING` flow.** The existing service worker responds to `SKIP_WAITING` messages (already implemented). Confirm that after deploying the restructure, users who have the old app open receive the update prompt and the new routes are precached by the updated worker.
 
-For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but should still route through the Edge Function for consistency.
+3. **Test the update transition explicitly**: open the old app in PWA standalone mode on iOS, navigate to `/butikker`, deploy the update, then reopen the app — confirm the user sees the new admin hub rather than a blank screen or routing error.
 
 **Warning signs:**
-- API key appearing in browser Network tab
-- HTTP 429 errors during barcode scanning sessions
-- Product lookups failing for a household member while another is scanning
+- After restructure, navigating to the old app (before update installs) shows 404 on removed routes
+- Android back button from the new Admin hub navigates to an old route that no longer has content
+- Playwright tests that hardcode route paths fail after restructure (update the test fixtures)
 
-**Phase to address:** Barcode scanning phase — establish Edge Function proxy pattern before wiring up the scan UI
+**Phase to address:** Navbar restructure phase — implement redirects before releasing the build that removes top-level routes.
+
+---
+
+### Pitfall 7: Admin Hub Nested Layout Causes Double `household_id` Fetching via `await parent()`
+
+**What goes wrong:**
+The admin hub will live at `/admin` with sub-routes like `/admin/items`, `/admin/butikker`. The natural implementation is to create `src/routes/(protected)/admin/+layout.server.ts` that loads admin-specific data, then call `await parent()` in each sub-route's `+page.server.ts` to access `householdId` from the protected layout. This creates a **request waterfall**: SvelteKit cannot start the child `load` function until the parent `load` completes, meaning `(protected)/+layout.server.ts` runs first (fetches session + profile), then `admin/+layout.server.ts` runs (blocked waiting for parent), then the page `+page.server.ts` runs (blocked waiting for admin layout). Three sequential server round-trips instead of one.
+
+**Why it happens:**
+`await parent()` is the documented way to access parent layout data. Developers use it naturally without realizing it serializes what SvelteKit would otherwise parallelize. The performance hit is invisible in local development (all on localhost) but measurable on deployed infrastructure, particularly on first load in the PWA.
+
+**How to avoid:**
+Do not call `await parent()` in admin sub-route load functions just to get `householdId`. Instead, read `locals` directly — `householdId` is available via the profile query already run in the protected layout, but it is not in `locals` by default. The cleanest approach: move `householdId` into `event.locals` in `hooks.server.ts` (or a handle hook that runs after auth), so every server load function can read `locals.householdId` without waiting for parent.
+
+If `await parent()` is genuinely needed (for data that truly depends on parent output), call it **after** any independent data fetches, not before:
+
+```typescript
+// WRONG — waterfall
+export const load: PageServerLoad = async ({ locals, parent }) => {
+  const { householdId } = await parent(); // blocks until parent completes
+  const items = await supabase.from('items').select('*'); // runs after parent
+  return { items };
+};
+
+// CORRECT — parallel
+export const load: PageServerLoad = async ({ locals, parent }) => {
+  const itemsPromise = supabase.from('items').select('*'); // starts immediately
+  const { householdId } = await parent(); // waits in parallel
+  const { data: items } = await itemsPromise;
+  return { items };
+};
+```
+
+**Warning signs:**
+- Network waterfall visible in Chrome DevTools when navigating to admin sub-routes (sequential server requests)
+- Admin sub-pages feel slow to load despite simple data requirements
+- SvelteKit Vite dev server shows `load` functions running sequentially in console order
+
+**Phase to address:** Admin hub phase — establish the data access pattern for admin sub-routes before creating individual sub-pages.
+
+---
+
+### Pitfall 8: Recipe Ingredients Added to List Without Checking for Existing Items — Silent Duplicates
+
+**What goes wrong:**
+The "Add all ingredients to list" action on a recipe page creates new list item rows for each recipe ingredient. If the item already exists on the target list (user already added "Milk" manually, recipe calls for "Milk"), a duplicate entry is silently created. The shopping list then shows two "Milk" rows. In the store-layout-aware sorted view, duplicates are confusing — both rows are sorted to the same category position and appear adjacent with no indication they are duplicates.
+
+The problem is compounded when the user has already checked off one "Milk" and the recipe-added one appears unchecked — appearing to the user as though they still need to buy Milk.
+
+**Why it happens:**
+The simplest implementation of "add ingredients" is a batch insert with no duplicate detection. The recipe ingredient table references household items by `item_id`. The list items table likely links to the same `item_id`. A duplicate check requires querying the target list for existing item IDs before inserting — an extra step that is easy to skip in the first pass.
+
+**How to avoid:**
+Use a PostgreSQL upsert (`INSERT ... ON CONFLICT DO NOTHING`) on the list items table, with a unique constraint on `(list_id, item_id)`. This makes the "add to list" operation idempotent at the database level — adding an already-present ingredient is a no-op, not a duplicate.
+
+```sql
+ALTER TABLE list_items ADD CONSTRAINT uq_list_item UNIQUE (list_id, item_id);
+```
+
+```typescript
+await supabase
+  .from('list_items')
+  .upsert(
+    ingredientsToAdd.map(i => ({ list_id: targetListId, item_id: i.item_id, checked: false })),
+    { onConflict: 'list_id,item_id', ignoreDuplicates: true }
+  );
+```
+
+For the UX: after a bulk add, show a summary toast: "8 varer lagt til, 2 var allerede på listen." This communicates what happened rather than silently skipping items.
+
+**Warning signs:**
+- Testing "Add all" on a recipe that shares ingredients with manually added items produces duplicate rows
+- A checked item reappears unchecked after adding a recipe
+- The shopping list shows two identical item names in the same category section
+
+**Phase to address:** Recipes phase — apply the unique constraint in the migration that creates the schema for recipe-to-list linking; do not defer it.
+
+---
+
+### Pitfall 9: List Picker Sheet for "Add to List" Has No Empty State for Zero Lists
+
+**What goes wrong:**
+The recipe ingredient "add to list" flow opens a sheet where the user picks which shopping list to add ingredients to. If the household has no lists yet (new user onboarding) or all lists have been archived, the picker renders an empty sheet with no guidance. The user taps "Add to list," sees a blank modal, and has no idea what to do. On mobile this is a dead end — there is no visible way to create a new list from within the picker.
+
+**Why it happens:**
+The list picker is implemented assuming the user already has at least one list (the primary use case). Empty states are added later, if at all.
+
+**How to avoid:**
+Design the list picker sheet to handle three states at build time, not as an afterthought:
+1. **Lists available**: show the list of lists with a tap-to-select interaction.
+2. **No lists**: show "Du har ingen handlelister. Opprett en ny liste for å komme i gang." with an inline "Ny liste" button that creates a list and then proceeds with the add operation.
+3. **Loading**: show skeleton rows while the list query is in flight (especially relevant on first render in PWA offline mode where the cached response may be stale).
+
+**Warning signs:**
+- QA on a fresh household account shows a blank picker
+- User testing reveals confusion when the picker opens empty
+- The "Add to list" button in the recipe view is tappable even when no lists exist
+
+**Phase to address:** Recipes phase — spec all three sheet states in the task definition before implementation.
 
 ---
 
@@ -265,13 +362,13 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Direct client-to-Kassal.app API calls | Faster to prototype | API key exposed; no caching; rate limit hits | Never — use Edge Function from day one |
-| Sequential integer position column | Simpler initial schema | 8+ UPDATEs per reorder, Realtime event floods | Never for user-reorderable lists |
-| Hard deletes on list items | Simpler schema, no `deleted_at` | Unrecoverable sync errors when deleting while offline | Only if offline is explicitly not supported |
-| Skipping SECURITY DEFINER functions in RLS | Fewer abstractions | Infinite recursion the moment tables cross-reference each other | Never — write the function once, use everywhere |
-| Using `BarcodeDetector` API without WASM fallback | Less code | Feature silently broken for all iOS users | Never — iOS is likely majority of family mobile users |
-| Storing Realtime subscriptions outside React state management | Quick to wire up | Channel leak if component re-renders; hard to debug | Never — always manage channel lifecycle in effect cleanup |
-| Fetching full list on every Realtime event | Simpler state logic | Unnecessary network round-trips, flickering UI | Only during early prototyping, remove before first user test |
+| Storing theme in component state (`$state`) instead of `localStorage` | Simpler code | Preference resets on every app launch; FOUC on reload | Never — use `localStorage` from the start |
+| Making the image storage bucket public to skip SELECT policies | No SELECT policy needed for CDN URLs | Any authenticated user can see all households' images if they guess the path | Only if all images are genuinely non-sensitive (product photos from a public catalog are OK; family content is not) |
+| Uploading raw mobile camera images without compression | Fewer dependencies | 413 errors on free tier; slow list views; storage quota consumed rapidly | Never on the upload path — compress before upload always |
+| Using exact pathname match for all bottom nav active states | Less code | Admin sub-routes never highlight the Admin tab; looks broken | Never — prefix matching is two lines more, always correct |
+| Adding `await parent()` at the top of every sub-route load function | Consistent access to parent data | Sequential waterfall on every admin page load | Only when child data genuinely depends on parent data and the extra latency is acceptable |
+| No upsert on recipe ingredient add — plain INSERT | Simpler query | Silent duplicate list items; user confusion when checking off items | Never — unique constraint + upsert is 5 extra lines and prevents a class of bugs |
+| Reusing the same storage path when updating an item image | No need to delete old file | Old image persists in service worker cache; users see stale images | Never — include a version/timestamp in the path |
 
 ---
 
@@ -279,13 +376,14 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Kassal.app API | Calling from browser with key in env var | Supabase Edge Function proxy with response caching in DB |
-| Kassal.app API | Assuming 100% product coverage for Norwegian EANs | Always implement Open Food Facts as fallback; show graceful "product not found, enter manually" UI |
-| Supabase Realtime Postgres Changes | Assuming DELETE events respect RLS filters | Never rely on DELETE events for access control; use Broadcast or app-level filtering |
-| Supabase Realtime | Creating channels without cleanup | Always `removeChannel()` in useEffect return function |
-| iOS camera (PWA) | Using `BarcodeDetector` Web API | Use WASM polyfill (barcode-detector npm package); trigger camera on explicit user gesture each session |
-| IndexedDB offline queue | Flushing entire queue on reconnect without deduplication | Assign each queued operation a UUID; server-side idempotency keys prevent double-application |
-| Open Food Facts | Assuming product names are in Norwegian | Product names are often in English or the origin country language; display as-is with manual override option |
+| Supabase Storage (new) | Creating only INSERT policy and calling it done | Create all four policies: INSERT, SELECT, UPDATE, DELETE; test each separately |
+| Supabase Storage (new) | Making bucket public to avoid writing SELECT policies | Keep bucket private; write explicit SELECT policy scoped to household path |
+| Supabase Storage (new) | Uploading raw mobile camera JPEG without compression | Compress to ≤400 KB client-side with `browser-image-compression` before calling `storage.upload()` |
+| Supabase Storage + service worker (existing) | Service worker caches the old image URL after upsert | Use versioned filenames (include timestamp in path); exclude storage CDN URLs from Workbox cache |
+| Tailwind v4 (existing) | Copying v3's `darkMode: 'class'` into a non-existent `tailwind.config.js` | Use `@custom-variant dark (&:where(.dark, .dark *));` in `app.css` |
+| SvelteKit SSR + localStorage (existing) | Applying dark class in `onMount` (causes FOUC) | Apply dark class in a synchronous inline script in `app.html` `<head>` before `%sveltekit.head%` |
+| SvelteKit nested layouts | Calling `await parent()` at the top of every load function | Read `householdId` from `locals` directly; only call `await parent()` for data that genuinely requires it, and call it after independent fetches |
+| SvelteKit route groups | Treating route group folder removal as safe without adding redirects | Add 301 redirects from old top-level routes (e.g. `/husstand`) to new admin sub-routes (e.g. `/admin/husstand`) before releasing |
 
 ---
 
@@ -293,11 +391,10 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| RLS policy with uncached `auth.uid()` subquery | Every row-level read triggers multiple auth lookups; query times 10-20x higher than expected | Wrap in `(select auth.uid())` to cache per query; verified improvement from 179ms to 9ms | At >100 rows in any table with complex RLS |
-| RLS policy with inline JOIN to `household_members` | Query times grow with household membership table size | Use `SECURITY DEFINER` function returning household ID set; reverse the join direction | At >10 households or complex policy chains |
-| Subscribing to entire table via Postgres Changes without filter | All events for all households broadcast to all connected clients, then filtered client-side | Always pass `filter: 'household_id=eq.{id}'` in the subscription config | At >5 concurrent households using the app |
-| Caching all product images for barcode lookups in Service Worker cache | Cache storage grows unboundedly; Safari evicts entire origin data at 7 days of inactivity | Set explicit cache size limit; use LRU eviction in service worker; only cache app shell, not product images | When cached images exceed ~50MB (Safari's effective soft limit for PWA storage) |
-| Fetching full list on every Realtime event (re-fetch pattern) | Network waterfall on every item check-off; UI stutters during active shopping | Apply optimistic updates locally; use the Realtime payload directly to update state without re-fetch | At >2 concurrent users making rapid changes |
+| Admin sub-route `load` functions waterfalling via `await parent()` | Admin pages load 2-3x slower than Handleliste pages; visible in Network DevTools as sequential server requests | Read `householdId` from `locals`; kick off data fetches before `await parent()` | Every navigation to an admin sub-page; more noticeable on mobile with high latency |
+| Uncompressed image uploads consumed by the free tier 50 MB limit | Uploads fail for power users with many item pictures; Storage settings show near-quota usage | Compress all uploads to ≤400 KB before sending | After ~125 uncompressed 400 KB uploads (free tier); sooner with raw mobile photos |
+| Service worker `CacheFirst` strategy serving stale item images | Image replacement appears broken; user sees outdated item or recipe photo | Versioned filenames; exclude storage CDN from service worker routes | Immediately on first image replacement after the image feature ships |
+| Bottom nav re-rendering `tabs` array on every page navigation | Minor jank on nav transitions in Svelte 5 runes mode if `tabs` is defined inside the component script and reactive | Lift the static `tabs` array outside the component or declare it as a constant (not reactive state) | Any navigation; mild performance concern, noticeable on slower Android devices |
 
 ---
 
@@ -305,12 +402,11 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Exposing Kassal.app API key in client bundle | API key stolen, quota exhausted, potential billing if on Business plan | Store key only in Supabase Edge Function secrets; never in client env vars |
-| Using `user_metadata` in RLS policies | Users can modify their own metadata via the Supabase client; a user could elevate their `role` claim | Only use `auth.uid()` and database-stored roles in RLS policies; verify household membership from DB, not JWT claims |
-| Forgetting RLS on new tables | All authenticated users can read/write any row | Run a migration audit script: `SELECT tablename FROM pg_tables WHERE schemaname='public' AND NOT rowsecurity` — verify every table has RLS enabled |
-| Service role key in client code | Bypasses all RLS; complete data exposure | The service role key must never appear in client code or public env vars; only in server-side Edge Function secrets |
-| Not rate-limiting the barcode lookup Edge Function | A malicious user could exhaust Kassal.app API quota or cause billing overrun | Add per-user rate limiting in the Edge Function (check call frequency by `auth.uid()` against a calls log table) |
-| Household invite links with no expiry | Old invite links reused to join household without owner's knowledge | Expire invite tokens after 48 hours or single use; store in DB with `used_at` and `expires_at` columns |
+| Storage bucket with missing path scoping — policy allows upload to `bucket_id = 'images'` but not scoped to `households/{household_id}/` | Household A can overwrite Household B's item images by guessing the path | Add `(storage.foldername(name))[2] IN (SELECT get_my_household_ids())` to all storage policies |
+| Public storage bucket for item/recipe images | Anyone with the URL can see all images; if household is private this is a privacy violation | Use private bucket with explicit household-scoped SELECT policy |
+| Storing dark mode preference in a writable Svelte store synced only in memory | No security risk, but preference resets on reload — not a security issue | Use `localStorage` for persistence |
+| Admin hub accessible without admin role check — relying only on being a household member | Any household member can reach admin pages including "Items" edit and "Husstand" management | The current protected layout already validates `household_id`; verify that admin sub-routes re-use the same protected layout group (they should inherit from `(protected)/+layout.server.ts`) |
+| Recipe cover images uploaded with user-controlled filenames containing path traversal characters | Supabase Storage accepts most characters in filenames; a malicious path like `../../other-household/` could traverse bucket structure | Sanitize or generate filenames server-side; use `crypto.randomUUID()` + extension rather than user-provided names |
 
 ---
 
@@ -318,25 +414,27 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Auto-starting camera on page load | iOS PWA prompts for permission immediately; user hasn't indicated intent to scan; feels intrusive | Show explicit "Scan barcode" button; call `getUserMedia()` only on tap |
-| Showing a loading spinner during Realtime sync | During shopping, items appear to "load" when another family member adds something; disorienting | Use optimistic updates; items appear instantly on the adding device; animate in on other devices without blocking UI |
-| Sorting categories alphabetically as default | "Chips" appears before "Dairy" — useless in-store | Always use layout-order sort as default; only fall back to alphabetical when position data is missing |
-| Losing scroll position when list updates | Family member checks off item → entire list re-renders → user's scroll position jumps to top | Apply fine-grained state updates (update only the changed item in local state); never replace the entire list array reference |
-| Not distinguishing "checked" from "deleted" in list view | Checked items scroll to bottom or disappear — user loses context of what they already have in the cart | Keep checked items visible in a "In Cart" section below unchecked items; only fully remove on "Complete Shopping" action |
-| Generic "Error" messages for barcode scan failures | User doesn't know if the product exists in Norwegian databases or if their camera failed | Show specific messages: "Barcode not found in Norwegian databases — add manually" vs. "Camera unavailable — check permissions" |
+| No visual feedback during image upload on mobile (which takes 2-4 seconds with compression) | User taps "Save" and nothing happens; they tap again and double-upload | Show a spinner or progress indicator from the moment compression begins, not just from network send |
+| "Add all ingredients" adds items without confirming which list they go to | Items land in the wrong list; user has to manually remove them | Always show a list picker sheet before bulk adding; default to the active list but require explicit confirmation |
+| Dark mode toggle only in Brukerinnstillinger (admin sub-page) — hard to find | Users expect a toggle in a more accessible location (top bar or settings shortcut) | Put the toggle in Brukerinnstillinger as scoped in v1.2, but make the path obvious from the Admin tab — a clear "Innstillinger" label in the admin hub |
+| Admin hub is a flat link list with no visual grouping | 5+ admin items on a plain list feels like a settings dump, not a hub | Group items: "Handlelister" (Historikk), "Butikker" (Butikker, Standard), "Husstand" (Husstand, Inviter), "Varer" (Items), "Bruker" (Innstillinger) |
+| Recipe ingredient names that don't match existing household items (spelling/case differences) | "Løk" in the recipe vs "Kepaløk" in the item catalog — add creates a new item instead of linking | Use fuzzy match / suggestion when creating recipe ingredients — if a similar item exists in the household catalog, offer to link to it rather than create a new one |
+| Bottom nav active state ignores all `/lister/[id]` routes after restructure | User opens a list, bottom nav shows no tab highlighted — app feels broken | Use prefix matching for the Handleliste tab: active on `/` and `/lister/*` |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Real-time sync:** Verify that channels are cleaned up — open browser DevTools, navigate between lists, run `supabase.getChannels().length` — it should stay constant, not grow
-- [ ] **Barcode scanning:** Test on a real iPhone using the PWA installed to home screen — desktop testing will show false success since `BarcodeDetector` works in Chrome
-- [ ] **Offline sync:** Test by: add items on device A (offline), add conflicting items on device B (offline), bring both online simultaneously — confirm no duplicate/missing items
-- [ ] **RLS coverage:** Run `SELECT tablename FROM pg_tables WHERE schemaname='public' AND NOT rowsecurity` after each migration — result must be empty
-- [ ] **Category ordering:** Drag a category to a new position, verify exactly one UPDATE event appears in Supabase Realtime logs (not N events for N categories)
-- [ ] **Kassal.app key security:** Open browser DevTools Network tab during a barcode scan — confirm no requests go directly to `kassal.app`; all calls should be to your Supabase Edge Function
-- [ ] **iOS camera re-permission:** Install PWA to iPhone home screen, grant camera permission, close app, reopen — verify the permission prompt behavior is handled gracefully
-- [ ] **Store layout per-store override:** Confirm a store-specific layout change does not affect the default layout for other stores or other households
+- [ ] **Dark mode toggle:** Verify dark mode persists across: (1) tab close and reopen, (2) PWA force-quit and reopen on iOS, (3) system dark mode change while app is open — all three should reflect the user's stored preference without FOUC
+- [ ] **Dark mode Tailwind coverage:** Search the codebase for all `bg-`, `text-`, `border-` classes on layout-level elements and confirm each has a `dark:` counterpart — bottom nav, header, main background, sheets/modals, and toast notifications are the most likely to be missed
+- [ ] **Storage RLS coverage:** After adding storage policies, test as a non-member user: attempt to GET and PUT to the household image path — confirm both return 403, not 200
+- [ ] **Image upload flow:** Test on a real iPhone: select an image from camera roll → confirm compression runs (image < 400 KB before upload) → confirm upload succeeds → confirm image displays → replace the image → confirm the new image displays (not the old cached version)
+- [ ] **Admin sub-route active tab:** Navigate to `/admin/items` directly — confirm Admin tab is highlighted in the bottom nav
+- [ ] **Recipe duplicate prevention:** Add a recipe where 2 ingredients are already on the target list → tap "Add all" → confirm only the missing ingredients are added and no duplicates appear
+- [ ] **List picker empty state:** Open the recipe ingredient add flow on a household with no lists — confirm a "create a list first" prompt appears rather than an empty sheet
+- [ ] **Admin sub-routes still protected:** Navigate directly to `/admin/items` in a private browser session (not logged in) — confirm redirect to login, not a blank page or server error
+- [ ] **Old route redirects:** After restructure deploy, navigate to `/husstand` and `/butikker` directly — confirm 301 redirect to `/admin/husstand` and `/admin/butikker` respectively
+- [ ] **await parent() waterfalls:** Open Network DevTools, navigate to `/admin/items` — confirm server-side load functions do not appear as sequential requests (all admin data should load in one round-trip)
 
 ---
 
@@ -344,12 +442,13 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Channel memory leak discovered in production | LOW | Deploy fix with proper `removeChannel()` cleanup; no data migration needed; instruct users to refresh |
-| RLS infinite recursion | MEDIUM | Identify circular table dependency; wrap membership lookup in `SECURITY DEFINER` function; deploy migration; verify with integration test suite |
-| Position column approach requiring rewrite | HIGH | Migrate to fractional indexing: add `position_key NUMERIC` column, back-fill with `row_number() * 1000`, remove old integer column; requires coordination with active users |
-| API key exposed in client bundle | HIGH | Rotate Kassal.app API key immediately; move call to Edge Function; redeploy; audit access logs for unauthorized use |
-| iOS camera never working for PWA users | MEDIUM | Implement WASM barcode library as drop-in replacement for `BarcodeDetector`; add explicit per-session camera prompt UI |
-| Offline sync producing corrupt state | HIGH | Implement server-side idempotency for all mutation operations; add soft deletes; may require a "reset and re-sync" recovery flow for affected users |
+| FOUC on dark mode shipped to production | LOW | Add inline script to `app.html`; redeploy; users see fix on next load (no data migration) |
+| Tailwind v4 `dark:` classes not activating | LOW | Add `@custom-variant` line to `app.css`; redeploy |
+| Storage RLS too permissive (household isolation broken) | MEDIUM | Audit `storage.objects` policies; add path-based household scoping; audit existing files for cross-household path violations; revoke and re-apply policies |
+| Duplicate list items from recipe add (live in production) | MEDIUM | Write a migration that deduplicates existing `list_items` rows (keep lowest `id` per `(list_id, item_id)` pair); add unique constraint; deploy upsert-aware add logic |
+| Stale images visible across PWA users after image replacement | LOW | Move to versioned filenames going forward; old stale references resolve themselves when service worker cache expires (7-day max on Safari) |
+| Admin sub-routes not protected (security gap) | HIGH | Immediately deploy a server hook or `+layout.server.ts` that validates auth for all `/admin/*` routes; audit logs for unauthorized access attempts |
+| Old routes missing redirects — users stranded post-upgrade | LOW | Add SvelteKit redirect rules for removed routes; deploy immediately; already-cached broken routes clear on next service worker update |
 
 ---
 
@@ -357,35 +456,31 @@ For Open Food Facts (fallback): this API is open and rate-limit-tolerant, but sh
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Channel memory leak | Real-time sync implementation phase | `supabase.getChannels().length` stays stable under navigation; React StrictMode does not double channels |
-| Postgres Changes DELETE + RLS | Real-time architecture decision (before building subscriptions) | Integration test: delete an item as user A, confirm user B (different household) does not receive the event |
-| RLS recursion on household tables | Auth + data model phase | All RLS policies use `SECURITY DEFINER` functions for cross-table lookups; regression test with two tables that reference each other |
-| iOS camera permissions reset | Barcode scanning phase | Manual test on real iPhone PWA installed to home screen; camera accessible without crashing or looping permission prompts |
-| Integer position column | Store layout / category management phase | Single reorder operation produces exactly one DB UPDATE; verified in Supabase logs |
-| Offline sync conflicts | Offline-first / sync queue phase | Two-device offline conflict test; checked-off items use OR semantics; soft deletes in place |
-| Recommendation over-engineering | Recommendation section phase | Phase scope explicitly bounded to frequency SQL; no external ML service in tech plan |
-| Kassal.app key exposure | Barcode scanning phase | Network tab shows zero direct requests to `kassal.app` from browser |
-| RLS policy performance | Auth + data model phase (established early) | `EXPLAIN ANALYZE` on list queries confirms policy functions cached via `(select auth.uid())` wrapper |
-| Safari storage eviction | Offline / service worker phase | Service Worker cache has explicit size cap; product images not cached; app shell only |
+| Dark mode FOUC + Tailwind v4 config | Dark mode / Brukerinnstillinger phase | Hard-reload the PWA after toggling dark — no flash; `dark:` classes apply correctly |
+| Storage RLS missing policies | Admin hub / item pictures phase (before any upload UI) | Attempt upload and view as non-member user — both return 403 |
+| Large image upload failure on free tier | Admin hub / item pictures phase | Upload a 10 MB JPEG from a real phone — compression runs, upload succeeds, output < 400 KB |
+| Stale images after replacement | Admin hub / item pictures phase | Replace an item image — new image displays immediately in PWA without hard refresh |
+| Bottom nav active state after restructure | Navbar restructure phase | Navigate to `/admin/items` — Admin tab highlighted |
+| PWA back-navigation after restructure | Navbar restructure phase | Navigate to old `/husstand` URL — 301 redirect to `/admin/husstand` |
+| Admin nested layout waterfall | Admin hub phase | Network DevTools shows single server round-trip on admin page load |
+| Recipe duplicate items | Recipes phase | Add a recipe with shared ingredients — no duplicate rows in target list |
+| List picker empty state | Recipes phase | Open recipe add flow on household with zero lists — guided empty state appears |
+| Storage path traversal via user filenames | Admin hub / item pictures phase | Attempt upload with `../../` in filename — sanitized or rejected |
 
 ---
 
 ## Sources
 
-- [Supabase Realtime Limits](https://supabase.com/docs/guides/realtime/limits) — verified connection limits, channel limits, payload truncation behavior
-- [Supabase Postgres Changes Docs](https://supabase.com/docs/guides/realtime/postgres-changes) — DELETE event RLS limitation, filter restrictions
-- [Supabase RLS Performance and Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — auth.uid() caching, JOIN reversal pattern, security definer functions
-- [Supabase Realtime GitHub Issues — Channel Cleanup](https://github.com/supabase/realtime-js/issues/281) — documented community issue confirming channels need explicit removal
-- [Supabase RLS Infinite Recursion Discussion](https://github.com/orgs/supabase/discussions/1138) — community-confirmed pattern; security definer solution
-- [STRICH Knowledge Base — iOS PWA Camera Issues](https://kb.strich.io/article/29-camera-access-issues-in-ios-pwa) — confirmed permission reset behavior in PWA standalone mode; `apple-mobile-web-app-capable` workaround
-- [Barcode Scanning on iOS — WebAssembly Solution (DEV Community)](https://dev.to/ilhannegis/barcode-scanning-on-ios-the-missing-web-api-and-a-webassembly-solution-2in2) — ZBar WASM approach for EAN-13 on iOS Safari
-- [barcode-detector-polyfill (GitHub)](https://github.com/undecaf/barcode-detector-polyfill) — ZBar WASM polyfill, supports EAN-13/EAN-8/UPC
-- [Kassal.app API Documentation](https://kassal.app/api) — 60 req/min free tier limit confirmed; Bearer token authentication requirement
-- [Offline Sync and Conflict Resolution Patterns (sachith.co.uk, Feb 2026)](https://www.sachith.co.uk/offline-sync-conflict-resolution-patterns-architecture-trade%E2%80%91offs-practical-guide-feb-19-2026/) — last-write-wins limitations, CRDT alternatives
-- [Implementing Re-Ordering at the Database Level (Basedash)](https://www.basedash.com/blog/implementing-re-ordering-at-the-database-level-our-experience) — fractional indexing pattern for position columns
-- [WebKit Storage Policy Updates](https://webkit.org/blog/14403/updates-to-storage-policy/) — Safari PWA 7-day eviction behavior and storage quota behavior
-- [MDN Storage Quotas and Eviction Criteria](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria) — cross-browser storage limit reference
+- [Tailwind CSS v4 Dark Mode — Official Docs](https://tailwindcss.com/docs/dark-mode) — `@custom-variant` approach, removal of `darkMode` config key; HIGH confidence
+- [Implementing Dark Mode in SvelteKit (CaptainCodeman)](https://www.captaincodeman.com/implementing-dark-mode-in-sveltekit) — inline script anti-FOUC pattern; MEDIUM confidence
+- [Supabase Storage Access Control — Official Docs](https://supabase.com/docs/guides/storage/security/access-control) — four operation policies (INSERT/SELECT/UPDATE/DELETE), path scoping with `storage.foldername()`; HIGH confidence
+- [Supabase Storage File Limits — Official Docs](https://supabase.com/docs/guides/storage/uploads/file-limits) — 50 MB free tier limit, standard upload recommended for <6 MB; HIGH confidence
+- [Supabase Storage: Preventing Cached Images (WeWeb Community)](https://community.weweb.io/t/supabase-storage-preventing-cached-images-when-updating-files-replace-storage-file-issue/17601) — same-path upsert caching conflict; MEDIUM confidence
+- [SvelteKit Load Functions — `await parent()` Official Docs](https://svelte.dev/docs/kit/load) — waterfall warning, parallel fetch pattern; HIGH confidence
+- [SvelteKit GitHub Issue — `await parent()` causes parent layout load to re-run](https://github.com/sveltejs/kit/issues/8579) — confirmed waterfall behavior; HIGH confidence
+- [SvelteKit Advanced Layouts — Joy of Code](https://joyofcode.xyz/sveltekit-advanced-layouts) — route group layout inheritance, breaking out of layouts; MEDIUM confidence
+- [Client-side image compression with Supabase Storage (DEV Community)](https://dev.to/mikeesto/client-side-image-compression-with-supabase-storage-1193) — `browser-image-compression` approach; MEDIUM confidence
 
 ---
-*Pitfalls research for: Family grocery shopping PWA (HandleAppen) — Supabase Realtime, household RLS, iOS barcode scanning, offline sync*
-*Researched: 2026-03-08*
+*Pitfalls research for: HandleAppen v1.2 — navbar restructure, recipes, admin hub, item pictures, dark mode added to existing SvelteKit + Supabase PWA*
+*Researched: 2026-03-13*

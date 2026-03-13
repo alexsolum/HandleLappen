@@ -2,7 +2,7 @@
 
 ## Overview
 
-HandleAppen shipped its v1.0 foundation in eight phases covering auth, shared lists, store-layout ordering, barcode scanning, offline/PWA behavior, and recommendations. Milestone v1.1 continues from that base with three tightly scoped phases focused on mobile usability and faster recurring-item entry. The work starts at Phase 9 to preserve the existing milestone history and keeps each new requirement mapped to exactly one phase.
+HandleAppen shipped its v1.0 foundation in eight phases covering auth, shared lists, store-layout ordering, barcode scanning, offline/PWA behavior, and recommendations. Milestone v1.1 continued from that base with three tightly scoped phases focused on mobile usability and faster recurring-item entry. Milestone v1.2 continues from Phase 11, restructuring navigation around four dedicated tabs and introducing household-shared recipes that connect weekly dinner planning directly to the shopping list. Phases 12–16 derive from the five natural requirement groupings in v1.2: navigation, admin hub routing, recipe CRUD, item management, and user settings.
 
 ## Phases
 
@@ -23,6 +23,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed (completed 2026-03-12)
 - [x] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state (completed 2026-03-12)
 - [x] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry (completed 2026-03-12)
+- [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
+- [ ] **Phase 13: Admin Hub and Subpage Routing** - Admin hub page linking to all admin areas; Butikker, Husstand, and Historikk accessible as subpages; householdId-from-locals pattern established
+- [ ] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow
+- [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
+- [ ] **Phase 16: Dark Mode and User Settings** - Brukerinnstillinger page with dark mode toggle, FOUC prevention, and system-preference fallback
 
 ## Phase Details
 
@@ -209,12 +214,74 @@ Plans:
 - [x] 11-02-PLAN.md — Build mobile-friendly typeahead suggestion UI and selection behavior in the add-item flow
 - [x] 11-03-PLAN.md — Persist and reuse remembered categories for suggested items, then verify recurring-item behavior end to end
 
+### Phase 12: Navigation Restructure
+**Goal**: Users navigate the app through four clearly scoped tabs, with the active tab reliably highlighted on all routes including deep sub-routes, and no existing bookmarks or PWA history entries break
+**Depends on**: Phase 11
+**Requirements**: NAV-01, NAV-02
+**Success Criteria** (what must be TRUE):
+  1. The bottom navigation shows exactly four tabs — Handleliste, Oppskrifter, Anbefalinger, Admin — and no other top-level tabs
+  2. The active tab is highlighted correctly when the user is anywhere inside that tab's route subtree (e.g., Admin tab is highlighted on /admin/items, not just /admin)
+  3. Existing users who navigate to /husstand or /butikker (bookmarks, PWA back-history) are redirected to their new Admin subpage locations rather than hitting a 404
+  4. Stub pages at /oppskrifter and /admin load without error so new tabs are reviewable before their content is built
+**Plans**: 3 plans
+
+Plans:
+- [x] 12-01-PLAN.md — Playwright test scaffold for NAV-01 and NAV-02 (Wave 0, red state)
+- [ ] 12-02-PLAN.md — BottomNav rewrite with new tabs/icons/isActive + stub route pages
+- [ ] 12-03-PLAN.md — 301 redirects for /husstand and /butikker + visual verification checkpoint
+
+### Phase 13: Admin Hub and Subpage Routing
+**Goal**: Users can reach all admin-area features from a single hub page, and Butikker, Husstand, and Historikk are accessible as Admin subpages without any route deadends
+**Depends on**: Phase 12
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04
+**Success Criteria** (what must be TRUE):
+  1. The Admin tab opens a hub page with clearly grouped links to Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
+  2. Tapping Butikker from the Admin hub opens the store management page with a back-navigation affordance to return to the hub
+  3. Tapping Husstand from the Admin hub opens the household management page with a back-navigation affordance to return to the hub
+  4. Tapping Historikk from the Admin hub opens the shopping history view with a back-navigation affordance to return to the hub
+  5. All admin subpage load functions read householdId from locals directly and do not call await parent() before independent data fetches
+**Plans**: TBD
+
+### Phase 14: Recipes
+**Goal**: Any household member can browse, create, and use household-shared recipes — selecting which ingredients to add to a shopping list so the store-layout ordering and category assignment carry through from recipe to list
+**Depends on**: Phases 12 and 13
+**Requirements**: RECPE-01, RECPE-02, RECPE-03, RECPE-04, RECPE-05, RECPE-06, RECPE-07
+**Success Criteria** (what must be TRUE):
+  1. User can create a recipe with a name and optionally upload a cover image, and immediately see it in the recipe list
+  2. User can add ingredients to a recipe by picking from the household's previously used items, preserving their category linkage
+  3. User can edit a recipe's name, cover image, and ingredient list, and delete a recipe they no longer need
+  4. The recipe list shows each recipe's cover image (if uploaded) and name, and loads within a normal page transition
+  5. From a recipe detail page, user can select individual ingredients with checkboxes and add only those to a chosen shopping list
+  6. From a recipe detail page, user can add all ingredients to a chosen shopping list in one action; items already on the list are not duplicated
+**Plans**: TBD
+
+### Phase 15: Item Management
+**Goal**: Any household member can correct an item's name or category and add a photo to any household item, so the shopping list stays accurate and visually recognizable
+**Depends on**: Phase 13
+**Requirements**: ITEMS-01, ITEMS-02, ITEMS-03, ITEMS-04
+**Success Criteria** (what must be TRUE):
+  1. The Admin items page lists every item ever added by the household with its current name and category
+  2. User can rename an item from the items page and the new name is reflected immediately in the list and in future suggestions
+  3. User can change an item's category from the items page and the item sorts into the correct category section on the shopping list
+  4. User can upload a photo for an item from their device; the image is compressed client-side before upload and displayed as a thumbnail on the shopping list
+**Plans**: TBD
+
+### Phase 16: Dark Mode and User Settings
+**Goal**: Users can switch the app to dark mode from their settings page, and the chosen theme persists across sessions and app reopen without any flash of unstyled content
+**Depends on**: Phase 13
+**Requirements**: USRSET-01
+**Success Criteria** (what must be TRUE):
+  1. The Brukerinnstillinger page is accessible from the Admin hub and contains a dark mode toggle
+  2. Toggling dark mode applies the dark theme to the entire app immediately without a page reload
+  3. The chosen theme persists across browser sessions and app reopen so the user's preference is never lost
+  4. On first load with no stored preference, the app respects the device's system dark/light mode setting
+  5. No flash of unstyled content (FOUC) occurs when the app loads in dark mode — the theme is applied before first paint
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
-
-Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases. Phase 10 builds on the existing list mutation loop from Phase 2. Phase 11 depends on the item and category systems already delivered in Phases 2 and 3.
+Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX review). Phase 13 must precede 14 and 15 (admin routes must exist before subpage content). Phase 14 depends on Phase 12 for the /oppskrifter route. Phase 15 depends on Phase 13 for the admin items route. Phase 16 depends only on Phase 13 (Brukerinnstillinger subpage) and is the most independent of the v1.2 phases.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -229,4 +296,8 @@ Note: Phase 9 depends on the signed-in mobile shell delivered by earlier phases.
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
-
+| 12. Navigation Restructure | 3/3 | Complete    | 2026-03-13 |
+| 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
+| 14. Recipes | 0/TBD | Not started | - |
+| 15. Item Management | 0/TBD | Not started | - |
+| 16. Dark Mode and User Settings | 0/TBD | Not started | - |

@@ -17,7 +17,7 @@ async function login(page: Page, fixture: Fixture) {
   await page.fill('[type=password]', fixture.password)
   await page.click('button:has-text("Logg inn")')
   await page.waitForURL('/')
-  await page.goto('/anbefalinger', { waitUntil: 'networkidle' })
+  await page.goto('/admin/historikk', { waitUntil: 'networkidle' })
 }
 
 test.describe('history', () => {
@@ -66,7 +66,8 @@ test.describe('history', () => {
   })
 
   test('groups history by date and keeps sessions collapsed by default', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Anbefalinger' })).toBeVisible()
+    await expect(page.getByRole('link', { name: '← Admin' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Historikk' })).toBeVisible()
     await expect(page.getByTestId('history-date-group')).toHaveCount(2)
     await expect(page.getByTestId('history-session').first()).not.toHaveAttribute('open', '')
   })
@@ -94,7 +95,7 @@ test.describe('history', () => {
       await page.getByRole('checkbox', { name: /Melk/ }).click()
       await expect(page.getByText('Handlet (1)')).toBeVisible()
 
-      await page.goto('/anbefalinger', { waitUntil: 'networkidle' })
+      await page.goto('/admin/historikk', { waitUntil: 'networkidle' })
 
       await page.getByTestId('history-session').first().click()
       await page.getByTestId('history-add-back').first().click()
