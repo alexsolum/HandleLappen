@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-13T11:57:00Z"
-last_activity: "2026-03-13 — Completed Plan 02: BottomNav rewrite + stub route pages (6/8 nav tests green)"
+last_updated: "2026-03-13T12:10:00Z"
+last_activity: "2026-03-13 — Completed Plan 03: 301 redirects for /husstand and /butikker, Phase 12 complete (human approved)"
 progress:
   total_phases: 16
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 38
-  completed_plans: 32
-  percent: 82
+  completed_plans: 33
+  percent: 84
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 12 — Navigation Restructure (In progress)
-Plan: 02 of 3 complete
-Status: Plan 02 complete — BottomNav rewritten, stub pages created, 6/8 nav tests green; Plan 03 implements redirects
-Last activity: 2026-03-13 — Completed Plan 02: BottomNav rewrite + stub route pages (6/8 nav tests green)
+Phase: 12 — Navigation Restructure (Complete)
+Plan: 03 of 3 complete
+Status: Phase 12 complete — all 3 plans done, human approved; Phase 13 is next
+Last activity: 2026-03-13 — Completed Plan 03: 301 redirects for /husstand and /butikker, Phase 12 complete (human approved)
 
-Progress: [████████░░] 82%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [████████░░] 82%
 | Phase 11 P03 | 7min | 2 tasks | 2 files |
 | Phase 12 P01 | 15min | 1 task | 2 files |
 | Phase 12 P02 | 10min | 2 tasks | 5 files |
+| Phase 12 P03 | 10min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Progress: [████████░░] 82%
 - [Phase 12-01-navigation-restructure]: Pre-existing SSR crash on /logg-inn fixed — window.location in data attribute template evaluation required typeof window guard (auto-fixed as blocking Rule 3).
 - [Phase 12]: isActive uses tab.href === '/anbefalinger' (not tab.label) for consistency with other href-based checks in BottomNav
 - [Phase 12]: Admin sub-pages are non-interactive divs in Phase 12 — Phase 13 activates them as real navigation links
+- [Phase 12-03-navigation-restructure]: 301 (permanent) used for /husstand and /butikker redirects — PWA clients cache 301 and update back-history so users are never routed to dead URLs
+- [Phase 12-03-navigation-restructure]: Existing /husstand/+page.svelte left in place after redirect — server-side redirect fires before SvelteKit renders the page component
 
 ### Pending Todos
 - Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.

@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed (completed 2026-03-12)
 - [x] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state (completed 2026-03-12)
 - [x] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry (completed 2026-03-12)
-- [ ] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes
+- [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
 - [ ] **Phase 13: Admin Hub and Subpage Routing** - Admin hub page linking to all admin areas; Butikker, Husstand, and Historikk accessible as subpages; householdId-from-locals pattern established
 - [ ] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow
 - [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
@@ -296,7 +296,7 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
-| 12. Navigation Restructure | 2/3 | In Progress|  |
+| 12. Navigation Restructure | 3/3 | Complete   | 2026-03-13 |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
 | 14. Recipes | 0/TBD | Not started | - |
 | 15. Item Management | 0/TBD | Not started | - |
