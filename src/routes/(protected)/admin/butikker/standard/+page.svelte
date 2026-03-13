@@ -88,7 +88,7 @@
 
 <div class="mx-auto max-w-lg px-4 py-6 pb-24">
   <div class="mb-5 flex items-center gap-3">
-    <a href="/butikker" class="text-sm font-medium text-green-700 hover:text-green-800">← Butikker</a>
+    <a href="/admin/butikker" class="text-sm font-medium text-green-700 hover:text-green-800">← Butikker</a>
     <div>
       <h1 class="text-xl font-semibold text-gray-900">Standard rekkefølge</h1>
       <p class="text-sm text-gray-500">Dra, gi nytt navn eller slett kategorier.</p>

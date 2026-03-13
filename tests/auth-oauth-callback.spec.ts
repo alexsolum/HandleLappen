@@ -26,7 +26,7 @@ test.describe('OAuth callback contract', () => {
   test('redirects successful exchange to a safe internal next path', async () => {
     const event = createCallbackEvent({
       code: 'oauth-code',
-      next: '/husstand',
+      next: '/admin/husstand',
       exchangeResult: { error: null },
     })
 
@@ -35,12 +35,12 @@ test.describe('OAuth callback contract', () => {
     expect(event.exchangeCalls).toEqual(['oauth-code'])
     expect(thrown?.constructor?.name).toBe('Redirect')
     expect(thrown.status).toBe(303)
-    expect(thrown.location).toBe('/husstand')
+    expect(thrown.location).toBe('/admin/husstand')
     expect(event.outcomeSignal()).toEqual({
       phase: 'callback',
       outcome: 'success',
       reason: 'session_exchanged',
-      next: '/husstand',
+      next: '/admin/husstand',
       nextWasSanitized: false,
     })
   })
@@ -70,7 +70,7 @@ test.describe('OAuth callback contract', () => {
   test('surfaces stable failure outcome when exchange fails', async () => {
     const event = createCallbackEvent({
       code: 'oauth-code',
-      next: '/husstand',
+      next: '/admin/husstand',
       exchangeResult: { error: { message: 'boom' } },
     })
 
@@ -84,14 +84,14 @@ test.describe('OAuth callback contract', () => {
       phase: 'callback',
       outcome: 'failure',
       reason: 'exchange_failed',
-      next: '/husstand',
+      next: '/admin/husstand',
       nextWasSanitized: false,
     })
   })
 
   test('surfaces stable failure outcome when no usable code is provided', async () => {
     const event = createCallbackEvent({
-      next: '/husstand',
+      next: '/admin/husstand',
       exchangeResult: { error: null },
     })
 
@@ -105,7 +105,7 @@ test.describe('OAuth callback contract', () => {
       phase: 'callback',
       outcome: 'failure',
       reason: 'missing_code',
-      next: '/husstand',
+      next: '/admin/husstand',
       nextWasSanitized: false,
     })
   })

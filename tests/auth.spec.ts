@@ -29,15 +29,16 @@ test('session persistence @smoke', async ({ page, context }) => {
     return
   }
 
-  const seeded = await createHouseholdUser(`session-${Date.now()}@example.com`, 'testpass123')
+  const seeded = await createHouseholdUser(`session-${Date.now()}@example.com`, 'password123')
   testUserId = seeded.user.id
 
-  await page.goto('/logg-inn')
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
   await page.fill('input[type="email"]', seeded.user.email!)
-  await page.fill('input[type="password"]', 'testpassword123')
+  await page.fill('input[type="password"]', 'password123')
   await page.click('button:has-text("Logg inn")')
 
-  await page.waitForURL('/')
+  await page.waitForURL('/', { waitUntil: 'networkidle' })
+  await page.waitForLoadState('networkidle')
 
   const newPage = await context.newPage()
   await newPage.goto('/')
@@ -53,16 +54,17 @@ test('sign out clears session @smoke', async ({ page }) => {
     return
   }
 
-  const seeded = await createHouseholdUser(`logout-${Date.now()}@example.com`, 'testpass123')
+  const seeded = await createHouseholdUser(`logout-${Date.now()}@example.com`, 'password123')
   testUserId = seeded.user.id
 
-  await page.goto('/logg-inn')
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
   await page.fill('input[type="email"]', seeded.user.email!)
-  await page.fill('input[type="password"]', 'testpass123')
+  await page.fill('input[type="password"]', 'password123')
   await page.click('button:has-text("Logg inn")')
-  await page.waitForURL('/')
+  await page.waitForURL('/', { waitUntil: 'networkidle' })
+  await page.waitForLoadState('networkidle')
 
-  await page.goto('/husstand')
+  await page.goto('/admin')
   await page.click('button:has-text("Logg ut")')
   await page.waitForURL('/logg-inn')
 
@@ -76,20 +78,22 @@ test('protected route redirects after logout', async ({ page }) => {
     return
   }
 
-  const seeded = await createHouseholdUser(`redirect-${Date.now()}@example.com`, 'testpass123')
+  const seeded = await createHouseholdUser(`redirect-${Date.now()}@example.com`, 'password123')
   testUserId = seeded.user.id
 
-  await page.goto('/logg-inn')
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
   await page.fill('input[type="email"]', seeded.user.email!)
-  await page.fill('input[type="password"]', 'testpass123')
+  await page.fill('input[type="password"]', 'password123')
   await page.click('button:has-text("Logg inn")')
-  await page.waitForURL('/')
+  await page.waitForURL('/', { waitUntil: 'networkidle' })
+  await page.waitForLoadState('networkidle')
 
+  await page.goto('/admin')
   await page.click('button:has-text("Logg ut")')
   await page.waitForURL('/logg-inn')
 
-  await page.goto('/husstand')
-  await page.waitForURL('/logg-inn?next=%2Fhusstand')
+  await page.goto('/admin/husstand')
+  await page.waitForURL('/logg-inn?next=%2Fadmin%2Fhusstand')
 })
 
 test.describe('Google OAuth callback contract', () => {

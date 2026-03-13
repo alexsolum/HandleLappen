@@ -2,9 +2,10 @@
   interface Props {
     store: { id: string; name: string }
     onDelete: (id: string) => void
+    adminPrefix?: string
   }
 
-  let { store, onDelete }: Props = $props()
+  let { store, onDelete, adminPrefix = '' }: Props = $props()
 
   function handleDelete(event: MouseEvent) {
     event.preventDefault()
@@ -14,7 +15,7 @@
 </script>
 
 <a
-  href="/butikker/{store.id}"
+  href="{adminPrefix}/butikker/{store.id}"
   class="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3"
 >
   <span class="min-w-0 flex-1 truncate font-medium text-gray-900">{store.name}</span>

@@ -188,7 +188,7 @@ test.describe('store layout', () => {
       await page.waitForURL('/')
       await page.waitForLoadState('networkidle')
 
-      await page.goto('/butikker', { waitUntil: 'networkidle' })
+      await page.goto('/admin/butikker', { waitUntil: 'networkidle' })
 
       await expect(page.getByRole('link', { name: /Standard rekkefølge/i })).toBeVisible()
       await expect(page.locator('text=Legg til butikk')).toBeVisible()
@@ -197,11 +197,11 @@ test.describe('store layout', () => {
       await page.fill('#new-store-name', 'Rema 1000 Test')
       await page.getByRole('button', { name: 'Lagre' }).click()
 
-      const storeLink = page.locator('a[href^="/butikker/"]:has-text("Rema 1000 Test")')
+      const storeLink = page.locator('a[href^="/admin/butikker/"]:has-text("Rema 1000 Test")')
       await expect(storeLink).toBeVisible()
       await storeLink.click()
 
-      await page.waitForURL(/\/butikker\/[0-9a-f-]+$/)
+      await page.waitForURL(/\/admin\/butikker\/[0-9a-f-]+$/)
       await expect(page.locator('text=Frukt og grønt')).toBeVisible()
       await expect(page.locator('text=Frysevarer')).toBeVisible()
     } finally {
@@ -226,7 +226,7 @@ test.describe('category crud', () => {
       await page.waitForURL('/')
       await page.waitForLoadState('networkidle')
 
-      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await page.goto('/admin/butikker/standard', { waitUntil: 'networkidle' })
       await page.getByRole('button', { name: /Legg til kategori/i }).click()
       await page.fill('#new-category-name', 'Testkategori')
       await page.getByRole('button', { name: 'Lagre kategori' }).click()
@@ -252,7 +252,7 @@ test.describe('category crud', () => {
       await page.waitForURL('/')
       await page.waitForLoadState('networkidle')
 
-      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await page.goto('/admin/butikker/standard', { waitUntil: 'networkidle' })
       await page.getByRole('button', { name: /Gi nytt navn til Frukt og grønt/i }).click()
       const renameInput = page.locator('input').first()
       await expect(renameInput).toBeVisible()
@@ -281,7 +281,7 @@ test.describe('category crud', () => {
       await page.waitForURL('/')
       await page.waitForLoadState('networkidle')
 
-      await page.goto('/butikker/standard', { waitUntil: 'networkidle' })
+      await page.goto('/admin/butikker/standard', { waitUntil: 'networkidle' })
       await expect(page.locator('text=Slett meg')).toBeVisible()
       await page.getByRole('button', { name: /Slett Slett meg/i }).click()
       await expect(page.locator('text=Slett meg')).toHaveCount(0)
