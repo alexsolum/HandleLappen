@@ -91,3 +91,24 @@ test('protected route redirects after logout', async ({ page }) => {
   await page.goto('/husstand')
   await page.waitForURL('/logg-inn?next=%2Fhusstand')
 })
+
+test.describe('Google OAuth callback contract', () => {
+  test('Google OAuth entrypoint uses /auth/callback with sanitized next path', async ({ page }) => {
+    await page.goto('/logg-inn?next=https%3A%2F%2Fevil.example%2Fsteal-session')
+
+    await expect(page.getByRole('button', { name: 'Fortsett med Google' })).toHaveAttribute(
+      'data-google-oauth-callback',
+      'http://127.0.0.1:4173/auth/callback?next=%2F'
+    )
+  })
+
+  test('Google OAuth callback redirects off raw callback URL to sanitized destination', async ({ page }) => {
+    await page.goto('/auth/callback?code=fake-oauth-code&next=https%3A%2F%2Fevil.example%2Fsteal-session')
+
+    await page.waitForURL('**/auth/error?reason=oauth_callback_failed')
+    await expect(page).not.toHaveURL(/\/auth\/callback\?/)
+    await expect(page.getByRole('heading', { name: 'Innlogging feilet' })).toBeVisible()
+    await expect(page.getByText('Google-innloggingen kunne ikke fullføres. Prøv igjen fra innloggingssiden.')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Til innlogging' })).toHaveAttribute('href', '/logg-inn')
+  })
+})

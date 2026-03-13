@@ -15,6 +15,10 @@
     return sanitizeOAuthNextPath(new URLSearchParams(window.location.search).get('next'))
   }
 
+  function getGoogleRedirectTo() {
+    return buildOAuthCallbackUrl(window.location.origin, getNextPath()).toString()
+  }
+
   async function handleSignIn() {
     loading = true
     error = null
@@ -88,7 +92,13 @@
         <div class="relative flex justify-center text-xs text-gray-400"><span class="bg-white px-2">eller</span></div>
       </div>
 
-      <Button variant="outline" onclick={handleGoogleSignIn} disabled={oauthLoading} class="w-full">
+      <Button
+        variant="outline"
+        onclick={handleGoogleSignIn}
+        disabled={oauthLoading}
+        class="w-full"
+        data-google-oauth-callback={getGoogleRedirectTo()}
+      >
         {oauthLoading ? 'Sender deg til Google…' : 'Fortsett med Google'}
       </Button>
     </div>

@@ -1,12 +1,12 @@
 <script lang="ts">
-  let { url } = $props()
+  import { page } from '$app/state'
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
   <div class="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 shadow-sm">
     <h1 class="text-2xl font-bold text-red-700">Innlogging feilet</h1>
     <p class="mt-2 text-sm text-gray-600">
-      {url.searchParams.get('reason') === 'oauth_callback_failed'
+      {page.url.searchParams.get('reason') === 'oauth_callback_failed'
         ? 'Google-innloggingen kunne ikke fullføres. Prøv igjen fra innloggingssiden.'
         : 'Autentisering feilet. Prøv igjen.'}
     </p>

@@ -2,7 +2,7 @@
 
 **Active Milestone:** M002 — Google OAuth Callback Repair
 **Active Slice:** S01 — Google OAuth Callback Path Repair
-**Phase:** executing
+**Phase:** completed
 **Requirements Status:** 4 active · 9 validated · 0 deferred · 2 out of scope
 
 ## Milestone Registry
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Execute T03: Prove the repaired contract through the browser harness and capture diagnostics in slice S01.
+Await next milestone/slice instruction.

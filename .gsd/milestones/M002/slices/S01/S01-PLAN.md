@@ -51,7 +51,7 @@
   - Do: Align local Supabase auth redirect configuration with the actual dev/test origins used by the app, keep `/auth/callback` as the success exchange boundary, factor or harden safe internal `next` handling as needed, and ensure login/registration initiation points still build the same callback contract without drift.
   - Verify: `npm test -- tests/auth-oauth-callback.spec.ts`
   - Done when: The callback suite passes, the route still owns `exchangeCodeForSession(code)`, and local config/docs no longer contradict the app’s actual callback origins.
-- [ ] **T03: Prove the repaired contract through the browser harness and capture diagnostics** `est:45m`
+- [x] **T03: Prove the repaired contract through the browser harness and capture diagnostics** `est:45m`
   - Why: S01 claims integration proof, so a local browser-facing check must confirm the repaired app boundary is what the user actually hits.
   - Files: `tests/auth.spec.ts`, `playwright.config.ts`, `.gsd/milestones/M002/slices/S01/S01-PLAN.md`
   - Do: Add or extend a Playwright scenario that verifies the Google auth entrypoint uses the `/auth/callback` contract at runtime, the browser does not remain on a raw `/?code=` URL after the app-side callback boundary is exercised, and any callback diagnostic/failure surface is inspectable enough to localize future regressions.
