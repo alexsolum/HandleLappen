@@ -45,7 +45,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Google OAuth Callback Path Repair** `risk:high` `depends:[]`
+- [x] **S01: Google OAuth Callback Path Repair** `risk:high` `depends:[]`
   > After this: Google sign-in from `/logg-inn` reaches the intended app callback path, exchanges code into session state, and no longer strands the browser on `/?code=...`.
 - [ ] **S02: Failure Routing And Shared Entry-Point Hardening** `risk:medium` `depends:[S01]`
   > After this: callback exchange failures return the user to `/logg-inn` with a clear retry path, and login/registration Google entry points share the same callback contract.

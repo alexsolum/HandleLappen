@@ -1,8 +1,8 @@
 # GSD State
 
 **Active Milestone:** M002 — Google OAuth Callback Repair
-**Active Slice:** S01 — Google OAuth Callback Path Repair
-**Phase:** completed
+**Active Slice:** S02 — Failure Routing And Shared Entry-Point Hardening
+**Phase:** planning
 **Requirements Status:** 4 active · 9 validated · 0 deferred · 2 out of scope
 
 ## Milestone Registry
@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Await next milestone/slice instruction.
+Plan slice S02 (Failure Routing And Shared Entry-Point Hardening).
