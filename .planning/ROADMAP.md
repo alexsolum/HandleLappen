@@ -226,7 +226,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Playwright test scaffold for NAV-01 and NAV-02 (Wave 0, red state)
+- [x] 12-01-PLAN.md — Playwright test scaffold for NAV-01 and NAV-02 (Wave 0, red state)
 - [ ] 12-02-PLAN.md — BottomNav rewrite with new tabs/icons/isActive + stub route pages
 - [ ] 12-03-PLAN.md — 301 redirects for /husstand and /butikker + visual verification checkpoint
 
@@ -296,7 +296,7 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
-| 12. Navigation Restructure | 0/3 | In progress | - |
+| 12. Navigation Restructure | 1/3 | In progress | - |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
 | 14. Recipes | 0/TBD | Not started | - |
 | 15. Item Management | 0/TBD | Not started | - |

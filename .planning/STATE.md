@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Navbar Restructure and Recipes
-status: roadmap_ready
-stopped_at: Roadmap created — ready to plan Phase 12
-last_updated: "2026-03-13T00:00:00+01:00"
-last_activity: 2026-03-13 - Roadmap created for milestone v1.2 (Phases 12-16)
+status: in_progress
+stopped_at: "Completed 12-01-PLAN.md — navigation test scaffold (red)"
+last_updated: "2026-03-13T11:55:00Z"
+last_activity: 2026-03-13 - Completed Phase 12 Plan 01 (navigation test scaffold)
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 7
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 12 — Navigation Restructure (Not started)
-Plan: —
-Status: Roadmap ready, planning Phase 12 next
-Last activity: 2026-03-13 — Roadmap created for milestone v1.2
+Phase: 12 — Navigation Restructure (In progress)
+Plan: 01 of 3 complete
+Status: Plan 01 complete — test scaffold written (red), Plans 02 and 03 implement nav changes and redirects
+Last activity: 2026-03-13 — Completed Plan 01: Playwright navigation test scaffold (8 failing tests, NAV-01 + NAV-02)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 7%
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P01 | 18min | 2 tasks | 7 files |
 | Phase 11 P02 | 13min | 2 tasks | 4 files |
 | Phase 11 P03 | 7min | 2 tasks | 2 files |
+| Phase 12 P01 | 15min | 1 task | 2 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v1.2-roadmap]: Admin sub-route load functions must read householdId from locals directly — not via await parent() — to avoid serializing parallel SvelteKit load waterfalls.
 - [v1.2-roadmap]: Existing /husstand and /butikker routes need 301 redirects to their new Admin subpage destinations before the nav restructure ships, to protect existing PWA users.
 - [v1.2-roadmap]: Recipe add-to-list must use Supabase upsert with ignoreDuplicates: true against a unique constraint on (list_id, item_id) to prevent duplicate list rows.
+- [Phase 12-01-navigation-restructure]: TDD Wave 0 test scaffold uses shared storageState in beforeAll/afterAll with per-test page isolation — avoids 8 separate login round-trips while maintaining test independence.
+- [Phase 12-01-navigation-restructure]: Pre-existing SSR crash on /logg-inn fixed — window.location in data attribute template evaluation required typeof window guard (auto-fixed as blocking Rule 3).
 
 ### Pending Todos
 - Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.
