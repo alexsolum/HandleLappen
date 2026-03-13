@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Navbar Restructure and Recipes
-status: defining_requirements
-stopped_at: Milestone v1.2 started
+status: roadmap_ready
+stopped_at: Roadmap created — ready to plan Phase 12
 last_updated: "2026-03-13T00:00:00+01:00"
-last_activity: 2026-03-13 - Milestone v1.2 started
+last_activity: 2026-03-13 - Roadmap created for milestone v1.2 (Phases 12-16)
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-12)
+See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Milestone completion ready
+**Current focus:** Phase 12 — Navigation Restructure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 12 — Navigation Restructure (Not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-13 — Milestone v1.2 started
+Status: Roadmap ready, planning Phase 12 next
+Last activity: 2026-03-13 — Roadmap created for milestone v1.2
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,9 +56,20 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 11-household-item-memory-and-suggestions]: List-item inserts and category/name changes refresh remembered memory through database triggers so future add flows stay consistent.
 - [Phase 11-household-item-memory-and-suggestions]: Remembered suggestions are rendered inline inside the fixed add bar while the list page owns the live query and one-tap add path.
 - [Phase 11-household-item-memory-and-suggestions]: Remembered category ids are reused only when they still belong to the current household; otherwise the existing picker flow takes over.
+- [v1.2-roadmap]: Zero new npm packages required for v1.2 — all capabilities covered by existing stack (SvelteKit nested layouts, Tailwind v4 @custom-variant, Supabase Storage client, native OffscreenCanvas).
+- [v1.2-roadmap]: Tailwind v4 dark mode uses @custom-variant in app.css — no tailwind.config.js and no darkMode config key. Copying v3 tutorials creates a config that has zero effect.
+- [v1.2-roadmap]: All Storage RLS must include four policies per bucket (INSERT/SELECT/UPDATE/DELETE) with storage.foldername(name)[1] = my_household_id()::text path scoping. Missing SELECT = images display silently broken.
+- [v1.2-roadmap]: Image uploads must compress client-side via OffscreenCanvas before upload (max 1200px WebP 0.85). Mobile camera photos are 4-12 MB; Supabase free-tier standard upload is optimized for ≤6 MB.
+- [v1.2-roadmap]: All image filenames must include a timestamp or UUID ({uuid}-{timestamp}.webp) so replacing an image changes the URL and busts service worker cache.
+- [v1.2-roadmap]: Admin sub-route load functions must read householdId from locals directly — not via await parent() — to avoid serializing parallel SvelteKit load waterfalls.
+- [v1.2-roadmap]: Existing /husstand and /butikker routes need 301 redirects to their new Admin subpage destinations before the nav restructure ships, to protect existing PWA users.
+- [v1.2-roadmap]: Recipe add-to-list must use Supabase upsert with ignoreDuplicates: true against a unique constraint on (list_id, item_id) to prevent duplicate list rows.
 
 ### Pending Todos
-- None.
+- Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.
+- Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
+- Confirm Supabase Storage bucket creation approach (migration SQL vs dashboard) before writing Phase 14 migration.
+- Inspect existing upsert_household_item_memory RPC for normalization logic before building recipe ingredient matching in Phase 14.
 
 ### Blockers/Concerns
 - None.
