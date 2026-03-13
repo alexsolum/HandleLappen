@@ -223,7 +223,12 @@ Plans:
   2. The active tab is highlighted correctly when the user is anywhere inside that tab's route subtree (e.g., Admin tab is highlighted on /admin/items, not just /admin)
   3. Existing users who navigate to /husstand or /butikker (bookmarks, PWA back-history) are redirected to their new Admin subpage locations rather than hitting a 404
   4. Stub pages at /oppskrifter and /admin load without error so new tabs are reviewable before their content is built
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Playwright test scaffold for NAV-01 and NAV-02 (Wave 0, red state)
+- [ ] 12-02-PLAN.md — BottomNav rewrite with new tabs/icons/isActive + stub route pages
+- [ ] 12-03-PLAN.md — 301 redirects for /husstand and /butikker + visual verification checkpoint
 
 ### Phase 13: Admin Hub and Subpage Routing
 **Goal**: Users can reach all admin-area features from a single hub page, and Butikker, Husstand, and Historikk are accessible as Admin subpages without any route deadends
@@ -291,7 +296,7 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
-| 12. Navigation Restructure | 0/TBD | Not started | - |
+| 12. Navigation Restructure | 0/3 | In progress | - |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
 | 14. Recipes | 0/TBD | Not started | - |
 | 15. Item Management | 0/TBD | Not started | - |
