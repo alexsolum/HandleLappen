@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Navbar Restructure and Recipes
-status: in_progress
-stopped_at: "Completed 12-01-PLAN.md — navigation test scaffold (red)"
-last_updated: "2026-03-13T11:55:00Z"
-last_activity: 2026-03-13 - Completed Phase 12 Plan 01 (navigation test scaffold)
+milestone: v1.0
+milestone_name: milestone
+status: completed
+last_updated: "2026-03-13T11:57:00Z"
+last_activity: "2026-03-13 — Completed Plan 02: BottomNav rewrite + stub route pages (6/8 nav tests green)"
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 1
-  percent: 7
+  total_phases: 16
+  completed_phases: 7
+  total_plans: 38
+  completed_plans: 32
+  percent: 82
 ---
 
 # Project State
@@ -26,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 12 — Navigation Restructure (In progress)
-Plan: 01 of 3 complete
-Status: Plan 01 complete — test scaffold written (red), Plans 02 and 03 implement nav changes and redirects
-Last activity: 2026-03-13 — Completed Plan 01: Playwright navigation test scaffold (8 failing tests, NAV-01 + NAV-02)
+Plan: 02 of 3 complete
+Status: Plan 02 complete — BottomNav rewritten, stub pages created, 6/8 nav tests green; Plan 03 implements redirects
+Last activity: 2026-03-13 — Completed Plan 02: BottomNav rewrite + stub route pages (6/8 nav tests green)
 
-Progress: [█░░░░░░░░░] 7%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -45,6 +44,7 @@ Progress: [█░░░░░░░░░] 7%
 | Phase 11 P02 | 13min | 2 tasks | 4 files |
 | Phase 11 P03 | 7min | 2 tasks | 2 files |
 | Phase 12 P01 | 15min | 1 task | 2 files |
+| Phase 12 P02 | 10min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -67,6 +67,8 @@ Progress: [█░░░░░░░░░] 7%
 - [v1.2-roadmap]: Recipe add-to-list must use Supabase upsert with ignoreDuplicates: true against a unique constraint on (list_id, item_id) to prevent duplicate list rows.
 - [Phase 12-01-navigation-restructure]: TDD Wave 0 test scaffold uses shared storageState in beforeAll/afterAll with per-test page isolation — avoids 8 separate login round-trips while maintaining test independence.
 - [Phase 12-01-navigation-restructure]: Pre-existing SSR crash on /logg-inn fixed — window.location in data attribute template evaluation required typeof window guard (auto-fixed as blocking Rule 3).
+- [Phase 12]: isActive uses tab.href === '/anbefalinger' (not tab.label) for consistency with other href-based checks in BottomNav
+- [Phase 12]: Admin sub-pages are non-interactive divs in Phase 12 — Phase 13 activates them as real navigation links
 
 ### Pending Todos
 - Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.

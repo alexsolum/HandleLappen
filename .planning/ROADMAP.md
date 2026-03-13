@@ -296,7 +296,7 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 9. Mobile Layout Hardening | 3/3 | Complete | 2026-03-12 |
 | 10. Inline Quantity Controls | 2/2 | Complete | 2026-03-12 |
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
-| 12. Navigation Restructure | 1/3 | In progress | - |
+| 12. Navigation Restructure | 2/3 | In Progress|  |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
 | 14. Recipes | 0/TBD | Not started | - |
 | 15. Item Management | 0/TBD | Not started | - |
