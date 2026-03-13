@@ -45,7 +45,7 @@
   - Do: Add a focused automated test file for the callback route contract that exercises `code`, safe vs unsafe `next`, successful vs failed exchange behavior, and a stable diagnostic/failure signal; reuse existing auth test conventions where possible and only add the minimum runner support needed if the current harness cannot invoke the route directly.
   - Verify: `npm test -- tests/auth-oauth-callback.spec.ts`
   - Done when: The new callback-contract suite exists, names the expected success and failure assertions, and fails against the current unrepaired slice state for the reasons the slice intends to fix.
-- [ ] **T02: Repair callback runtime wiring and local redirect allow-lists** `est:1h`
+- [x] **T02: Repair callback runtime wiring and local redirect allow-lists** `est:1h`
   - Why: The slice goal depends on real runtime composition: the callback route must receive valid provider returns and complete session exchange with safe redirects.
   - Files: `src/routes/auth/callback/+server.ts`, `supabase/config.toml`, `README.md`, `src/routes/logg-inn/+page.svelte`, `src/routes/registrer/+page.svelte`
   - Do: Align local Supabase auth redirect configuration with the actual dev/test origins used by the app, keep `/auth/callback` as the success exchange boundary, factor or harden safe internal `next` handling as needed, and ensure login/registration initiation points still build the same callback contract without drift.
