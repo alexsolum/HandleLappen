@@ -16,4 +16,4 @@
 - None
 
 ## Next Action
-Execute T01: Add failing callback-contract tests for OAuth success routing in slice S01.
+Execute T02: Repair callback runtime wiring and local redirect allow-lists in slice S01.

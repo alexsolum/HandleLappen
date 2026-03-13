@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] **T01: Add failing callback-contract tests for OAuth success routing** `est:45m`
+- [x] **T01: Add failing callback-contract tests for OAuth success routing** `est:45m`
   - Why: Verification must exist before implementation so S01 closes on the real callback boundary instead of static code edits.
   - Files: `tests/auth-oauth-callback.spec.ts`, `tests/helpers/auth.ts`, `package.json`
   - Do: Add a focused automated test file for the callback route contract that exercises `code`, safe vs unsafe `next`, successful vs failed exchange behavior, and a stable diagnostic/failure signal; reuse existing auth test conventions where possible and only add the minimum runner support needed if the current harness cannot invoke the route directly.
