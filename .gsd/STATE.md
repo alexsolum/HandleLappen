@@ -10,7 +10,7 @@
 - 🔄 **M002:** Google OAuth Callback Repair
 
 ## Recent Decisions
-- Centralized OAuth callback URL construction and internal-only `next` sanitization in `src/lib/auth/oauth.ts` so login, registration, and callback handling share one contract.
+- None recorded
 
 ## Blockers
 - None
