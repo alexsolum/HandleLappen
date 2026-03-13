@@ -28,7 +28,7 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 
 ### Navigation (NAV)
 
-- [ ] **NAV-01**: User sees four bottom nav tabs: Handleliste, Oppskrifter, Anbefalinger, Admin
+- [x] **NAV-01**: User sees four bottom nav tabs: Handleliste, Oppskrifter, Anbefalinger, Admin
 - [ ] **NAV-02**: Historikk is no longer a bottom nav tab and is accessible from the Admin hub instead
 
 ### Recipes (RECPE)
@@ -108,7 +108,7 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 | SUGG-01 | Phase 11 | Complete |
 | SUGG-02 | Phase 11 | Complete |
 | SUGG-03 | Phase 11 | Complete |
-| NAV-01 | Phase 12 | Pending |
+| NAV-01 | Phase 12 | Complete |
 | NAV-02 | Phase 12 | Pending |
 | ADMIN-01 | Phase 13 | Pending |
 | ADMIN-02 | Phase 13 | Pending |
