@@ -1,7 +1,7 @@
 # Feature Research
 
 **Domain:** Family grocery shopping PWA (Norwegian market)
-**Researched:** 2026-03-08
+**Researched:** 2026-03-08 (v1.0); updated 2026-03-13 (v1.2 additions)
 **Confidence:** MEDIUM-HIGH (core features HIGH; Norwegian-specific integrations MEDIUM)
 
 ---
@@ -223,6 +223,232 @@ This default ordering is the reasonable starting point. Per-store overrides hand
 
 ---
 
+## v1.2 Feature Analysis: New Features Being Added
+
+This section covers only the NEW features in v1.2. All v1.0/v1.1 features are already built.
+
+### 1. Recipe Management Linked to Shopping Lists
+
+**What users expect (table stakes for recipe features):**
+
+OurGroceries, AnyList, and Plan to Eat have established the baseline expectation for recipe-to-list integration. Users who encounter a recipe tab expect:
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Recipe list view with cover images | Every recipe app from Allrecipes to AnyList shows a visual grid/list with food photography; text-only recipes feel like a database, not an app | LOW-MEDIUM | Cover image should be optional but visually dominant when present; fallback to a category icon or gradient when no image. |
+| Recipe detail view with full ingredient list | After tapping a recipe, users expect to see all ingredients and the recipe source/notes | LOW | Ingredient names must link to the household item system — "Egg" in a recipe = the same "Egg" item already in the household. |
+| "Add all to list" with list chooser | OurGroceries: single button below recipe adds all ingredients to their respective lists. AnyList: same. This is the primary purpose of the feature — reducing manual item entry | LOW | Must let user choose which shopping list. If household has one list, skip the chooser and add directly. |
+| Individual ingredient selection | OurGroceries lets users tap individual ingredients to add only what they need to buy (skipping pantry items). AnyList does the same. This is expected because users already have some ingredients at home. | LOW | A checkbox or tap-to-select UI on each ingredient line. Selected items add to list; deselected skip. Ideally remembers which list each ingredient maps to. |
+| Household-shared recipes | Since lists are shared per household, recipes must also be shared — one family member adds a recipe, all members see it | LOW | Recipes belong to household, not individual user. Any member can add/edit/delete. |
+
+**Differentiators (what makes this implementation better than the baseline):**
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Ingredient linked to household item system | When a recipe ingredient is added to a list, it becomes the same item entity that has purchase history, category, custom picture, etc. — not a new anonymous text string. This is rare: OurGroceries and AnyList create new list items without linking to the item "memory." | MEDIUM | Requires ingredient resolution: "2 eggs" → household item "Egg". Matching by name on household items table. If no match, create new household item. |
+| "Add all" respects existing list structure | Items added from a recipe are sorted into the correct category position — the list doesn't require resorting after adding recipe ingredients | LOW | Leverage the existing category sort system; items inserted at correct position automatically |
+| Reuse as template | Recipes can function as reusable shopping templates (e.g., "Pizza Night" = always buy these 8 items). This is a pattern OurGroceries documents explicitly, worth supporting without extra effort since the data model already accommodates it. | NONE (emergent) | No additional code needed — this is a natural use pattern, just document it in the UI with a subtle hint |
+
+**Anti-features to avoid:**
+
+| Feature | Why Avoid | Alternative |
+|---------|-----------|-------------|
+| Recipe import from URL / web scraping | High complexity, fragile parsers, recipe sites block scrapers, legal grey area. AnyList charges for this as a premium feature. | Manual recipe entry only for v1.2. User types or pastes ingredients. |
+| Recipe scaling (2x, 0.5x servings) | Sounds easy, not easy — unit conversion (grams vs cups), rounding, fractional quantities add UI and logic complexity | Let users note the serving count in the recipe description; manual adjustment |
+| Nutrition totals per recipe | Requires linking every ingredient to nutritional data from Kassal.app + quantity parsing — significant complexity | Out of scope; the app is a shopping tool not a nutrition tracker |
+| Meal calendar / week planner | Separate product entirely, different UX paradigm | The recipe tab IS the meal planning touchpoint — cook what you like, add ingredients when needed. No calendar needed for v1.2. |
+| AI recipe suggestions | High complexity, requires LLM integration, cost, latency | Recommendations tab already surfaces frequently bought items; that is the algorithmic layer |
+
+**Expected interaction flow (HIGH confidence — matches OurGroceries + AnyList observed behavior):**
+
+1. User opens Oppskrifter tab
+2. Sees grid/list of household recipes with cover images
+3. Taps a recipe → detail view shows ingredients and notes
+4. User taps individual ingredients to select which to buy, OR taps "Legg til i liste"
+5. If multiple lists exist: a bottom sheet or modal asks which list
+6. Selected ingredients are added to the chosen list, in correct category order
+7. User is returned to recipe detail (or optionally navigated to the list)
+
+---
+
+### 2. Admin Hub with Subpages
+
+**What users expect:**
+
+An "Admin" or "Settings" area that consolidates management functions is standard in family/household apps. The hub-and-spoke pattern (one overview page with nav to subpages) is the expected structure for mobile.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Single entry point for management tasks | Users expect all settings and management in one place — scatter them across the app and users can't find them | LOW | Admin as a bottom nav tab makes it permanently accessible. Hub page = list of tappable sections. |
+| Store management subpage (Butikker) | Already exists in v1.0 — users expect to add/edit/delete their stores and configure layouts | LOW | Moved to Admin hub; existing functionality preserved |
+| Household management subpage (Husstand) | Managing members, invites, household name — standard in any family sharing app | LOW | Existing v1.0 feature relocated to Admin hub |
+| History subpage (Historikk) | Users expect to see their shopping history. Already exists but was separate. | LOW | Relocated to Admin hub |
+| Items management subpage | Users want to edit household items: rename, change category, add picture. This is new in v1.2. | MEDIUM | New functionality: a table/list of all household items with edit capability |
+| User settings subpage (Brukerinnstillinger) | Dark mode and other preferences belong in a per-user settings page | LOW | New in v1.2; dark mode is the first preference |
+
+**Admin hub UX pattern (MEDIUM confidence — based on Material Design + observed patterns in family apps):**
+
+The hub page itself should be a sectioned list of tappable rows, each leading to a subpage. This is the iOS Settings / Android Settings paradigm and is universally understood. On mobile:
+- Each row: icon + label + chevron
+- Grouped by logical section (Store settings, Household settings, Account settings)
+- No nested more than 2 levels deep (hub → subpage; no sub-subpages)
+
+**Differentiators:**
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Consolidated management = less navigation confusion | Current v1.x likely scatters admin functions; consolidating removes "where is that setting?" friction for non-power users | LOW | The value is organizational, not technical |
+
+**Anti-features:**
+
+| Feature | Why Avoid | Alternative |
+|---------|-----------|-------------|
+| Role-based admin (only household owner can edit) | Overengineered for a family app; adds friction | Any household member can manage. Trust within a family is assumed. |
+| Analytics / usage dashboards in admin | Admin feels like a business SaaS if it shows charts | Keep admin purely management-focused; data exploration belongs in Historikk subpage |
+
+---
+
+### 3. Item Picture Management (Inventory View)
+
+**What users expect:**
+
+Bring!, AnyList, Listonic, and Pantry Check all support adding photos to items. The expectation is set: users want to attach a photo to reduce confusion at the store ("which brand of olive oil was it?").
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| View all household items in a list/grid | A management view for every item the household has used — needed to find items to edit | LOW | Sortable by name or category. Searchable. |
+| Edit item name and category | Basic data correction — users misspell items or barcode scan assigns the wrong category | LOW | Inline edit or edit sheet. Category should be a dropdown of defined categories. |
+| Attach a photo to any item | Reduces store confusion for ambiguous items (produce, specific brands) — AnyList, Bring, Listonic all support this | MEDIUM | Camera capture or gallery pick via HTML `<input type="file" accept="image/*" capture="environment">`. Image stored in Supabase Storage. |
+| See item picture in shopping list | The photo attached to an item should appear on the list as a small thumbnail — otherwise why attach it? | LOW | Thumbnail next to item name in list view. Tap to enlarge. |
+
+**Differentiators:**
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Photo persists across all lists | The item picture is attached to the household item entity, not to a specific list entry — so if "Kefir" has a photo, it shows that photo every time it appears on any list | LOW (architecture consequence) | This is correct behavior if items are a shared entity (which they already are in the existing system). Zero extra effort if data model is already item-centric. |
+| Supabase Storage for images | Household-shared, authenticated, CDN-delivered — correct for multi-user PWA | MEDIUM | Use a public bucket with path-based access control (household_id/item_id/photo.jpg). Images should be resized before upload (client-side canvas resize to max 800px) to keep storage costs low and load times fast. |
+
+**Anti-features:**
+
+| Feature | Why Avoid | Alternative |
+|---------|-----------|-------------|
+| Multiple photos per item | Inventory management apps do this; grocery list apps don't need it | One cover photo per item. Replace on re-upload. |
+| AI product identification from photo | Accuracy unreliable, adds latency and cost | Manual photo attachment is the right UX — user controls what photo represents the item |
+| Barcode-lookup auto-photo | Kassal.app may have product images, but they are not guaranteed and legal/licensing for reuse is unclear | User-uploaded photos only; barcode scan populates name/category, not photo |
+
+**Image upload technical considerations (MEDIUM confidence — based on Supabase Storage docs + standard PWA patterns):**
+
+- HTML `<input type="file" accept="image/*" capture="environment">` works on both iOS Safari and Android Chrome PWA — no special camera API needed
+- Client-side resize before upload: canvas-based resize to max 800x800px, JPEG quality 0.8 — keeps uploads under 200KB typically
+- Supabase Storage: organize as `{household_id}/{item_id}.jpg` — simple, one file per item, replacing on re-upload
+- Display: use Supabase Storage public URL or signed URL depending on bucket policy. Public bucket is simpler and appropriate for household-shared images.
+- Fallback: items without a photo show category icon or colored placeholder — never a broken image
+
+---
+
+### 4. User Settings with Dark Mode
+
+**What users expect:**
+
+Dark mode has been a baseline expectation since iOS 13 (2019) and Android 10 (2019). Any app without it feels dated. For a PWA used in the evening (meal planning, list prep), dark mode is especially relevant.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Dark mode toggle | Users have come to expect every app to honor their OS dark mode preference, and provide a manual override | LOW | Toggle in user settings. Three states: System / Light / Dark. |
+| Preference persisted across sessions | A preference that resets on reload is broken — users set it once and expect it to stick | LOW | Store in localStorage. Optionally sync to Supabase user_preferences table for cross-device persistence. |
+| System preference respected by default | On first open, if OS is in dark mode, app should be dark — surprising the user with a white flash is poor UX | LOW | Read `prefers-color-scheme` on first load; store explicit preference only when user overrides. |
+| No flash of wrong theme on load | The white flash before dark mode kicks in is a known PWA/SPA problem | LOW-MEDIUM | Apply theme class in `app.html` `<head>` via inline script before page renders; read from localStorage synchronously. This is the standard SvelteKit dark mode pattern. |
+
+**Differentiators:**
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Per-user dark mode (synced to Supabase) | If a user logs in on a new device, their dark mode preference follows them — better than localStorage-only | LOW | Store preference in user_preferences table (user_id, key, value). Read on login, fall back to localStorage/system if not set. |
+
+**Anti-features:**
+
+| Feature | Why Avoid | Alternative |
+|---------|-----------|-------------|
+| PWA manifest theme_color dynamic update | Manifest is static JSON — cannot change theme_color based on user preference without a service worker trick that is fragile and poorly supported | Accept that the browser chrome color from manifest stays fixed. Dark mode applies to app content only; browser chrome color is a minor issue. |
+| Custom theme colors / accent colors | Nice for customization apps, scope creep for a grocery tool | Dark / Light / System only for v1.2. Extend later if users request it. |
+| Separate theme per household | No precedent in grocery apps; privacy preferences are per user | User-level setting only |
+
+**SvelteKit implementation pattern (HIGH confidence — multiple verified sources):**
+
+1. In `app.html`, add an inline `<script>` in `<head>` that reads localStorage `theme` key and sets `class="dark"` on `<html>` before any content renders — eliminates FOUC
+2. In SvelteKit, use a Svelte store for current theme, writable and reactive
+3. Toggle updates: store → localStorage → `document.documentElement.classList`
+4. Tailwind dark mode variant: `darkMode: 'class'` in tailwind.config — then `dark:bg-gray-900` etc. works automatically
+5. The `svelte-themes` library handles this in ~2 lines if the project wants to avoid hand-rolling it
+6. CSS variables approach is the alternative: define `--color-background`, `--color-text` etc. and swap them under `.dark` class — more flexible for future theme expansion
+
+---
+
+## v1.2 Feature Dependencies
+
+```
+[Recipe management]
+    └──requires──> [Household item system] (ingredients must map to household items)
+    └──requires──> [Shopping lists] (already built)
+    └──enhances──> [Shopping list UX] (auto-adds items in correct category order)
+
+[Recipe cover image]
+    └──requires──> [Supabase Storage] (may be new; check if storage already configured)
+
+[Admin hub]
+    └──requires──> [Routing restructure] (new /admin route, subpage routes)
+    └──aggregates──> [Butikker, Husstand, Historikk] (existing pages become subpages)
+    └──contains──> [Items management] (new subpage)
+    └──contains──> [Brukerinnstillinger] (new subpage)
+
+[Item picture management]
+    └──requires──> [Supabase Storage] (file upload + CDN delivery)
+    └──requires──> [Items management subpage] (the UI to edit items lives in Admin → Items)
+    └──enhances──> [Shopping list view] (item photo thumbnail appears in list)
+    └──enhances──> [Recipe ingredients] (ingredient photo shown in recipe detail)
+
+[Dark mode toggle]
+    └──requires──> [Brukerinnstillinger subpage] (the UI lives here)
+    └──requires──> [Tailwind dark: variant or CSS variables] (already configured or low-effort addition)
+    └──optionally──> [user_preferences table in Supabase] (for cross-device sync)
+
+[Bottom nav restructure (4 tabs)]
+    └──requires──> [Oppskrifter route] (new)
+    └──requires──> [Admin route] (new)
+    └──moves──> [Anbefalinger] (was separate, now tab 3)
+    └──removes──> [current nav items] (Historikk, Butikker no longer top-level)
+```
+
+### v1.2 Dependency Notes
+
+- **Recipe ingredients require household item linkage:** The most non-trivial dependency in v1.2. When a recipe ingredient is saved, it must resolve to (or create) a household item — not just a text string. This ensures category sorting works correctly when added to list, and item photos carry over. Build the item resolution logic before building the recipe ingredient add-to-list flow.
+- **Item pictures require Supabase Storage:** If Storage is not yet configured in the project, this is a first-time setup step (create bucket, set policies). Likely a single configuration step, but should not be assumed already done.
+- **Admin hub requires route restructure:** Butikker, Husstand, and Historikk currently live somewhere in the nav. Moving them under /admin means their routes change. Deep links (if any) break. Internal nav references need updating. The restructure should be done as one task before building any new Admin subpages.
+- **Dark mode requires Tailwind dark: class variant:** If `darkMode: 'class'` is not already set in tailwind.config, that's a one-line change. If the app uses CSS custom properties instead, the pattern changes. Verify existing Tailwind config before assuming either approach.
+- **Bottom nav restructure is the first task:** All four new tabs (Handleliste, Oppskrifter, Anbefalinger, Admin) gate everything else. Navigation must exist before building the pages behind it.
+
+---
+
+## v1.2 Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Bottom nav 4-tab restructure | HIGH | LOW | P1 — gates everything |
+| Admin hub (hub page + routing) | HIGH | LOW | P1 — gates Admin subpages |
+| Recipe list + detail view | HIGH | MEDIUM | P1 — core new feature |
+| Recipe "add all to list" | HIGH | LOW | P1 — primary recipe value |
+| Individual ingredient selection | MEDIUM | LOW | P1 — expected by users who have pantry items |
+| Recipe cover image | MEDIUM | MEDIUM | P1 — visual identity of recipes; no image = feels unfinished |
+| Items management subpage | MEDIUM | LOW | P1 — needed for picture management |
+| Item picture attach/display | MEDIUM | MEDIUM | P2 — differentiator, but items are usable without photos |
+| Dark mode toggle | MEDIUM | LOW | P1 — user expectation; low cost |
+| Dark mode cross-device sync | LOW | LOW | P2 — nice to have after localStorage version works |
+| Recipe ingredient → item linkage | HIGH (for list quality) | MEDIUM | P1 — without this, added items lose category/sort fidelity |
+| Butikker/Husstand/Historikk as subpages | LOW (relocation, not new) | LOW | P1 — part of nav restructure |
+| User settings subpage | LOW | LOW | P1 — container for dark mode |
+
+---
+
 ## Sources
 
 - OurGroceries User Guide: https://www.ourgroceries.com/user-guide
@@ -235,7 +461,19 @@ This default ordering is the reasonable starting point. Per-store overrides hand
 - NLS Norway: Rema 1000, Kiwi, Meny guide: https://nlsnorwayrelocation.no/a-guide-to-norwegian-supermarkets-rema-1000-kiwi-and-meny-explained/
 - PWA offline sync patterns: https://gtcsys.com/comprehensive-faqs-guide-data-synchronization-in-pwas-offline-first-strategies-and-conflict-resolution/
 - Grocery app trends 2026: https://www.elitemcommerce.com/blog/2025/09/12/building-the-ultimate-grocery-app-trends-to-watch-in-2026/
+- AnyList recipe features: https://www.anylist.com/recipes
+- AnyList feature comparison: https://www.anylist.com/features
+- OurGroceries recipe ingredient add UX (Home Assistant community): https://community.home-assistant.io/t/ourgroceries-integration-support-for-recipes/651755
+- Grocery app UX case study (Tubik Studio): https://blog.tubikstudio.com/case-study-recipes-app-ux-design/
+- KitchenOwl open-source grocery + recipe app: https://github.com/TomBursch/kitchenowl
+- Supabase Storage standard uploads: https://supabase.com/docs/guides/storage/uploads/standard-uploads
+- SvelteKit + Supabase user management: https://supabase.com/docs/guides/with-sveltekit
+- SvelteKit dark mode (persistent): https://dev.to/willkre/persistent-theme-switch-dark-mode-with-svelte-sveltekit-tailwind-1b9g
+- Dark mode inclusive design (Smashing Magazine): https://smashingmagazine.com/2025/04/inclusive-dark-mode-designing-accessible-dark-themes/
+- svelte-themes library: https://github.com/beynar/svelte-themes
+- PWA dark mode best practices: https://dev.to/fedtti/how-to-provide-light-and-dark-theme-color-variants-in-pwa-1mml
+- Bottom nav best practices (AppMySite 2025): https://blog.appmysite.com/bottom-navigation-bar-in-mobile-apps-heres-all-you-need-to-know/
 
 ---
 *Feature research for: Family grocery shopping PWA (Norwegian market)*
-*Researched: 2026-03-08*
+*Researched: 2026-03-08 (v1.0 baseline); updated 2026-03-13 (v1.2 new features)*
