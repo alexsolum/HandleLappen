@@ -52,3 +52,12 @@ export async function deleteTestUser(userId: string) {
   const adminClient = getAdminClient()
   await adminClient.auth.admin.deleteUser(userId)
 }
+
+export async function loginUser(page: any, email: string, password: string) {
+  await page.goto('/logg-inn', { waitUntil: 'networkidle' })
+  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="password"]', password)
+  await page.click('button:has-text("Logg inn")')
+  await page.waitForURL('/', { waitUntil: 'networkidle' })
+  await page.waitForLoadState('networkidle')
+}
