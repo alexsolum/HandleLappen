@@ -208,11 +208,25 @@
         <button
           type="button"
           onclick={openScanner}
-          class="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 sm:flex-none"
-          disabled={!isOnline}
+          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
+          aria-label={!isOnline ? offlineLabel : 'Skann strekkode'}
           title={!isOnline ? offlineLabel : undefined}
+          disabled={!isOnline}
         >
-          Scan
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 7h2l1-2h6l1 2h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 11a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+            />
+          </svg>
         </button>
         <button
           type="button"

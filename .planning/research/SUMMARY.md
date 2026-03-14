@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** HandleAppen v1.2
-**Domain:** Family grocery shopping PWA (Norwegian market) — adding recipes, admin hub, item pictures, and dark mode to an existing SvelteKit + Supabase production app
-**Researched:** 2026-03-13
+**Project:** HandleAppen — v2.0 Barcode Scanner Improvement and Product Image/Brand Enrichment
+**Domain:** Family grocery shopping PWA (Norwegian market) — SvelteKit + Supabase
+**Researched:** 2026-03-14
 **Confidence:** HIGH
 
 ## Executive Summary
 
-HandleAppen v1.2 is an incremental feature release layered onto a production SvelteKit + Supabase PWA. The codebase already uses Svelte 5 runes, Tailwind v4, TanStack Query v6, Supabase Realtime, and `@vite-pwa/sveltekit`. Research confirms that **zero new npm packages are required** for any v1.2 feature: image handling uses the native `OffscreenCanvas` API (not `browser-image-compression`, which is unmaintained), dark mode uses `localStorage` plus Tailwind v4's `@custom-variant` directive (Tailwind v4 has no `tailwind.config.js` and no `darkMode: 'class'` key), routing uses SvelteKit's built-in nested layouts, and recipe data uses the same TanStack Query + Supabase pattern already established for shopping lists. The central structural change is replacing the current bottom nav with four dedicated tabs: Handleliste, Oppskrifter, Anbefalinger, Admin.
+HandleAppen is a production Norwegian-market family grocery PWA built on SvelteKit 2 / Svelte 5 / Supabase / TanStack Query. The v2.0 milestone has two tightly coupled goals: fix a confirmed iOS black screen bug in the barcode scanner, and enrich barcode lookup results with product images and brand names from Kassal.app. Both goals share the same code path — barcode-lookup edge function to client DTO to UI components — so they are correctly treated as a single milestone rather than independent tasks. The fix is surgical and the enrichment is additive. No new backend services are required, and only one npm package changes (`html5-qrcode` is replaced with `@undecaf/barcode-detector-polyfill` in the long-term scanner migration phase).
 
-The recommended execution order is strictly dependency-driven. The database migration (new `recipes` and `recipe_ingredients` tables, two Supabase Storage buckets, and a `picture_path` column on `household_item_memory`) must land first because every subsequent task builds on that schema. The BottomNav restructure comes second because it gates all UX review of new routes. The Admin hub routing establishes the third gate, unlocking the items management, history relocation, and settings subpages. Recipe CRUD, dark mode, and image upload can then proceed once their prerequisites exist, with dark mode being the most independent and suitable for parallel execution.
+The iOS black screen is a structural problem with `html5-qrcode`: the library controls the `<video>` element lifecycle and sets `playsinline` after the camera stream has already attached — too late for iOS Safari in standalone PWA mode. The immediate fix is a `MutationObserver` that intercepts the video element the moment html5-qrcode inserts it and sets `playsinline`, `muted`, and `autoplay` before any frame is rendered. A secondary fix adds a single-tick delay before `startScanner` to let the modal dialog paint before the camera permission prompt fires. These two changes have no API surface impact and require no test changes, since the scanner is fully mocked in the test environment. The validated long-term direction — replacing `html5-qrcode` with a `BarcodeDetector`-polyfill-based implementation that owns the video element — is out of scope for this sprint but is fully researched and ready for a follow-on milestone.
 
-The two highest-risk areas are image handling and navigation state. Image handling has three compounding pitfalls: incomplete Supabase Storage RLS (missing SELECT/UPDATE/DELETE policies are silently broken — uploads succeed but display fails), uncompressed mobile camera uploads exceeding the free-tier 6 MB standard upload limit, and service worker cache serving stale images after replacement (uploading to the same path does not invalidate the cache). Navigation carries risk around the bottom nav active-state detection breaking on deep routes and PWA back-navigation trapping users on removed top-level routes (`/husstand`, `/butikker`). Both risks have documented, specific mitigations that must be applied at the correct phase, not retrofitted.
+Product image and brand enrichment requires coordinated changes at three layers: the Supabase schema (three migrations adding nullable columns), the edge function pipeline (carrying `imageUrl` and `brand` from Kassal.app through the DTO without routing them through Gemini), and the client (a new `ProductThumbnail` component, extended `BarcodeLookupSheet`, updated `ItemRow`). The critical risk is CDN URL instability: Kassal.app images are served from external CDN paths that rotate. The mitigations are a dedicated `image_url` column (not buried in jsonb), an `onerror` fallback in every image component, and URL prefix validation before storage. All migrations must use nullable columns — no `NOT NULL` constraints on live tables with existing data.
 
 ---
 
@@ -19,146 +19,133 @@ The two highest-risk areas are image handling and navigation state. Image handli
 
 ### Recommended Stack
 
-The existing stack requires no additions for v1.2. Every capability needed is already installed or browser-native. The most important version constraint is Tailwind v4: it has no `tailwind.config.js` and no `darkMode: 'class'` config key. Dark mode class strategy is declared in CSS via `@custom-variant dark (&:where(.dark, .dark *));` in `app.css`. Any developer copying Tailwind v3 tutorials will produce a config file that has zero effect.
+The existing stack requires only one package change across the entire v2.0 milestone, and even that change belongs to a later phase. The immediate iOS fix and the image enrichment work are both achievable with zero package additions.
 
-**Core technologies (all already installed):**
-- `@sveltejs/kit ^2.50.2` — routing, nested layouts, SSR; handles admin hub structure natively with no additional package
-- `svelte ^5.51.0` — Svelte 5 runes (`$state`, `$props`) required for `theme.svelte.ts` store pattern; already in use throughout the app
-- `tailwindcss ^4.2.1` — Tailwind v4; dark mode via `@custom-variant` in `app.css`, not `tailwind.config.js`
-- `@supabase/supabase-js ^2.98.0` — includes the full Storage client; `supabase.storage.from().upload()` and `createSignedUrl()` are available immediately with no extra install
-- `@tanstack/svelte-query ^6.1.0` — recipe fetch/mutate pattern is identical to the existing shopping list pattern; reuse `createQuery` and `useMutation` with no API changes
-- `@vite-pwa/sveltekit ^1.1.0` — existing service worker; must be updated to exclude Supabase Storage CDN URLs from caching to prevent stale image display after replacement
-- `browser-native OffscreenCanvas` — replaces any image compression package; `convertToBlob({ type: 'image/webp', quality: 0.85 })` handles client-side resize before upload
+**Core technologies (existing, validated):**
+- `@sveltejs/kit ^2.50.2` + `svelte ^5.51.0` — Svelte 5 runes in active use; all new components follow the runes pattern (`$state`, `$props`, `$derived`)
+- `@supabase/supabase-js ^2.98.0` + `@supabase/ssr ^0.9.0` — covers all v2.0 needs (schema migrations, edge function calls, Storage)
+- `@tanstack/svelte-query ^6.1.0` — same fetch/mutate/invalidate pattern used for all new item and image mutations
+- `tailwindcss ^4.2.1` — Tailwind v4; dark mode via `@custom-variant dark` in `app.css` (already implemented in v1.2)
+- `idb-keyval ^6.2.2` + `@vite-pwa/sveltekit ^1.1.0` — offline PWA; unaffected by v2.0
+- `html5-qrcode ^2.3.8` — kept for the MutationObserver fix phase; replaced by polyfill in the long-term scanner migration
 
-**What NOT to add:**
-- `browser-image-compression` npm — unmaintained (v2.0.2, last published 3 years ago, flagged as inactive); native Canvas API is the correct replacement and has zero package cost
-- `svelte-dark-mode` — thin wrapper over 5 lines of vanilla JS; last meaningful commit 2022; adds a dependency for trivial logic
-- Supabase Storage image transforms (`transform` in `getPublicUrl`) — requires Supabase Pro plan; silently serves the original unresized image on the free tier without any error
+**v2.0 package change (long-term scanner migration phase only):**
+- Remove: `html5-qrcode` — iOS black screen unfixable without owning the video element; ZXing-js engine in maintenance mode
+- Add: `@undecaf/barcode-detector-polyfill ^0.9.23` — ZBar compiled to WASM; EAN-13, EAN-8, UPC-A, UPC-E; app controls video element lifecycle; LGPL compliance requires loading the `.wasm` as a separate file, not inlining it
+
+**What NOT to add for v2.0:**
+- `@zxing/browser` / `@zxing/library` — JavaScript ZXing port, maintenance mode, same iOS attribute timing problem
+- Native `BarcodeDetector` without polyfill — behind a flag in Safari settings; broken in iOS 18; effectively unavailable
+- Any image loading library (`svelte-img`, `unpic`, `svelte-lazy-image`) — native `loading="lazy"` covers 96%+ of browsers including iOS Safari 15.4+; overkill for 40px thumbnails from a CDN
 
 ### Expected Features
 
-**Must have (v1.2 P1 — gates everything else):**
-- Bottom nav 4-tab restructure (Handleliste / Oppskrifter / Anbefalinger / Admin) — all other features depend on navigation existing; restructure includes prefix-based `isActive` logic and 301 redirects from removed top-level routes
-- Admin hub (`/admin`) with subpage skeleton — gates items management, history relocation, and settings; establishes `householdId` from `locals` pattern for all sub-routes
-- Recipe list + detail view with "Legg til i liste" — the primary new user-facing feature; individual ingredient selection (checkbox per ingredient) is expected because users have pantry items already
-- Recipe ingredient to household item linkage — without this, added ingredients lose category/sort fidelity and appear as anonymous text strings, defeating the store-layout ordering
-- Recipe cover image upload via Supabase Storage — visual-first recipe UX; text-only feels like a database, not an app
-- Dark mode toggle in Brukerinnstillinger — low cost, universally expected since iOS 13/Android 10
-- Items management subpage (rename, recategorize) — prerequisite for item picture feature; lives in Admin hub
-- Butikker / Husstand / Historikk relocated as Admin subpages — part of nav restructure, not new functionality
+The v2.0 feature scope is narrowly defined. This is not a new feature design exercise — it is a targeted improvement to two existing capabilities (scanner reliability and barcode data richness).
 
-**Should have (v1.2 P2 — adds value after P1 works):**
-- Item picture attach and display as thumbnail in shopping list — differentiator (AnyList, Bring, Listonic all support this); items are usable without photos
-- Dark mode cross-device sync via Supabase `user_preferences` table — nice-to-have after the `localStorage` version works
+**Must have (gates the milestone):**
+- iOS barcode scanner black screen fix — current scanner is unusable on installed iPhone PWA; blocks core app utility for iOS users
+- Product image displayed in scan result sheet — users scanning a product need visual confirmation of what was found
+- Brand name displayed in scan result sheet — brand is the primary identifier for many Norwegian grocery products
+- Product image thumbnail in shopping list row (`ItemRow`) — photo must appear where items are consumed, not only where they are scanned
+- `onerror` fallback on every product image — Kassal CDN URLs rotate; every `<img>` must degrade gracefully to a placeholder
 
-**Defer (v2+):**
-- Push notifications for list changes — iOS PWA push support is unreliable pre-iOS 16.4; in-app indicators are the correct v1 approach
-- Meal planning / calendar integration — separate product concern; out of scope
-- Price tracking / budget features — requires sustained price data investment; validate demand first
-- Recipe import from URL (web scraping) — fragile parsers, legal grey area, AnyList charges premium for this feature
-- Recipe scaling (2x, 0.5x servings) — unit conversion adds significant UI and logic complexity
-- Native iOS/Android app — only if PWA limitations become user-reported blockers at scale
+**Should have (completes the data pipeline):**
+- Image and brand written to `list_items` at insert time (Option C from architecture research) — avoids a complex fuzzy JOIN on the hot list read path; consistent with how `category_id` is already handled
+- Image and brand written to `household_item_memory` — enriches item memory for future scans of the same EAN
+- Admin items view renders `ProductThumbnail` per row — consistency with list view; lowest priority, does not affect shopping flow
+
+**Defer (not v2.0):**
+- Full replacement of `html5-qrcode` with `BarcodeDetector` API + polyfill — validated direction; requires rewriting the scan loop and updating tests; out of scope for this sprint
+- Offline WASM caching (service worker caches the `.wasm` file) — the default CDN load works for online sessions; offline scanning can be a follow-up
+- Proxying Kassal images through Supabase Storage for long-term URL stability — justified only if CDN instability becomes user-reported at scale; adds storage cost and upload latency
+
+**Anti-features (do not build):**
+- Price comparison across stores — data is stale quickly; Kassal.app and Mattilbud already do this better; scope creep
+- Image URL routing through Gemini — Gemini is used only for name normalization and category resolution; sending image URLs adds token cost and latency for zero benefit
+- Joining `household_item_memory` on normalized_name in the list query to pull images — fuzzy join key, performance penalty, breaks if item name is edited
 
 ### Architecture Approach
 
-v1.2 extends the existing architecture without replacing any of it. Two new database tables (`recipes`, `recipe_ingredients`) and two new Storage buckets (`recipe-covers`, `item-pictures`) are added via migration. A `picture_path text` column is added to `household_item_memory`. Routes are extended with `/oppskrifter`, `/oppskrifter/[id]`, and an `/admin/**` subtree. Existing `/butikker` and `/husstand` routes stay at their current paths and are linked from the admin hub rather than moved — this avoids a refactor risk with no user-facing benefit (users never see the URL path). The BottomNav component is modified (not replaced). All other existing files are unchanged.
+The v2.0 change set touches 14 existing files and adds 1 new component. Changes follow a strict layered dependency order: schema first, then edge function shared types, then edge function logic, then client types, then UI components. This order ensures DB columns exist before code writes to them and the edge function produces enriched DTOs before the client expects them.
 
-**Major components:**
-1. `BottomNav.svelte` (MODIFIED) — tab array, icon union, prefix-based `isActive` logic for admin sub-routes (`/admin/*`) and lister sub-routes (`/lister/*`)
-2. `src/lib/queries/recipes.ts` (NEW) — list/detail/create/update/delete queries for recipes; signed URL generation at query time (never stored in DB — signed URLs expire)
-3. `src/lib/queries/item-memory-admin.ts` (NEW) — household item admin reads, intentionally separate from `remembered-items.ts` autocomplete query to avoid coupling
-4. `src/lib/stores/theme.svelte.ts` (NEW) — `localStorage` read/write, `document.documentElement.classList` toggle; no Supabase involvement
-5. `/oppskrifter/**` routes (NEW) — recipe list and detail pages; reuse existing `createAddOrIncrementItemMutation` for add-to-list; upsert with `ignoreDuplicates: true` prevents duplicate list items
-6. `/admin/**` routes (NEW) — hub page (sectioned link list grouped by concern) + historikk, items, innstillinger subpages; thin `+layout.svelte` for shared back-nav chrome
-7. DB migration (NEW) — `recipes`, `recipe_ingredients` tables with RLS, Storage buckets and four RLS policies each (INSERT/SELECT/UPDATE/DELETE), `household_item_memory.picture_path` column, unique constraint on `(list_id, item_id)` in `list_items`
-8. `app.html` + `app.css` (MODIFIED) — inline blocking script in `<head>` for FOUC prevention, `@custom-variant dark (&:where(.dark, .dark *));` in `app.css`
+**Major components and their v2.0 change summary:**
+1. `supabase/functions/_shared/barcode.ts` (MODIFIED) — add `imageUrl: string | null` to `BarcodeLookupDto`, `ReducedProviderPayload`, `BarcodeCacheRow`; update `buildReducedProviderPayload`, `fallbackLookupFromProviderPayload`, `applyGeminiResult`, `cacheRowToLookupDto`
+2. `supabase/functions/barcode-lookup/index.ts` (MODIFIED) — update `readCache` `.select()` string; update `createCacheRow` to write `image_url` and `brand`
+3. `src/lib/barcode/scanner.ts` (MODIFIED) — add MutationObserver before `htmlScanner.start()`; remove or demote the post-hoc `playsinline` block
+4. `src/lib/components/barcode/BarcodeScannerSheet.svelte` (MODIFIED) — add single-tick delay before `startScanner()` for iOS dialog timing
+5. `src/lib/barcode/lookup.ts` (MODIFIED) — client DTO mirror; extend `BarcodeLookupDto`, `BarcodeSheetModel`, `mapBarcodeLookupResult`, `isBarcodeLookupDto`
+6. `src/lib/components/items/ProductThumbnail.svelte` (NEW) — lazy `<img>` with `onerror` fallback; `sm` (32px) and `md` (56px) size variants
+7. `src/lib/components/barcode/BarcodeLookupSheet.svelte` (MODIFIED) — render `ProductThumbnail` and brand; extend `onConfirm` payload to include `imageUrl` and `brand`
+8. `src/lib/components/items/ItemRow.svelte` + `src/lib/queries/items.ts` (MODIFIED) — extend item type; render thumbnail; extend add mutations to write image/brand
+9. Three Supabase migrations — nullable columns on `barcode_product_cache`, `household_item_memory`, and `list_items`
 
-**Key patterns:**
-- Store only the Storage object path in the DB; generate signed URLs at query time — signed URLs expire, paths do not
-- Use versioned filenames for image uploads (`{id}-{timestamp}.webp`) to guarantee cache-bust on replacement; never reuse the same path on upsert
-- Read `householdId` from `locals` directly in admin sub-route load functions; never call `await parent()` at the top of a load function just to get household context — this serializes what SvelteKit would parallelize
-- Recipe "add to list" must use upsert with `ignoreDuplicates: true` against a unique constraint on `(list_id, item_id)` to prevent duplicate rows
+**Key architectural patterns applied:**
+- Additive DTO extension with null defaults — backward-compatible; consumers that do not use new fields are unaffected
+- Write-at-insert-time for list items — consistent with the existing `category_id` pattern; no JOIN required on the list read path
+- Image bypasses Gemini — Gemini schema stays as-is; `imageUrl` and `brand` are copied directly from `ReducedProviderPayload` into the final DTO
+- `NULL` means "no image" — never use `NOT NULL DEFAULT ''`; the `ProductThumbnail` component checks truthiness before rendering
 
 ### Critical Pitfalls
 
-1. **Dark mode FOUC + Tailwind v4 config mismatch** — Two fixes required together and in the same deployment: (a) add `@custom-variant dark (&:where(.dark, .dark *));` to `app.css` (Tailwind v4 has no `darkMode: 'class'` config key — developers copying v3 tutorials add a config file that has zero effect), and (b) add an inline blocking `<script>` in `app.html` `<head>` that reads `localStorage` and applies `.dark` before first paint. Fixing one without the other produces partial breakage that is hard to diagnose.
+1. **iOS `playsinline` applied after stream attachment** — the existing `scanner.ts` sets `playsinline` in the `start()` promise callback, but iOS Safari has already rendered a black frame by then. Prevention: MutationObserver on the container element intercepts the video element synchronously before any frame is painted and sets `playsinline`, `muted`, and `autoplay`. Confirmed by WebKit bugs 185448, 252465, and html5-qrcode issues #890, #713.
 
-2. **Supabase Storage RLS incomplete — four policies required, not one** — The Supabase dashboard prompts for one policy operation at a time. Developers create an INSERT policy, uploads succeed, and they consider the job done. Images then fail to display (missing SELECT), replacing fails with 403 (missing UPDATE), and old files accumulate because delete is blocked (missing DELETE). Additionally, without household-path scoping (`(storage.foldername(name))[1] = my_household_id()::text`), any authenticated user can read or overwrite any household's images by guessing the path. Write all four policies with path scoping before writing any upload UI code.
+2. **iOS PWA camera permission re-prompts every session** — WebKit bugs 215884 and 185448 remain open; every new `getUserMedia` call in a standalone PWA may re-prompt. Prevention: cache the `MediaStream` from the first successful call and reuse it within the session (check `stream.active` before re-requesting); distinguish `NotAllowedError` (user denied — show settings link) from a dismissed prompt (show "Prøv igjen" with no alarm UI).
 
-3. **Uncompressed mobile camera images exceed the free-tier limit** — Modern phones produce 4–12 MB HEIC/JPEG. Supabase's standard upload API is designed for files up to 6 MB; the free tier has a 50 MB storage limit. Testing with small desktop PNG files does not surface this. Compress client-side with `OffscreenCanvas.convertToBlob({ type: 'image/webp', quality: 0.85 })` (max 1200px) before calling `storage.upload()`. This is a correctness requirement, not an optimization — it must be in the first implementation, not added after.
+3. **Kassal CDN image URLs are not stable** — Kassal uses Cloudinary version tokens that rotate, and CDN providers have changed in the past. URLs stored in `barcode_product_cache` (30-day TTL) can go dead before expiry. Prevention: store `image_url` in a dedicated nullable column (not inside jsonb `provider_payload`), validate URL prefix before storing (`res.cloudinary.com/norgesgruppen` or `bilder.ngdata.no`), implement `onerror` fallback in `ProductThumbnail`.
 
-4. **Service worker caches stale images after replacement** — Uploading a new image to the same Storage path does not invalidate the service worker or browser cache. The existing Workbox handler may match Supabase Storage CDN URLs. Use versioned filenames (append timestamp or UUID to path) so the URL changes on every update. Also configure the existing Workbox handler to explicitly exclude Supabase Storage CDN URLs from caching.
+4. **Migration risks on live tables with trigger activity** — `household_item_memory` is trigger-driven (fires on every `list_items` write) and has live rows. Adding `NOT NULL` columns or running full-table backfills causes timeout or lock contention on Supabase Free tier. Prevention: all new columns must be nullable text with no default; no backfill in the migration transaction; test against a seeded DB with 1000+ rows before applying to production.
 
-5. **Bottom nav active state breaks on sub-routes** — Exact pathname matching (`page.url.pathname === href`) leaves admin sub-routes (`/admin/items`) and list detail routes (`/lister/[id]`) with no highlighted tab — the app appears broken. Replace with prefix matching: Admin tab is active when `pathname.startsWith('/admin')`, Handleliste tab is active when `pathname === '/'` or `pathname.startsWith('/lister/')`. Must be implemented with the BottomNav restructure, not as a follow-up.
-
-6. **PWA back-navigation trap after route restructure** — Existing PWA users have browser history entries pointing to `/husstand` and `/butikker`. After restructure, pressing the Android back button or accessing old bookmarks hits routes that no longer exist at those paths. Add 301 redirects from the old top-level routes to their new admin sub-route destinations before the restructure build ships.
-
-7. **Recipe duplicate list items from "add all ingredients"** — A plain INSERT for each recipe ingredient creates duplicate rows when an item already exists on the target list. Two devices offline, a checked item appearing unchecked again, and duplicate rows in the same category section all result. Add a unique constraint on `(list_id, item_id)` in the migration that creates the recipe schema and use Supabase upsert with `ignoreDuplicates: true` in the add-to-list mutation.
-
-8. **`await parent()` waterfall in admin sub-routes** — Calling `await parent()` at the top of every admin sub-route load function to get `householdId` serializes what SvelteKit would parallelize (protected layout load → admin layout load → page load, three sequential server round-trips). Read `householdId` from `locals` directly. If `await parent()` is genuinely needed for data that depends on parent output, call it after independent data fetches, not before.
+5. **DTO type mismatch between edge function and client** — `_shared/barcode.ts` (Deno) and `src/lib/barcode/lookup.ts` (browser) are physically separate files by design. A mismatch causes silent bugs. Prevention: update both files in the same commit; run integration tests covering the full scan-to-list-item flow end-to-end.
 
 ---
 
 ## Implications for Roadmap
 
-Based on the architecture dependency chain and pitfall-to-phase mapping from research, six phases are suggested. The ordering is strictly dependency-driven.
+Research reveals a clear dependency chain that maps to four phases. The ordering is strictly dependency-driven.
 
-### Phase 1: Database Foundation
-**Rationale:** Every subsequent phase depends on the schema. Recipe queries cannot be built without `recipes`/`recipe_ingredients` tables. Image upload cannot be built without Storage buckets and RLS. Item pictures require the `picture_path` column on `household_item_memory`. The unique constraint on `list_items(list_id, item_id)` must be added here, not as a follow-up migration. This phase has no UI but unlocks all subsequent work.
-**Delivers:** Supabase migration with `recipes`, `recipe_ingredients` tables, RLS policies for both (household-scoped via `my_household_id()`), Storage buckets `recipe-covers` and `item-pictures` (private), four RLS policies per bucket with `storage.foldername(name)[1] = my_household_id()::text` path scoping, `household_item_memory.picture_path text` column, unique constraint on `list_items(list_id, item_id)`, TypeScript types regenerated via `supabase gen types typescript`.
-**Addresses:** Recipe management (data layer), item picture management (storage layer), recipe duplicate prevention (unique constraint)
-**Avoids:** Pitfalls 2 (Storage RLS incomplete), 7 (recipe duplicate items), storage path traversal (use `crypto.randomUUID()` for all image paths)
+### Phase 1: Schema Migrations
+**Rationale:** Database columns must exist before any code writes to or reads from them. This phase has no code risk — nullable columns with no defaults are safe on live tables with active triggers. Deploying schema first creates a clean deployment window for subsequent phases without risk of runtime errors.
+**Delivers:** Three migrations — `barcode_product_cache` gains `image_url text` and `brand text`; `household_item_memory` gains `product_image_url text` and `brand text`; `list_items` gains `product_image_url text` and `brand text`. All columns nullable, no defaults, no backfill.
+**Avoids:** Pitfall 4 (migration risk on live tables — all columns nullable; test against seeded DB first).
+**Research flag:** Standard pattern — migration DDL fully specified in ARCHITECTURE.md. No additional research needed.
 
-### Phase 2: Navigation Restructure (BottomNav + Route Scaffolding)
-**Rationale:** All four new tabs gate UX review of every subsequent phase. Without working navigation, no new page can be reviewed in context. Route redirects from `/husstand` and `/butikker` must ship with this phase — implementing them as a follow-up after the restructure ships creates a window where PWA users are stranded.
-**Delivers:** BottomNav updated to 4 tabs (Handleliste / Oppskrifter / Anbefalinger / Admin), prefix-based `isActive` logic, stub pages for `/oppskrifter` and `/admin`, 301 redirects from `/husstand` and `/butikker`, updated icon union in the `Tab` type.
-**Addresses:** Bottom nav restructure, PWA back-navigation safety, admin tab active state on sub-routes
-**Avoids:** Pitfalls 5 (active state breaks on deep links), 6 (PWA back-navigation trap)
+### Phase 2: iOS Scanner Black Screen Fix
+**Rationale:** This fix has no dependency on schema changes or image features. It can ship as a hotfix before the enrichment phases. Getting iOS working first means that subsequent testing of image display features happens on a functioning scanner. The stream-caching improvement and permission UX distinction belong in this phase as well — they address the same root iOS camera reliability concern.
+**Delivers:** `scanner.ts` MutationObserver fix before `htmlScanner.start()`; `BarcodeScannerSheet.svelte` single-tick delay before `startScanner()`; MediaStream caching within the PWA session; improved error UX distinguishing "camera denied" from "prompt dismissed".
+**Avoids:** Pitfall 1 (playsinline timing), Pitfall 2 (permission re-prompt and error UX).
+**Research flag:** Cannot verify on simulator — real iPhone in installed PWA mode (home screen) required. The fix code is fully specified in PITFALLS.md and ARCHITECTURE.md; verification is the unknown.
 
-### Phase 3: Admin Hub + Subpage Routing
-**Rationale:** Admin hub page and subpage routes must exist before any admin content can be built. The thin `+layout.svelte` for shared back-nav chrome should be established here so all subpages inherit it. The `householdId` from `locals` data access pattern must be established here before building any individual subpages — it is the correct pattern and easier to get right once than to fix across five pages.
-**Delivers:** `/admin` hub page (sectioned link list grouped by logical concern: Handlelister, Butikker, Husstand, Varer, Bruker), `admin/+layout.svelte` with back-nav chrome, skeleton subpages for `historikk`, `items`, `innstillinger`, history content migrated from `/anbefalinger` to `/admin/historikk`, data access pattern established (`householdId` from `locals`, not `await parent()`).
-**Addresses:** Admin hub UX pattern, history relocation, correct data access pattern for sub-routes
-**Avoids:** Pitfall 8 (`await parent()` waterfall — correct pattern established once, inherited by all subpages)
+### Phase 3: Edge Function and DTO Enrichment
+**Rationale:** The edge function must be updated and deployed before the client can receive `imageUrl` and `brand` in the lookup response. This phase is the prerequisite for all client-side image display work. Updating the shared types and edge function logic in a single deployment ensures both the Deno and browser DTO definitions stay in sync.
+**Delivers:** `_shared/barcode.ts` extended with `imageUrl` in `BarcodeLookupDto`, `ReducedProviderPayload`, and `BarcodeCacheRow`; `barcode-lookup/index.ts` updated to read and write `image_url`/`brand`; `src/lib/barcode/lookup.ts` client types extended; `mapBarcodeLookupResult` and `isBarcodeLookupDto` updated. Image and brand bypass Gemini entirely.
+**Uses:** Kassal API — `image` and `brand` fields are already typed in `KassalProduct` but discarded before the DTO is built; this phase wires them through.
+**Avoids:** Pitfall 5 (DTO mismatch — both files updated in same commit); Anti-Pattern 1 (image URL not routed through Gemini).
+**Research flag:** Standard pattern. Add Kassal URL prefix validation before storing (`res.cloudinary.com/norgesgruppen` or `bilder.ngdata.no`) as a low-cost security measure noted in PITFALLS.md security section.
 
-### Phase 4: Recipe CRUD + Add to List
-**Rationale:** The primary v1.2 user-facing feature. Depends on Phase 1 (schema) and Phase 2 (navigation to `/oppskrifter`). Cover image upload is deferred to Phase 5 — recipes should work end-to-end without images first. Recipe ingredient to household item linkage is the most non-trivial piece and must be built before the add-to-list flow: without it, added ingredients lose their category and sort order position.
-**Delivers:** Recipe list view (`/oppskrifter`), recipe detail view (`/oppskrifter/[id]`), create/edit/delete recipe, individual ingredient selection with checkboxes, "Legg til i liste" with list picker sheet (all three states: lists available / no lists with inline "Ny liste" prompt / loading skeleton), ingredient resolution to household item entities via normalized-name match with create-on-no-match fallback, upsert-safe add-to-list mutation, summary toast showing how many items were added vs already present.
-**Addresses:** Recipe list + detail, "add all/individual to list", household-shared recipes, ingredient to item linkage
-**Avoids:** Pitfall 7 (recipe duplicate items — upsert with `ignoreDuplicates: true`), Pitfall 9 (list picker empty state — all three states specced before implementation)
-
-### Phase 5: Image Upload (Recipe Covers + Item Pictures)
-**Rationale:** Depends on Phase 1 (Storage buckets and RLS), Phase 3 (admin items subpage route), Phase 4 (recipe detail page for cover upload). Image compression and versioned filenames must be in the first implementation — these are correctness requirements, not optimizations added later. The service worker exclusion for Storage CDN URLs must also land here.
-**Delivers:** Recipe cover image upload on recipe edit page (OffscreenCanvas resize to max 1200px → WebP 0.85 quality → Supabase Storage, path stored as `recipes.cover_image_path`, signed URL generated at query time with 5-minute TTL), item picture upload in `/admin/items/[id]` (same pipeline), item picture thumbnail displayed in shopping list view, versioned filenames (`{uuid}-{timestamp}`), Workbox handler updated to exclude Supabase Storage CDN URLs from caching.
-**Addresses:** Recipe cover image, item picture attach/display, Supabase Storage integration, service worker cache correctness
-**Avoids:** Pitfalls 2 (all four RLS policies required), 3 (OffscreenCanvas compression required before upload), 4 (versioned paths + Storage CDN excluded from service worker)
-
-### Phase 6: Dark Mode
-**Rationale:** Depends only on Phase 3 (Brukerinnstillinger subpage exists). The most independent phase — can run in parallel with Phase 4 or 5 if developer bandwidth allows. The two fixes (Tailwind v4 `@custom-variant` and inline FOUC script) must land together in the same deployment; deploying them separately produces a partially broken dark mode that is difficult to diagnose.
-**Delivers:** `@custom-variant dark (&:where(.dark, .dark *));` in `app.css`, inline blocking `<script>` in `app.html` `<head>` that reads `localStorage` and applies `.dark` before first paint, `theme.svelte.ts` store with `toggle()` and `init()`, dark mode toggle UI in `/admin/innstillinger`, `localStorage` persistence, system preference (`prefers-color-scheme`) respected on first load with no stored preference.
-**Addresses:** Dark mode toggle, FOUC prevention, system preference fallback, preference persistence across sessions
-**Avoids:** Pitfall 1 (both Tailwind config fix and inline FOUC script land in the same deployment)
+### Phase 4: Client Image Display
+**Rationale:** Depends on Phase 3 (edge function must return enriched DTO) and Phase 1 (DB columns must exist for mutations to write image data). This is the user-visible deliverable. All five user-facing changes belong together because they share the `ProductThumbnail` component and the extended `onConfirm` callback signature.
+**Delivers:** `ProductThumbnail.svelte` (new component — lazy `<img>`, `onerror` fallback, `sm`/`md` size variants); `BarcodeLookupSheet.svelte` updated to show image and brand; `ItemRow.svelte` updated to show thumbnail; `queries/items.ts` mutations extended to write `product_image_url`/`brand`; `lister/[id]/+page.svelte` wired to pass image/brand from barcode confirm to add mutation; Admin items view updated to show thumbnails.
+**Implements:** Lazy image with onerror fallback (Architecture Pattern 2); write-at-insert-time for list_items (Option C from ARCHITECTURE.md data flow analysis).
+**Avoids:** Pitfall 3 (CDN instability — onerror fallback); layout shift (fixed dimensions on `ProductThumbnail`).
+**Research flag:** Svelte 5 `onerror` event timing with SSR-rendered `<img>` is a known issue (sveltejs/svelte#10352). Verify whether the Svelte event binding works or whether the inline HTML `onerror` attribute is required for cross-origin images. This is a one-line difference but must be validated early in implementation.
 
 ### Phase Ordering Rationale
 
-- Phase 1 must be first: schema is the foundation for all data work; unique constraint on `list_items` must exist before recipe add-to-list is built
-- Phase 2 must be second: navigation gates all UX review; redirects must ship with the restructure build, not after
-- Phase 3 must precede Phases 4 and 5: admin routes must exist before subpage content is built; `householdId` from `locals` pattern is established once and inherited
-- Phase 4 precedes Phase 5: recipe detail page must exist before recipe cover image upload can be wired
-- Phase 6 is independent of Phases 4 and 5 (depends only on Phase 3) and can run concurrently if parallel development is possible
-- Items management within Phase 3/5 depends on Storage being ready (Phase 1) and the admin route existing (Phase 3)
+- Phase 1 must be first — schema is the foundation; columns must exist before edge function or client code writes to them
+- Phase 2 is independent and high-urgency — iOS scanner fix can ship as a hotfix before or in parallel with Phases 3 and 4
+- Phase 3 must precede Phase 4 — edge function must produce enriched DTO before client can consume it
+- Phase 4 depends on both Phase 1 and Phase 3 — DB columns and edge function enrichment must both be in place
+- Phases 2 and 3 can run in parallel if two developers are available
 
 ### Research Flags
 
-Phases likely needing deeper research during task planning:
-- **Phase 4 (Recipe CRUD):** Recipe ingredient to household item matching logic needs careful spec. The matching must handle spelling variations ("Løk" vs "Kepaløk"), case differences, and the create-or-link decision. A normalized exact match is recommended for v1.2 with fuzzy matching deferred to v1.3 based on user feedback. The exact normalization approach (lowercase, trim, strip special characters) needs to be defined and consistent with the existing `normalized_name` column logic in `household_item_memory`.
-- **Phase 5 (Image Upload):** `OffscreenCanvas` compatibility on iOS 15 (Safari 15) needs verification — `OffscreenCanvas` is fully supported in Safari 16.4+ but only partially in Safari 15. A `<canvas>` element fallback path may be needed. Verify before writing the compression utility.
+Needs verification during implementation:
+- **Phase 2:** iOS black screen fix must be verified on a real iPhone in installed PWA mode; simulator cannot reproduce the issue. This is the single validation gap — the fix code is fully specified.
+- **Phase 4:** Svelte 5 `onerror` event timing with SSR hydration (sveltejs/svelte#10352) — verify early. If the Svelte event binding does not fire reliably for cross-origin images, use the inline HTML attribute instead.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (DB Migration):** SQL schema, RLS patterns, and Storage bucket configuration are fully documented in ARCHITECTURE.md and PITFALLS.md. Direct implementation.
-- **Phase 2 (BottomNav):** Well-documented SvelteKit routing change. Exact code patterns provided in ARCHITECTURE.md.
-- **Phase 3 (Admin Hub):** Standard SvelteKit nested layout plus hub-and-spoke navigation. Pattern is documented. No research needed.
-- **Phase 6 (Dark Mode):** Exact implementation code documented in both STACK.md and PITFALLS.md. The two-fix pattern is clear and specific.
+Standard patterns (no additional research needed):
+- **Phase 1:** Migration DDL fully specified in ARCHITECTURE.md; nullable-column-on-live-table pattern is standard.
+- **Phase 3:** All DTO field names, pipeline functions, and data flow specified from direct codebase inspection; no unknowns.
 
 ---
 
@@ -166,45 +153,45 @@ Phases with standard patterns (skip research-phase):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Existing `package.json` read directly; all dependencies confirmed present; no new packages required; Tailwind v4 `@custom-variant` approach verified against official docs; Supabase Storage client confirmed in `@supabase/supabase-js` |
-| Features | HIGH (core) / MEDIUM (Norwegian-specific) | Recipe and admin feature expectations confirmed via OurGroceries, AnyList, Bring competitor analysis. Norwegian store layout ordering is MEDIUM — inferred from store descriptions, not direct survey; per-store override is the designed escape hatch |
-| Architecture | HIGH | Existing source files read directly (`BottomNav.svelte`, `app.html`, `app.css`, `database.ts`, query files, layout files); SvelteKit routing patterns verified against official docs; Supabase Storage RLS verified against official access control docs; `await parent()` waterfall confirmed against SvelteKit docs and GitHub issue #8579 |
-| Pitfalls | HIGH | Tailwind v4 config verified against official docs; Storage RLS four-policy requirement verified against official docs; service worker image caching conflict confirmed via Supabase community reports; `await parent()` waterfall confirmed against official docs and GitHub issues |
+| Stack | HIGH | Existing packages validated against `package.json`; polyfill recommendation based on official repo and author article (Soledad Penades, Feb 2025); Kassal API fields confirmed from official docs |
+| Features | HIGH | v2.0 feature scope derived entirely from existing codebase; no speculative features; Norwegian market features validated from v1.x research |
+| Architecture | HIGH | All findings based on direct source file reads — `scanner.ts`, `_shared/barcode.ts`, `lookup.ts`, migration files, component files; no inference from documentation alone |
+| Pitfalls | HIGH | iOS camera pitfalls confirmed against WebKit bug tracker (bugs 185448, 215884, 252465) and html5-qrcode issues (#713, #890); migration risks confirmed against Supabase official troubleshooting docs; Kassal CDN instability inferred from URL format and documented past CDN change |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`OffscreenCanvas` iOS 15 compatibility:** `OffscreenCanvas` is fully supported in Safari 16.4+ but only partially in Safari 15. If the app targets iOS 15 users, Phase 5 needs a `<canvas>` element fallback for the compression utility. Verify the installed PWA's minimum iOS target before implementing the image upload pipeline.
-- **Supabase Storage bucket creation approach:** ARCHITECTURE.md provides the SQL for bucket creation (`insert into storage.buckets`) but the Supabase dashboard also supports bucket creation via UI. Confirm whether the project uses migration-based setup or dashboard setup for storage configuration before writing Phase 1 migration SQL.
-- **`my_household_id()` vs `get_my_household_ids()` function name:** ARCHITECTURE.md uses `my_household_id()` in Storage RLS examples; PITFALLS.md uses `get_my_household_ids()`. Confirm the exact SECURITY DEFINER function name in the existing codebase before writing any Storage RLS policies — a name mismatch will cause all policies to fail silently (policies evaluate to false, not error).
-- **Recipe ingredient normalized name matching:** The exact normalization approach (lowercase, trim, strip special characters, Norwegian character handling such as æøå) must be consistent with the existing `normalized_name` column logic in `household_item_memory`. Inspect the existing `upsert_household_item_memory` RPC to understand the current normalization before building the recipe ingredient matching logic.
+- **Kassal CDN URL rotation frequency in production:** Research confirms URLs can change (Cloudinary version tokens, documented past CDN provider change). The mitigation is designed. The actual frequency in practice is unknown — monitor after launch and consider a background refresh edge function if users report broken images at scale.
+- **Kassal 429 rate limiting under concurrent family scanning:** The edge function test suite does not cover HTTP 429 from Kassal. Add a test case mocking a 429 response. The fix (return cache data or degrade gracefully) is straightforward but currently untested.
+- **`household_item_memory` image freshness policy:** The migration adds the column, but the product decision — whether to write the Kassal image URL to item memory and accept it may go stale, or to omit it and re-fetch on each scan — should be confirmed during Phase 4 implementation. The conservative choice is to write and accept staleness; the aggressive choice avoids stale data at the cost of a cache miss on repeated scans of the same EAN.
+- **Offline WASM caching:** If offline PWA scanning becomes a requirement, the `@undecaf/barcode-detector-polyfill` WASM file must be copied to `/static/` and cached by the service worker. The implementation approach is fully documented in STACK.md (`setModuleArgs`, Vite copy step) but is out of scope for the current milestone.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Existing source files (direct read): `BottomNav.svelte`, `(protected)/+layout.svelte`, `+layout.server.ts`, `database.ts`, `items.ts`, `history.ts`, `remembered-items-core.ts`, `active-list.svelte.ts`, `app.html`, `vite.config.ts`, `app.css`
-- [Tailwind CSS v4 Dark Mode — Official Docs](https://tailwindcss.com/docs/dark-mode) — `@custom-variant dark`, class strategy, confirmation that `darkMode` config key does not exist in v4
-- [Supabase Storage Access Control — Official Docs](https://supabase.com/docs/guides/storage/security/access-control) — four-policy requirement, `storage.foldername()` path scoping
-- [Supabase Storage Upload Docs](https://supabase.com/docs/guides/storage/uploads/standard-uploads) — upload API, 6 MB standard upload recommendation, signed URL generation
-- [Supabase Storage File Limits](https://supabase.com/docs/guides/storage/uploads/file-limits) — 50 MB free tier limit
-- [SvelteKit Load Functions — `await parent()`](https://svelte.dev/docs/kit/load) — waterfall warning, parallel fetch pattern
-- [SvelteKit Routing: Nested Layouts](https://svelte.dev/docs/kit/routing#layout)
-- [SvelteKit Advanced Routing](https://svelte.dev/docs/kit/advanced-routing)
-- [SvelteKit GitHub Issue #8579](https://github.com/sveltejs/kit/issues/8579) — `await parent()` waterfall confirmed
+- Direct source file reads — `src/lib/barcode/scanner.ts`, `BarcodeScannerSheet.svelte`, `BarcodeLookupSheet.svelte`, `ItemRow.svelte`, `ItemInput.svelte`, `src/lib/barcode/lookup.ts`, `src/lib/queries/barcode.ts`, `src/lib/queries/items.ts`, `src/lib/queries/item-memory-admin.ts`, `supabase/functions/_shared/barcode.ts`, `supabase/functions/barcode-lookup/index.ts`, existing Supabase migration files
+- Kassal.app official API docs (`kassal.app/api/docs`) — `image`, `brand`, `vendor` field names, 60 req/min rate limit
+- GitHub `undecaf/barcode-detector-polyfill` — v0.9.23, July 2025, EAN-13/8/UPC-A/E confirmed
+- Can I Use — `loading="lazy"` iOS Safari 15.4+ support, ~96% global coverage
+- Supabase Storage standard uploads docs — upload API, upsert guidance, image transformation Pro plan requirement
+- Supabase Troubleshooting — Slow ALTER TABLE on Large Tables (official docs)
 
 ### Secondary (MEDIUM confidence)
-- [CaptainCodeman — Dark Mode in SvelteKit](https://www.captaincodeman.com/implementing-dark-mode-in-sveltekit) — inline script FOUC prevention pattern
-- [WeWeb Community — Supabase Storage cached images on replace](https://community.weweb.io/t/supabase-storage-preventing-cached-images-when-updating-files-replace-storage-file-issue/17601) — same-path upsert caching conflict documented
-- OurGroceries User Guide, AnyList features, Bring features — recipe and admin interaction flow expectations
-- [Kassal.app API documentation](https://kassal.app/api) — Norwegian product database, 100K product coverage, 60 req/min free tier
-- Norwegian supermarket layout descriptions (Life in Norway, NLS Norway Relocation) — default category ordering inference
+- GitHub `mebjas/html5-qrcode` issues #890, #822, #895, #951 — iOS black screen confirmed, unresolved
+- WebKit Bug 185448 — getUserMedia not working in apps added to home screen (open)
+- WebKit Bug 215884 — getUserMedia recurring permissions prompts in standalone mode (open)
+- WebKit Bug 252465 — HTML Video Element may be unable to play stream from getUserMedia in PWA (open)
+- STRICH Knowledge Base — Camera Access Issues in iOS PWA/Home Screen Apps
+- Soledad Penades, "On barcodes and Web APIs" (Feb 2025) — Safari BarcodeDetector behind a flag, considered unavailable
+- Svelte Issue #10352 — Svelte 5 onerror event not called on img element
 
 ### Tertiary (LOW confidence)
-- Norwegian store category flow ordering — inferred from general store descriptions; exact per-location order varies by store and chain. The default ordering in the app is a reasonable starting point; per-store overrides are the designed escape hatch for inaccuracies.
+- Kassal CDN past provider change (`bilder.kassal.app` → `bilder.ngdata.no`) — inferred from current URL format; no official Kassal changelog
+- Kassal Cloudinary version token rotation frequency — inferred from URL format; no official stability guarantee documented
 
 ---
-*Research completed: 2026-03-13*
+*Research completed: 2026-03-14*
 *Ready for roadmap: yes*

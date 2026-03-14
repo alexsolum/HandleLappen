@@ -21,10 +21,10 @@
 
   let { open, onClose, onDetected, onOpenManualEntry }: Props = $props()
 
-  let dialogEl = $state<HTMLDialogElement | null>(null)
-  let session = $state<ScannerSession | null>(null)
-  let state = $state<ScannerViewState>('idle')
-  let message = $state('Vi starter kameraet og ser etter strekkoden.')
+  let dialogEl: HTMLDialogElement | null = null
+  let session: ScannerSession | null = null
+  let state: ScannerViewState = 'idle'
+  let message = 'Vi starter kameraet og ser etter strekkoden.'
 
   const previewId = `barcode-scanner-preview`
   let removeVisibilityCleanup: (() => void) | null = null

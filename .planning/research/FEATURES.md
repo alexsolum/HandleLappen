@@ -1,7 +1,7 @@
 # Feature Research
 
 **Domain:** Family grocery shopping PWA (Norwegian market)
-**Researched:** 2026-03-08 (v1.0); updated 2026-03-13 (v1.2 additions)
+**Researched:** 2026-03-08 (v1.0); updated 2026-03-13 (v1.2 additions); updated 2026-03-14 (v2.0 barcode improvement)
 **Confidence:** MEDIUM-HIGH (core features HIGH; Norwegian-specific integrations MEDIUM)
 
 ---
@@ -449,31 +449,192 @@ Dark mode has been a baseline expectation since iOS 13 (2019) and Android 10 (20
 
 ---
 
-## Sources
+## v2.0 Feature Analysis: Barcode Scanner Improvement and Product Lookup
 
-- OurGroceries User Guide: https://www.ourgroceries.com/user-guide
-- SmartCart Family comparison (Listonic, Bring, AnyList, OurGroceries): https://smartcartfamily.com/en/blog/grocery-apps-comparison
-- Bring collaborative features: https://www.getbring.com/en/features/collaborative
-- Kassal.app API documentation: https://kassal.app/api
-- NerdWallet grocery app comparison 2025: https://www.nerdwallet.com/finance/learn/best-grocery-list-apps
-- Scandit barcode scanning UX guide: https://www.scandit.com/resources/guides/barcode-scanning-challenges/
-- Norwegian supermarkets overview: https://www.lifeinnorway.net/supermarkets-in-norway/
-- NLS Norway: Rema 1000, Kiwi, Meny guide: https://nlsnorwayrelocation.no/a-guide-to-norwegian-supermarkets-rema-1000-kiwi-and-meny-explained/
-- PWA offline sync patterns: https://gtcsys.com/comprehensive-faqs-guide-data-synchronization-in-pwas-offline-first-strategies-and-conflict-resolution/
-- Grocery app trends 2026: https://www.elitemcommerce.com/blog/2025/09/12/building-the-ultimate-grocery-app-trends-to-watch-in-2026/
-- AnyList recipe features: https://www.anylist.com/recipes
-- AnyList feature comparison: https://www.anylist.com/features
-- OurGroceries recipe ingredient add UX (Home Assistant community): https://community.home-assistant.io/t/ourgroceries-integration-support-for-recipes/651755
-- Grocery app UX case study (Tubik Studio): https://blog.tubikstudio.com/case-study-recipes-app-ux-design/
-- KitchenOwl open-source grocery + recipe app: https://github.com/TomBursch/kitchenowl
-- Supabase Storage standard uploads: https://supabase.com/docs/guides/storage/uploads/standard-uploads
-- SvelteKit + Supabase user management: https://supabase.com/docs/guides/with-sveltekit
-- SvelteKit dark mode (persistent): https://dev.to/willkre/persistent-theme-switch-dark-mode-with-svelte-sveltekit-tailwind-1b9g
-- Dark mode inclusive design (Smashing Magazine): https://smashingmagazine.com/2025/04/inclusive-dark-mode-designing-accessible-dark-themes/
-- svelte-themes library: https://github.com/beynar/svelte-themes
-- PWA dark mode best practices: https://dev.to/fedtti/how-to-provide-light-and-dark-theme-color-variants-in-pwa-1mml
-- Bottom nav best practices (AppMySite 2025): https://blog.appmysite.com/bottom-navigation-bar-in-mobile-apps-heres-all-you-need-to-know/
+This section covers only the NEW features in v2.0. All v1.x features are already built and in production.
+
+### What Is Already Built (Do Not Rebuild)
+
+- Camera-based EAN barcode scanning via `html5-qrcode` with WASM polyfill
+- Supabase edge function (`barcode-lookup`) proxying Kassal.app and Open Food Facts
+- Gemini AI normalization of product name and canonical category
+- `barcode_product_cache` table with 30-day TTL
+- `BarcodeSheetModel` with `ean`, `itemName`, `quantity`, `categoryId`, `canonicalCategory`, `confidence`, `source`
+- `BarcodeLookupSheet` (confirm dialog) and `BarcodeScannerSheet` (camera view dialog)
+- `KassalProduct` type already defines `image` and `brand` fields — fetched but not surfaced
+- `ReducedProviderPayload` already captures `brand` from both Kassal and Open Food Facts
+
+**Key gap:** `image` and `brand` from Kassal.app are fetched and stored in `provider_payload` (JSONB column), but are not extracted into dedicated columns, not propagated through `BarcodeLookupDto`, and not shown anywhere in the UI.
 
 ---
+
+### v2.0 Table Stakes
+
+Features that users expect once the app has barcode scanning. Missing these makes the scanner feel broken for iOS users and the scan result feel incomplete.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Camera opens reliably on iOS (black screen fix) | iOS Safari's PWA standalone mode has a well-documented `getUserMedia` bug that causes the camera to open but show only black video, or silently fail. Users expect the scanner to work on their phone. | HIGH | Root cause: WebKit bug 252465. Current code sets `playsinline` and `muted` post-start, but does not handle first-play-failure or stream re-acquisition. Needs silent retry on failure + fallback messaging. |
+| Scan feedback at moment of detection | Users must know instantly when a barcode was read. Currently: no feedback between decode and sheet appearing. | LOW | `navigator.vibrate(100)` on Android; brief visual flash on the scanner view. Vibration is silently ignored on iOS where the API is restricted. |
+| Graceful permission-denied flow | iOS re-prompts for camera every PWA session. Users hit a dead end if the error message is unclear. | LOW | Already implemented; needs improved Norwegian message explaining Settings > Safari > Camera specifically. |
+| Product name pre-filled and editable | User sees a name in the confirm sheet, not a blank field requiring manual entry. | LOW | Already implemented. Risk: Gemini over-normalizes (e.g., "Pepsi Max 1,5L" → "Cola"). Prompt tuning is the fix. |
+| Category auto-selected on scan | Item lands in the correct aisle grouping automatically. | MEDIUM | Already implemented via canonical category resolution. Accuracy varies. |
+
+### v2.0 Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Product image in scan result sheet | Instant visual confirmation — user sees a photo of the product before confirming. Reduces wrong-item adds. Grosh and Pantry Check both do this. | MEDIUM | Requires: (1) add `image_url` column to `barcode_product_cache`; (2) extract from `provider_payload.providers.kassal`; (3) extend `BarcodeLookupDto`; (4) display in `BarcodeLookupSheet` with `<img>` and graceful null fallback. |
+| Brand name in scan result sheet | Confirms the right variant was scanned (e.g., "TINE Lettmelk" vs "Q-Meieriene Lettmelk"). | LOW | `brand` already captured in `ReducedProviderPayload`. Needs: add `brand` column to cache table, surface in `BarcodeLookupDto`, display as secondary line below name in sheet. |
+| Product image in shopping list item rows | Thumbnail on each scanned item row helps shoppers visually confirm what they're picking up in the aisle. Grosh implements this pattern. | MEDIUM | Requires: add `image_url` to `list_items` table; copy from scan result at add-time; render as 36-40px left-aligned thumbnail in `ItemRow` only when non-null. No placeholder for manually-added items — consistent row height required. |
+| Product image in Admin Items (Varekatalog) | Visual catalogue-style management — images confirm which item is which when household has many scanned products. | LOW | Reuses same `image_url` stored on list item or household item memory. Small thumbnail column in the items table view. |
+| Improved product name accuracy | Raw Kassal.app names are often better for Norwegian products than Gemini-normalized versions. Gemini over-normalizes brand+variant info. | MEDIUM | Prompt engineering: instruct Gemini to preserve brand name, size/volume, and variant descriptors. Consider using `kassalProduct.name` directly when source is `kassal` and confidence is already high, skipping Gemini normalization. |
+
+### v2.0 Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Auto-add after scan with no confirmation | "Fewer taps" — feels faster | Misscans or adjacent-product reads are silently added with no correction. Especially bad on iOS where `html5-qrcode` can trigger on adjacent items. | Keep confirm step; reduce friction by pre-filling all fields correctly so the confirm tap is the only action needed. |
+| Show images in all list views by default | Lists look richer with photos | Increases query cost (image_url join on every item), causes layout reflow on image load, breaks visual consistency for manually-added items without images. Partial image coverage looks unfinished. | Show thumbnail only when `image_url` is non-null. Consistent row height with and without image. |
+| Cache product images in Supabase Storage | Avoid external CDN dependency | Image proxying adds latency, storage cost, and CDN complexity for images we don't control the copyright of. Kassal.app CDN is stable. | Store only the Kassal.app image URL string. Let browser cache the CDN response. Revisit only if Kassal.app CDN proves unreliable in production. |
+| Price display on scan result | "How much does this cost?" | Kassal.app returns prices per store. Selecting the relevant store adds significant UX complexity. Price freshness degrades quickly. Explicitly out of scope per PROJECT.md. | Deep-link to Kassal.app product page if price info is needed. |
+| Continuous scan mode | Power users want to scan a basket without closing the sheet | Requires a scan queue model — which confirm sheet is for which scan? Current architecture is one sheet per scan. Queue model is a significant rewrite. | After a scan confirm, automatically re-open the scanner. Simulates continuity without the queue complexity. |
+
+---
+
+## v2.0 Feature Dependencies
+
+```
+iOS camera reliability fix
+    └──prerequisite for──> All scan flows on iOS
+                            (scanner, image display, any new scan UX — worthless if camera doesn't open)
+
+barcode_product_cache schema migration (add image_url, brand columns)
+    └──required by──> Edge function image/brand extraction
+                          └──required by──> BarcodeLookupDto image/brand fields
+                                                └──required by──> Product image in BarcodeLookupSheet
+                                                └──required by──> Brand in BarcodeLookupSheet
+
+list_items schema migration (add image_url column)
+    └──required by──> Copy image_url from scan result on add-item
+                          └──required by──> Product thumbnail in ItemRow
+                          └──required by──> Product thumbnail in Admin Items
+
+Gemini prompt tuning
+    └──independent (no schema change, no migration)
+    └──enhances──> Product name accuracy in BarcodeLookupSheet
+```
+
+### v2.0 Dependency Notes
+
+- **iOS fix first:** All other scan improvements are worthless if the scanner doesn't open on iOS. This is the gating work.
+- **Single schema migration unlocks the image/brand tree:** Adding `image_url` and `brand` to `barcode_product_cache`, plus updating the edge function to extract and store them, is one cohesive migration. Once done, all display features become straightforward.
+- **list_items.image_url is a separate migration:** The cache table stores the canonical product image. The list item stores a copy at add-time. Two separate migrations, two separate concerns.
+- **Gemini prompt tuning is zero-risk:** No schema changes, no migrations. Can be iterated independently at any phase.
+
+---
+
+## v2.0 Kassal.app API Fields — Verified from Codebase
+
+The `KassalProduct` type in `supabase/functions/_shared/barcode.ts` shows what the edge function already fetches from Kassal.app:
+
+```
+KassalProduct fields: id, ean, name, brand, category, categories, image
+```
+
+All fields are typed as nullable. The `image` field holds the product photo URL. The `brand` field holds the brand name (e.g., "TINE", "Q-Meieriene", "Nidar").
+
+The `ReducedProviderPayload` type already captures `brand` from both Kassal and Open Food Facts (`payload.brand`). The `providers.kassal.name` and `providers.kassal.brand` are stored in the `provider_payload` JSONB column.
+
+**The image URL is NOT currently stored in a dedicated column** — it is available inside the JSONB blob but requires parsing. Adding `image_url TEXT` and `brand TEXT` columns to `barcode_product_cache` and populating them in the edge function is the required step.
+
+**Confidence:** HIGH — verified directly from type definitions in `supabase/functions/_shared/barcode.ts` and `src/lib/barcode/lookup.ts`.
+
+---
+
+## v2.0 iOS Camera Reliability — Root Cause and Fixes
+
+**Problem (MEDIUM confidence — multiple WebKit bug reports and library issues confirm):**
+
+WebKit on iOS has a recurring bug where `getUserMedia()` in PWA standalone mode produces a black video stream or silently fails. The camera permission indicator briefly appears then disappears. Known WebKit bugs: 185448, 252465.
+
+**Current mitigations in codebase (from `scanner.ts`):**
+- `playsinline="true"` and `muted` set post-start on the video element
+- `bindVisibilityCleanup` stops scanner when app goes to background
+- Error classification (`permission-denied` vs `camera-failure`) with retry UI
+
+**Missing mitigations to implement:**
+- Listen for `video.onplay` failure after stream acquisition; re-acquire stream once before surfacing error
+- Silent single retry on `camera-failure` before showing the error state to user
+- Verify that `{ facingMode: { ideal: 'environment' } }` constraint (already used) is the safest constraint for iOS — strict `exact` would fail more often
+- Evaluate switching from `html5-qrcode` to `@zxing/browser` or the native BarcodeDetector API (Android Chrome only, not iOS — not applicable as a fix, but `@zxing/browser` has better iOS handling in some reports)
+
+**Not fixable at app level:** Camera permission persistence in iOS PWA — iOS does not persist per-PWA camera permissions between sessions in the same way Safari persists them for websites. Users may be re-prompted each session. This is a WebKit limitation, not a code issue.
+
+---
+
+## v2.0 Scan UX Feedback Patterns (Industry Standard)
+
+| Pattern | Implementation | Notes |
+|---------|----------------|-------|
+| Haptic on decode | `navigator.vibrate(100)` | Works on Android; silently ignored on iOS. One line. |
+| Visual flash on decode | Brief border color change on scan box (green pulse) | CSS animation, triggered on scan success before sheet opens. |
+| Timing | 150ms between feedback and UI transition | Gives user perceptual confirmation before camera closes. |
+| No sound | N/A | Grocery stores are noisy; users often have phone silenced. Sound feedback adds no value here. |
+
+Current `BarcodeScannerSheet.svelte` calls `onDetected` immediately on decode, which closes the scanner and opens the lookup sheet. A 150ms delay with a visual state change (e.g., `state = 'detected'`) would implement this pattern.
+
+---
+
+## v2.0 Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| iOS camera reliability fix | HIGH | HIGH | P1 |
+| barcode_product_cache schema migration + edge function (image_url, brand) | HIGH | MEDIUM | P1 |
+| Brand display in BarcodeLookupSheet | HIGH | LOW | P1 |
+| Product image in BarcodeLookupSheet | HIGH | LOW | P1 |
+| Scan detection feedback (vibrate + visual) | MEDIUM | LOW | P1 |
+| list_items.image_url migration + ItemRow thumbnail | MEDIUM | MEDIUM | P2 |
+| Admin Items thumbnail display | MEDIUM | LOW | P2 |
+| Varekatalog thumbnail display | MEDIUM | LOW | P2 |
+| Gemini prompt accuracy improvement | MEDIUM | LOW | P2 |
+| Auto-reopen scanner after confirm | LOW | LOW | P3 |
+
+**Priority key:**
+- P1: Must have — core milestone deliverable
+- P2: Should have — meaningful UX enrichment once P1 done
+- P3: Nice to have, low risk
+
+---
+
+## v2.0 Competitor Feature Analysis
+
+| Feature | Grosh | Pantry Check | OurGroceries | HandleAppen (before v2.0) | HandleAppen (v2.0 target) |
+|---------|-------|--------------|--------------|--------------------------|--------------------------|
+| Barcode scan | Yes | Yes | Yes | Yes | Yes (iOS fixed) |
+| Product image in confirm sheet | Yes | Yes | No | No | Yes |
+| Brand name on scan | Yes | Yes | No | No | Yes |
+| Item thumbnail in list | Yes (optional) | No | No | No | Yes (when available) |
+| Norwegian product database | No | No | No | Yes (Kassal.app) | Yes |
+| Store-layout sorted list | No | No | No | Yes | Yes |
+| Scan haptic feedback | Yes | Yes | No | No | Yes |
+
+---
+
+## Sources
+
+- Codebase inspection: `supabase/functions/_shared/barcode.ts`, `src/lib/barcode/scanner.ts`, `src/lib/types/database.ts`, `src/lib/components/barcode/*.svelte` (HIGH confidence — direct verification)
+- [Kassal.app API](https://kassal.app/api) — product fields `image` and `brand` confirmed via codebase type definitions (HIGH)
+- [STRICH KB: Camera Access Issues in iOS PWA](https://kb.strich.io/article/29-camera-access-issues-in-ios-pwa) — iOS PWA camera failure root causes (MEDIUM)
+- [WebKit Bug 252465](https://bugs.webkit.org/show_bug.cgi?id=252465) — getUserMedia black screen in standalone PWA (MEDIUM — official bug tracker)
+- [WebKit Bug 185448](https://bugs.webkit.org/show_bug.cgi?id=185448) — getUserMedia not working in home screen apps (MEDIUM)
+- [NN/G: Mobile List Thumbnails](https://www.nngroup.com/articles/mobile-list-thumbnail/) — left vs right placement, size guidance (HIGH — authoritative UX research)
+- [Scandit: Scanning at Scale UX Insights](https://www.scandit.com/blog/scanning-at-scale-ux-insights/) — 150ms feedback timing, haptic patterns (MEDIUM)
+- [CodeCorp: Barcode Scanner Feedback Mechanisms](https://codecorp.com/about/blog/barcode-scanner-feedback/) — visual/audio/haptic confirmation patterns (MEDIUM)
+- [Grosh barcode scan feature](https://groshapp.com/scan-grocery-barcode/) — product image in scan confirm, thumbnail in list (MEDIUM — product page)
+
+---
+
 *Feature research for: Family grocery shopping PWA (Norwegian market)*
-*Researched: 2026-03-08 (v1.0 baseline); updated 2026-03-13 (v1.2 new features)*
+*Researched: 2026-03-08 (v1.0 baseline); updated 2026-03-13 (v1.2 new features); updated 2026-03-14 (v2.0 barcode improvement)*

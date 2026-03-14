@@ -1,0 +1,52 @@
+** Verification:** `npm run check` (fails upstream—see Issues).  
+**Manual DB smoke:** blocked until a disposable Supabase branch or local Postgres is available; steps documented below.
+
+## Performance
+
+- **Duration:** 1h 5m  
+- **Started:** 2026-03-14T13:45:00Z  
+- **Completed:** 2026-03-14T14:50:00Z  
+- **Tasks:** 2 (migration + validation artifact + summary)  
+- **Files modified:** 5
+
+## Accomplishments
+
+- Added the forward-only migration that adds the nullable metadata columns without touching triggers or defaults.  
+- Captured the verification contract in `17-VALIDATION.md` and noted the remaining manual DB checks that must run once the environment permits.  
+- Ran `npm run check` to guard code tooling; svelte-check reports pre-existing warnings/errors unrelated to this schema-only work.
+
+## Task Commits
+
+Task commits are grouped with this summary because the workspace already contains unrelated in-progress work and the focus here was the phase artifacts plus the new migration.
+
+## Files Created/Modified
+
+- `supabase/migrations/20260314000000_phase17_schema_migrations.sql` — creates the six nullable columns and comments the Phase 19/20 dependency.  
+- `.planning/phases/17-schema-migrations/17-VALIDATION.md` — now contains the validation contract plus annotated manual status for the blocked verification steps.  
+- `.planning/STATE.md` — updated to point at Plan 17-01 as in-progress.  
+- `.planning/ROADMAP.md` — already marked 1 plan for Phase 17 (unchanged during execution).  
+- `.planning/phases/17-schema-migrations/17-01-SUMMARY.md` — this summary.
+
+## Decisions Made
+
+- Confined Phase 17 to a Schema-only expand step; no RLS/index changes or immediate data writes.  
+- Recorded the manual validation expectations so the next engineer knows exactly what SQL to run once database access returns.
+
+## Deviations from Plan
+
+- Manual DB validation (information_schema queries, trigger insert/update, catalog diff) could not run because no disposable Supabase branch/local Postgres is accessible in this environment. This is now recorded in the validation artifact and summary for follow-up.
+
+## Issues Encountered
+
+- `npm run check` exits with existing Svelte/TypeScript warnings/errors (all documented in the terminal output). None are introduced by this migration, but the suite must pass before a final `gsd-verify-work` run.  
+- `gsd-executor` previously hit `windows sandbox backend` restrictions in this session so planning execution had to be manual; we now have the migration, validation guidance, and summary ready for the next automated run.
+
+## User Setup Required
+
+- Apply the migration to a disposable Supabase branch or local Postgres, then run the documented SQL checks (information_schema, trigger insert/update, `pg_indexes`/`pg_constraint`) to prove the manual validation steps.  
+- Re-run `npm run check` after those database checks pass to confirm tooling stability.
+
+## Next Phase Readiness
+
+- Phase 17 now ships the schema columns for fractional brand/image metadata.  
+- Phase 19 can pick up these columns when enriching the cache/DTO pipeline; Phase 20 remains responsible for populating `list_items` and `household_item_memory` with the new values.

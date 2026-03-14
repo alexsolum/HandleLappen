@@ -4,6 +4,8 @@
 
 HandleAppen shipped its v1.0 foundation in eight phases covering auth, shared lists, store-layout ordering, barcode scanning, offline/PWA behavior, and recommendations. Milestone v1.1 continued from that base with three tightly scoped phases focused on mobile usability and faster recurring-item entry. Milestone v1.2 continues from Phase 11, restructuring navigation around four dedicated tabs and introducing household-shared recipes that connect weekly dinner planning directly to the shopping list. Phases 12–16 derive from the five natural requirement groupings in v1.2: navigation, admin hub routing, recipe CRUD, item management, and user settings.
 
+Milestone v2.0 adds four phases (17–20) targeting barcode scanner reliability on iOS and product data enrichment with images and brand names. Phase 17 is pure infrastructure (schema migrations). Phase 18 fixes the iOS black screen independently. Phases 19 and 20 carry image/brand through the edge function pipeline and into the UI.
+
 ## Phases
 
 **Phase Numbering:**
@@ -23,11 +25,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Mobile Layout Hardening** - Remove horizontal overflow, constrain dialogs to mobile viewports, and make the bottom navigation thumb-friendly and fixed (completed 2026-03-12)
 - [x] **Phase 10: Inline Quantity Controls** - Make quantity editing fast from the main list and enforce quantity `1` as the default add state (completed 2026-03-12)
 - [x] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry (completed 2026-03-12)
-- [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
+- [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
 - [ ] **Phase 13: Admin Hub and Subpage Routing** - Admin hub page linking to all admin areas; Butikker, Husstand, and Historikk accessible as subpages; householdId-from-locals pattern established
 - [ ] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow
 - [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
 - [ ] **Phase 16: Dark Mode and User Settings** - Brukerinnstillinger page with dark mode toggle, FOUC prevention, and system-preference fallback
+- [ ] **Phase 17: Schema Migrations** - Nullable image and brand columns added to barcode_product_cache, household_item_memory, and list_items ahead of enrichment work
+- [ ] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback
+- [ ] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated
+- [ ] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog
 
 ## Phase Details
 
@@ -284,10 +290,57 @@ Plans:
   5. No flash of unstyled content (FOUC) occurs when the app loads in dark mode — the theme is applied before first paint
 **Plans**: TBD
 
+### Phase 17: Schema Migrations
+**Goal**: The database columns required by image and brand enrichment exist in all three tables before any application code writes to or reads from them
+**Depends on**: Phase 16 (v1.2 must be complete before v2.0 begins)
+**Requirements**: none (infrastructure enabling ENRICH-01..04 and DISP-01..04)
+**Note**: This phase delivers no user-facing behavior. It exists because schema must precede application code. All columns are nullable with no defaults — safe to apply on live tables with existing rows and trigger activity.
+**Success Criteria** (what must be TRUE):
+  1. `barcode_product_cache` has a nullable `image_url text` column and a nullable `brand text` column; existing rows are unaffected
+  2. `household_item_memory` has a nullable `product_image_url text` column and a nullable `brand text` column; trigger-driven writes to this table continue without errors
+  3. `list_items` has a nullable `product_image_url text` column and a nullable `brand text` column; existing list items display correctly with no visible change
+**Plans**: 1 plan
+
+Plans:
+- [ ] 17-01-PLAN.md — Add the expand-only schema migration and verify nullable-column shape, trigger compatibility, null-safe reads, and index/constraint non-regression on an isolated database
+
+### Phase 18: iOS Scanner Black Screen Fix
+**Goal**: The barcode scanner camera opens reliably on iOS Safari in PWA standalone mode, permission errors are communicated clearly without alarm UI, and successful scans give haptic feedback
+**Depends on**: Phase 17
+**Requirements**: SCAN-01, SCAN-02, SCAN-03
+**Success Criteria** (what must be TRUE):
+  1. On an iPhone installed as a PWA (home screen), tapping the scan button opens the camera without a black screen — the live viewfinder is visible within two seconds
+  2. When a user denies camera access, the scanner shows a message directing them to iOS Settings with no alarming error UI; when a user merely dismisses the permission prompt, the scanner shows a "Prøv igjen" retry action instead
+  3. A successfully detected barcode produces a haptic pulse on devices that support the Vibration API; devices that do not support it continue to work silently
+**Plans**: TBD
+
+### Phase 19: Edge Function and DTO Enrichment
+**Goal**: Every new barcode scan returns brand and image URL from Kassal.app, stores them in the cache, and delivers them to the client — without routing image data through Gemini
+**Depends on**: Phase 17
+**Requirements**: ENRICH-01, ENRICH-02
+**Success Criteria** (what must be TRUE):
+  1. After scanning a product that Kassal.app knows, the `barcode_product_cache` row contains a non-null `brand` and a non-null `image_url` (or null where Kassal does not provide one — the field is populated when available, not silently dropped)
+  2. The client-side `BarcodeLookupDto` received after a scan includes `brand` and `imageUrl` fields that match what Kassal returned; neither field is routed through Gemini
+**Plans**: TBD
+
+### Phase 20: Client Image Display
+**Goal**: Product images and brand names are visible to the user at every point in the shopping flow where scanned items appear — scan result, shopping list, Admin Items, and Varekatalog
+**Depends on**: Phases 17 and 19
+**Requirements**: ENRICH-03, ENRICH-04, DISP-01, DISP-02, DISP-03, DISP-04
+**Success Criteria** (what must be TRUE):
+  1. The scan result sheet shows the product image and brand name before the user confirms adding to the list; if the image fails to load, a placeholder is shown instead
+  2. Shopping list item rows that were added via barcode scan show a small product thumbnail; rows without an image show no broken image icon
+  3. When a barcode-scanned item is added to a list, `product_image_url` and `brand` are written to the `list_items` row at insert time — consistent with how `category_id` is already handled
+  4. When a barcode-scanned item is confirmed, `product_image_url` and `brand` are written to the `household_item_memory` row so future scan suggestions carry the enriched data
+  5. Admin Items and Varekatalog each show a product thumbnail and brand per row for items that have image data
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
 Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX review). Phase 13 must precede 14 and 15 (admin routes must exist before subpage content). Phase 14 depends on Phase 12 for the /oppskrifter route. Phase 15 depends on Phase 13 for the admin items route. Phase 16 depends only on Phase 13 (Brukerinnstillinger subpage) and is the most independent of the v1.2 phases.
+
+v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist before code writes to them). Phase 18 (iOS fix) is independent of 19 and 20 and can proceed in parallel. Phase 19 (edge function) must precede 20 (client must receive enriched DTO before rendering it). Phase 20 depends on both 17 and 19.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -307,3 +360,7 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 14. Recipes | 2/4 | In Progress | - |
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
+| 17. Schema Migrations | 0/1 | Not started | - |
+| 18. iOS Scanner Black Screen Fix | 0/TBD | Not started | - |
+| 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
+| 20. Client Image Display | 0/TBD | Not started | - |

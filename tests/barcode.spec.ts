@@ -81,19 +81,9 @@ async function loginAndOpenList(page: Page, email: string, password: string, lis
 }
 
 async function openScanner(page: Page) {
-  const scanButton = page.getByRole('button', { name: 'Scan' })
+  const scanButton = page.getByRole('button', { name: 'Skann strekkode' })
   await expect(scanButton).toBeVisible()
-  await page.evaluate(() => {
-    const button = Array.from(document.querySelectorAll('button')).find(
-      (candidate) => candidate.textContent?.trim() === 'Scan'
-    )
-
-    if (!(button instanceof HTMLButtonElement)) {
-      throw new Error('Scan button not found')
-    }
-
-    button.click()
-  })
+  await scanButton.click()
 }
 
 test.describe('barcode scanner entry', () => {

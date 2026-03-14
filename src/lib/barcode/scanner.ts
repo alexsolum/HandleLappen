@@ -1,17 +1,10 @@
-import {
+import type {
   Html5Qrcode,
-  Html5QrcodeSupportedFormats,
-  type Html5QrcodeCameraScanConfig,
-  type Html5QrcodeError,
-  type Html5QrcodeResult,
+  Html5QrcodeCameraScanConfig,
+  Html5QrcodeResult,
 } from 'html5-qrcode'
 
-const SUPPORTED_FORMATS = [
-  Html5QrcodeSupportedFormats.EAN_13,
-  Html5QrcodeSupportedFormats.EAN_8,
-  Html5QrcodeSupportedFormats.UPC_A,
-  Html5QrcodeSupportedFormats.UPC_E,
-] as const
+const SUPPORTED_FORMAT_NAMES: SupportedBarcodeFormat[] = ['EAN_13', 'EAN_8', 'UPC_A', 'UPC_E']
 
 type ScannerStatus = 'idle' | 'starting' | 'running' | 'stopping'
 
@@ -58,10 +51,24 @@ export type ScannerSession = {
   lastValue: string | null
 }
 
+type ScanConfigWithTorch = Html5QrcodeCameraScanConfig & {
+  showTorchButtonIfSupported?: boolean
+}
+
 export type StartScannerOptions = {
   elementId: string
   onDetected: (ean: string) => void | Promise<void>
   onError?: (error: ScannerError) => void | Promise<void>
+}
+
+let html5QrcodeModule: Promise<typeof import('html5-qrcode')> | null = null
+
+function ensureHtml5QrcodeModule(): Promise<typeof import('html5-qrcode')> {
+  if (!html5QrcodeModule) {
+    html5QrcodeModule = import('html5-qrcode')
+  }
+
+  return html5QrcodeModule
 }
 
 declare global {
@@ -116,14 +123,12 @@ function isSupportedResult(result: Html5QrcodeResult | null | undefined): boolea
   return format != null && getSupportedFormats().includes(format as SupportedBarcodeFormat)
 }
 
-function getScanConfig(): Html5QrcodeCameraScanConfig {
+function getScanConfig(): ScanConfigWithTorch {
   return {
     fps: 10,
     qrbox: { width: 240, height: 140 },
-    formatsToSupport: [...SUPPORTED_FORMATS],
     aspectRatio: 1.7777778,
     disableFlip: false,
-    rememberLastUsedCamera: false,
     showTorchButtonIfSupported: true,
     videoConstraints: {
       facingMode: { ideal: 'environment' },
@@ -144,16 +149,29 @@ export async function startScanner({
 }: StartScannerOptions): Promise<ScannerSession> {
   let mockController =
     typeof window !== 'undefined' ? window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ : undefined
+  const html5QrcodeModule = mockController
+    ? null
+    : await ensureHtml5QrcodeModule()
   const scanner = mockController
     ? ({
         isScanning: true,
         stop: async () => {},
         clear: async () => {},
       } satisfies ScannerInstance)
-    : new Html5Qrcode(elementId, {
-        formatsToSupport: [...SUPPORTED_FORMATS],
-        verbose: false,
-      })
+    : (() => {
+        const { Html5Qrcode, Html5QrcodeSupportedFormats } = html5QrcodeModule!
+        const formatsToSupport = SUPPORTED_FORMAT_NAMES.map(
+          (formatName) =>
+            Html5QrcodeSupportedFormats[
+              formatName as keyof typeof Html5QrcodeSupportedFormats
+            ]
+        )
+
+        return new Html5Qrcode(elementId, {
+          formatsToSupport,
+          verbose: false,
+        })
+      })()
   const session: ScannerSession = {
     scanner,
     elementId,
@@ -175,32 +193,33 @@ export async function startScanner({
         },
       }
     } else if (mockController) {
-      const mockState = { ...mockController }
+      const mockState: MockScannerState = { ...(mockController as MockScannerState) }
       window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ = mockState
       mockController = mockState
-      mockController.starts = (mockController.starts ?? 0) + 1
+      mockState.starts = (mockState.starts ?? 0) + 1
 
-      if (mockController.mode === 'permission-denied') {
+      if (mockState.mode === 'permission-denied') {
         const error = new Error('NotAllowedError')
         error.name = 'NotAllowedError'
         throw error
       }
 
-      mockController.emit = async (ean: string) => {
+      mockState.emit = async (ean: string) => {
         await onDetected(ean)
       }
 
       session.scanner = {
         isScanning: true,
         stop: async () => {
-          mockController.stops = (mockController.stops ?? 0) + 1
+          mockState.stops = (mockState.stops ?? 0) + 1
         },
         clear: async () => {
-          mockController.clears = (mockController.clears ?? 0) + 1
+          mockState.clears = (mockState.clears ?? 0) + 1
         },
       }
     } else {
-      await scanner.start(
+      const htmlScanner = scanner as Html5Qrcode
+      await htmlScanner.start(
         { facingMode: { ideal: 'environment' } },
         getScanConfig(),
         async (decodedText: string, result: Html5QrcodeResult) => {
@@ -216,7 +235,7 @@ export async function startScanner({
           await stopScanner(session)
           await onDetected(normalized)
         },
-        (_errorMessage: string, _error?: Html5QrcodeError) => {
+        (_errorMessage: string, _error?: unknown) => {
           // Frame-level decode misses are expected; ignore until a valid retail barcode is found.
         }
       )

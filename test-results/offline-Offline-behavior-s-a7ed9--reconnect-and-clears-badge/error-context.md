@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "HandleAppen" [ref=e6] [cursor=pointer]:
+      - /url: /
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - link "← Lister" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - heading "Offline testliste" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Ingen varer. Legg til den første varen nedenfor.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - textbox "Legg til vare" [ref=e17]:
+          - /placeholder: Legg til vare…
+        - generic [ref=e18]:
+          - button "Reduser antall" [ref=e19]: "-"
+          - generic "Antall" [ref=e20]: "1"
+          - button "Øk antall" [ref=e21]: +
+      - generic [ref=e22]:
+        - button "Skann strekkode" [ref=e23]:
+          - img [ref=e24]
+        - button "Legg til" [ref=e27]
+  - navigation [ref=e28]:
+    - generic [ref=e30]:
+      - link "Handleliste 1 endringer venter synkronisering" [ref=e31] [cursor=pointer]:
+        - /url: /
+        - img [ref=e33]
+        - generic [ref=e35]: Handleliste
+        - generic "1 endringer venter synkronisering" [ref=e36]: "1"
+      - link "Oppskrifter" [ref=e37] [cursor=pointer]:
+        - /url: /oppskrifter
+        - img [ref=e39]
+        - generic [ref=e41]: Oppskrifter
+      - link "Anbefalinger" [ref=e42] [cursor=pointer]:
+        - /url: /anbefalinger?list=52b21869-fcdb-4f7b-8f3d-0c356429f431
+        - img [ref=e44]
+        - generic [ref=e46]: Anbefalinger
+      - link "Admin" [ref=e47] [cursor=pointer]:
+        - /url: /admin
+        - img [ref=e49]
+        - generic [ref=e52]: Admin
+```

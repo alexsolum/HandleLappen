@@ -48,20 +48,19 @@ test.describe('Admin Hub Activation', () => {
       const historikkLink = page.getByRole('link', { name: 'Historikk' })
       await expect(historikkLink).toBeVisible()
       await expect(historikkLink).toHaveAttribute('href', '/admin/historikk')
+
+      const varekatalogLink = page.getByRole('link', { name: 'Varekatalog' })
+      await expect(varekatalogLink).toBeVisible()
+      await expect(varekatalogLink).toHaveAttribute('href', '/admin/items')
     } finally {
       await page.close()
     }
   })
 
-  test('Admin hub shows disabled stubs for Items and Brukerinnstillinger', async () => {
+  test('Admin hub keeps Brukerinnstillinger stub disabled', async () => {
     const page = await authContext.newPage()
     try {
       await page.goto('/admin', { waitUntil: 'networkidle' })
-      
-      const itemsStub = page.getByText('Items', { exact: true })
-      await expect(itemsStub).toBeVisible()
-      // Items should NOT be a link
-      await expect(page.locator('a:has-text("Items")')).toHaveCount(0)
 
       const settingsStub = page.getByText('Brukerinnstillinger', { exact: true })
       await expect(settingsStub).toBeVisible()

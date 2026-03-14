@@ -1,0 +1,68 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "HandleAppen" [ref=e6] [cursor=pointer]:
+      - /url: /
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - link "← Lister" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - heading "Ukeshandel" [level=1] [ref=e11]
+      - 'button "Butikk: Ingen" [ref=e13]':
+        - generic [ref=e14]: "Butikk:"
+        - generic [ref=e15]: Ingen
+      - generic [ref=e16]:
+        - generic [ref=e17]: Andre varer
+        - generic [ref=e18]:
+          - generic [ref=e19]: Slett
+          - checkbox "Melk Reduser antall for Melk 1 Øk antall for Melk" [ref=e20] [cursor=pointer]:
+            - generic [ref=e23]: Melk
+            - generic [ref=e24]:
+              - button "Reduser antall for Melk" [ref=e25]: "-"
+              - generic [ref=e26]: "1"
+              - button "Øk antall for Melk" [ref=e27]: +
+        - generic [ref=e28]:
+          - generic [ref=e29]: Slett
+          - checkbox "Bananer Reduser antall for Bananer 1 Øk antall for Bananer" [ref=e30] [cursor=pointer]:
+            - generic [ref=e33]: Bananer
+            - generic [ref=e34]:
+              - button "Reduser antall for Bananer" [ref=e35]: "-"
+              - generic [ref=e36]: "1"
+              - button "Øk antall for Bananer" [ref=e37]: +
+      - button "Handlet (1) (vis)" [ref=e39]:
+        - generic [ref=e40]: Handlet (1)
+        - generic [ref=e41]: (vis)
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - textbox "Legg til vare" [ref=e46]:
+          - /placeholder: Legg til vare…
+        - generic [ref=e47]:
+          - button "Reduser antall" [ref=e48]: "-"
+          - generic "Antall" [ref=e49]: "1"
+          - button "Øk antall" [ref=e50]: +
+      - generic [ref=e51]:
+        - button "Skann strekkode" [ref=e52]:
+          - img [ref=e53]
+        - button "Legg til" [ref=e56]
+  - navigation [ref=e57]:
+    - generic [ref=e59]:
+      - link "Handleliste" [ref=e60] [cursor=pointer]:
+        - /url: /
+        - img [ref=e62]
+        - generic [ref=e64]: Handleliste
+      - link "Oppskrifter" [ref=e65] [cursor=pointer]:
+        - /url: /oppskrifter
+        - img [ref=e67]
+        - generic [ref=e69]: Oppskrifter
+      - link "Anbefalinger" [ref=e70] [cursor=pointer]:
+        - /url: /anbefalinger?list=39379093-7912-4890-914d-814f06f04dad
+        - img [ref=e72]
+        - generic [ref=e74]: Anbefalinger
+      - link "Admin" [ref=e75] [cursor=pointer]:
+        - /url: /admin
+        - img [ref=e77]
+        - generic [ref=e80]: Admin
+```

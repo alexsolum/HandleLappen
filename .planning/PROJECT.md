@@ -1,13 +1,16 @@
 # HandleAppen
 
-## Current Milestone: v1.2 Navbar Restructure and Recipes
+## Current Milestone: v2.0 Barcode Scanner Improvement and Product Lookup
 
-**Goal:** Restructure navigation around the four most-used areas and introduce a household recipe feature that makes weekly dinner planning drive the shopping list.
+**Goal:** Make barcode scanning reliable on all devices (especially iOS), improve product data quality from Kassal.app, and enrich household items with product images and brand names visible throughout the app.
 
 **Target features:**
-- Four-tab bottom nav: Handleliste, Oppskrifter, Anbefalinger, Admin
-- Recipes: household-shared recipe list with cover images and ingredients linked to household items; add all or individual ingredients to a chosen list
-- Admin hub page consolidating Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
+- Fix iOS black screen / camera open failures in the barcode scanner
+- Improve scan UX: clearer feedback, fewer steps to confirm and add
+- Fetch and store product image URL and brand name from Kassal.app per scanned product
+- Show product image and brand in the scan result sheet, shopping list item rows, Admin → Items, and Varekatalog
+- Update Kassal.app API token (stored as edge function secret)
+- Improve product name and category accuracy (reduce Gemini over-normalization)
 - Item management: edit name/category and add pictures to any household item
 - User settings: dark mode toggle (placeholder for more preferences)
 
@@ -73,6 +76,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | Default layout + per-store overrides | Reduces setup burden while allowing store-specific precision | — Pending |
 | v1.1 targets mobile UX before broad feature expansion | Current user pain is interaction friction on phones, not missing major workflows | — Pending |
 | v1.2 restructures nav and adds recipes | Weekly dinner planning drives shopping — recipes as first-class objects reduces manual item entry | — Pending |
+| v2.0 focuses on barcode scanner improvement and product lookup | Barcode is a key differentiator — iOS reliability and richer product data (image, brand) increase daily usage | — Pending |
 
 ---
-*Last updated: 2026-03-13 after starting milestone v1.2*
+*Last updated: 2026-03-14 after starting milestone v2.0*

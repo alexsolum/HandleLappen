@@ -1,360 +1,132 @@
 # Pitfalls Research
 
-**Domain:** SvelteKit + Supabase PWA — adding navbar restructure, recipes, admin hub, item pictures, dark mode to existing v1 family grocery app
-**Researched:** 2026-03-13
-**Confidence:** HIGH (Tailwind v4 dark mode config verified against official docs; Supabase Storage RLS verified against official access control docs; SvelteKit await parent() waterfall verified against official docs and GitHub issues; PWA navigation behavior verified against vite-pwa/sveltekit docs; service worker image conflict verified against Supabase community reports)
+**Domain:** SvelteKit + Supabase PWA — adding barcode scanner improvement and product image/brand lookup to existing v2.0 family grocery app
+**Researched:** 2026-03-14
+**Confidence:** HIGH (iOS camera issues confirmed against WebKit bug tracker, STRICH KB, and multiple html5-qrcode GitHub issues; Kassal image URL format confirmed via kassal.app/api documentation; PostgreSQL ADD COLUMN lock behavior confirmed against Supabase official troubleshooting docs; Svelte 5 onerror timing confirmed against sveltejs/svelte#10352; layout shift prevention confirmed against web.dev CLS documentation)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Dark Mode FOUC — Tailwind v4 Has No `darkMode` Config Key
+### Pitfall 1: iOS PWA Camera Black Screen — `playsinline` Applied Too Late
 
 **What goes wrong:**
-The existing `app.css` uses only `@import "tailwindcss"`. Tailwind v4 defaults to `prefers-color-scheme` (media query) for dark mode, meaning `dark:` classes react to the OS setting only. When the user's Brukerinnstillinger toggle needs to override OS preference, you need a class-based toggle. In Tailwind v4 there is **no `tailwind.config.js`** and no `darkMode: 'class'` key — developers who copy v3 tutorials will add `darkMode: 'class'` to a config file that no longer exists and wonder why `dark:` classes never activate.
-
-Even after configuring correctly with `@custom-variant`, there is a second problem: the toggle preference is stored in `localStorage`, which is not readable during SSR. On first load the SSR render has no idea what the user's stored preference is, so the page renders light, then JavaScript reads `localStorage` and switches to dark — causing a visible flash (FOUC). This is particularly jarring in the bottom nav, header, and full-page backgrounds.
+The existing `scanner.ts` sets `playsinline` on the `<video>` element *after* `startScanner` resolves — it queries the DOM for the video element and patches attributes after html5-qrcode has already started the stream. On iOS Safari in standalone PWA mode (home screen installed), the video stream starts playing without `playsinline`, Safari interprets the non-inline video as requiring fullscreen, fails to promote it to fullscreen automatically (PWA policy), and renders a black frame instead. The camera stream is running — the OS camera indicator light is on — but the preview is invisible.
 
 **Why it happens:**
-Tailwind v4 moved all configuration to CSS (`@custom-variant`) but most tutorials still show v3's `tailwind.config.js` approach. Developers copy old examples. The FOUC happens because SvelteKit renders HTML on the server where `localStorage` is unavailable, and the theme class is applied client-side in `onMount` — which fires after the first paint.
+html5-qrcode inserts the `<video>` tag itself during `start()`. The `playsinline` patch in `startScanner` happens in the `.then()` continuation after `start()` resolves, but the first video frame may have already been rendered without the attribute. iOS requires `playsinline` on the element *before* the stream is bound to the video source. Developers testing in Safari on desktop or in Chrome on Android never reproduce this because those platforms don't enforce the same playsinline requirement in PWA mode.
 
 **How to avoid:**
-Two distinct fixes required:
+Use a `MutationObserver` on the scanner container element to intercept the `<video>` element the moment html5-qrcode inserts it — before the stream is attached. Set `playsinline`, `muted`, and `autoplay` attributes synchronously in the observer callback before `start()` even resolves. Alternatively, pre-populate the container with a dummy video element that already has these attributes before calling html5-qrcode's start; html5-qrcode will reuse an existing video element if one is already in the container in some configurations, though this is undocumented behavior.
 
-1. **Configure Tailwind v4 correctly** — in `app.css`, add the custom variant after the import:
-   ```css
-   @import "tailwindcss";
-   @custom-variant dark (&:where(.dark, .dark *));
-   ```
-   This makes `dark:` classes activate when `.dark` exists on any ancestor element, typically `<html>`.
-
-2. **Prevent FOUC with an inline blocking script** — in `app.html`, add a `<script>` tag *before* `%sveltekit.head%` that runs synchronously (blocking render). This reads `localStorage` and applies the class before first paint:
-   ```html
-   <script>
-     (function() {
-       try {
-         var theme = localStorage.getItem('theme');
-         if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-           document.documentElement.classList.add('dark');
-         }
-       } catch(e) {}
-     })();
-   </script>
-   ```
-   This runs synchronously during HTML parsing — before CSS applies, before SvelteKit hydrates. No FOUC.
-
-Do **not** use cookies to persist the theme. Cookie-based SSR approaches require hooks.server.ts changes, add overhead to every request, and create complexity when SvelteKit's prerendering is involved. LocalStorage + inline script is simpler and equally reliable.
-
-**Warning signs:**
-- `dark:` classes have no effect even when `.dark` is on `<html>`
-- Screen flashes white for 100-200ms before switching to dark on hard reload
-- The toggle works in Chrome DevTools but not in the installed PWA on iOS (Safari's persistent storage is slower to initialize)
-
-**Phase to address:** Dark mode / Brukerinnstillinger phase — both the Tailwind config fix and the inline script must land in the same phase; fixing one without the other produces a partially broken result.
-
----
-
-### Pitfall 2: Supabase Storage RLS — Household-Scoped Paths Require Four Separate Policies
-
-**What goes wrong:**
-Developers create a storage bucket, add a single `INSERT` policy so uploads work, then discover that images don't display (SELECT is missing), that updating an image fails (UPDATE missing), and that deleting an old image before replacement is blocked (DELETE missing). Additionally, without path-based scoping in the policy, any authenticated user can upload to any path in the bucket — household A can overwrite household B's item images by guessing the path.
-
-The second mistake: making the bucket **public** to avoid writing SELECT policies, then being surprised that RLS on `storage.objects` still controls uploads. A public bucket only bypasses the auth check on *downloads via the public URL* — INSERT/UPDATE/DELETE still require explicit policies. Developers confuse "publicly readable" with "no RLS needed."
-
-**Why it happens:**
-The Supabase dashboard Storage UI shows a single "New policy" flow that prompts for only one operation at a time. It's easy to create an INSERT policy and consider the job done. The public bucket checkbox is labeled as controlling "access" which implies full access when checked.
-
-**How to avoid:**
-For item and recipe images, use a **private bucket** with four explicit policies on `storage.objects`. Scope all policies to `bucket_id = 'images'` and enforce a household-based folder structure (`households/{household_id}/{item_id}.jpg`):
-
-```sql
--- Upload (INSERT)
-CREATE POLICY "household members can upload images"
-ON storage.objects FOR INSERT
-TO authenticated
-WITH CHECK (
-  bucket_id = 'images' AND
-  (storage.foldername(name))[1] = 'households' AND
-  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
-);
-
--- View (SELECT)
-CREATE POLICY "household members can view images"
-ON storage.objects FOR SELECT
-TO authenticated
-USING (
-  bucket_id = 'images' AND
-  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
-);
-
--- Replace (UPDATE) -- needed for upsert/replace
-CREATE POLICY "household members can update images"
-ON storage.objects FOR UPDATE
-TO authenticated
-USING (
-  bucket_id = 'images' AND
-  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
-);
-
--- Delete (DELETE)
-CREATE POLICY "household members can delete images"
-ON storage.objects FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'images' AND
-  (storage.foldername(name))[2] IN (SELECT get_my_household_ids())
-);
-```
-
-This reuses the `get_my_household_ids()` SECURITY DEFINER function already established for table RLS (see PITFALLS.md from v1.0). All four policies reference the same function — changes to household membership propagate automatically.
-
-**Warning signs:**
-- Upload succeeds (HTTP 200) but image does not display in app (missing SELECT policy)
-- Replacing an item image with a new one returns 403 (missing UPDATE policy)
-- Old images accumulate in storage because delete fails silently on the client (missing DELETE policy)
-- `storage.objects` RLS check passes in Supabase Table Editor but fails in the running app (service role vs anon key confusion during testing)
-
-**Phase to address:** Admin hub / item picture phase — establish all four storage policies plus the path convention before writing any upload UI code. Do not iterate by adding policies one at a time as errors appear.
-
----
-
-### Pitfall 3: Large Image Uploads from Mobile Cameras Exceeding Supabase Free Tier Limit
-
-**What goes wrong:**
-Modern phones (iPhone 15, Samsung Galaxy S24) produce HEIC/JPEG photos at 4–12 MB per image. Supabase Storage's free tier has a **50 MB global file size limit**, but more importantly the **standard upload API is suited for files up to 6 MB** — above that, Supabase recommends resumable uploads. A family member photographing a grocery item from their iPhone camera roll will silently fail or receive a 413 error if the raw photo exceeds the limit.
-
-Additionally: if the file is within the limit but is a large JPEG (3–4 MB), the Supabase Storage CDN URL served to other family members will be slow to load on mobile data. Item list views with 20+ product images become noticeably slow.
-
-**Why it happens:**
-Developers test with small PNG files from their desktop. Mobile camera output is not considered. The standard `supabase.storage.from('images').upload(path, file)` call does not enforce client-side size checking.
-
-**How to avoid:**
-Compress images client-side before upload using the `browser-image-compression` npm package (or `compressorjs`). Target output: ≤ 400 KB, max 800px on the longest side — sufficient for a grocery item thumbnail. Implement the compression step in the upload handler, not in a separate UI step. Show a size/compression progress indicator during the operation (mobile compression of a 10 MB HEIC can take 2–4 seconds on older devices).
-
+A tested pattern:
 ```typescript
-import imageCompression from 'browser-image-compression';
-
-const compressed = await imageCompression(file, {
-  maxSizeMB: 0.4,
-  maxWidthOrHeight: 800,
-  useWebWorker: true,
-});
-await supabase.storage.from('images').upload(path, compressed);
-```
-
-Also enforce a client-side guard before compression: if `file.size > 50_000_000` (50 MB), reject immediately with a user-friendly message. This prevents attempting to compress a raw video file accidentally selected.
-
-**Warning signs:**
-- Upload progress bar hangs at 0% for large files then fails with no error message shown
-- HTTP 413 errors in the Network tab during upload testing
-- Item list pages slow on mobile with many images visible simultaneously
-
-**Phase to address:** Admin hub / item picture phase — compression is not an optimization to add later, it is a correctness requirement for the mobile use case.
-
----
-
-### Pitfall 4: Service Worker Caches Old Item/Recipe Images After Replacement
-
-**What goes wrong:**
-The existing service worker uses `CacheFirst` for the app shell and `NetworkFirst` for Supabase REST API calls. Supabase Storage serves images from a CDN URL like `https://{project}.supabase.co/storage/v1/object/public/images/households/{id}/item-123.jpg`. When a user replaces an item's picture, they upload a new file to the **same path** (upsert). The old image URL remains identical. The service worker (or the browser's HTTP cache) has the old image cached and serves it instead of the new one — the replacement appears to have failed from the user's perspective.
-
-This is a documented issue in the Supabase community: replace storage file with the same path and old image persists due to caching.
-
-**Why it happens:**
-The current service worker does not explicitly handle `storage.supabase.co` URLs. The browser's default HTTP cache (`Cache-Control` headers from Supabase CDN) or Workbox's `CacheFirst` strategy may cache the original image. When the path is reused after upsert, there is no cache invalidation.
-
-**How to avoid:**
-Two-pronged approach:
-
-1. **Never reuse the same storage path for updated images.** Include a version suffix or timestamp in the filename: `item-{id}-{timestamp}.jpg`. Delete the old file after uploading the new one. This makes the URL change on every update, which is a guaranteed cache-bust.
-
-2. **Explicitly exclude Supabase Storage URLs from the service worker cache.** In `service-worker.ts`, add a check that prevents the existing `NetworkFirst` Supabase cache from matching storage object URLs:
-   ```typescript
-   // In the existing Supabase REST handler, add this check:
-   url.pathname.startsWith('/rest/v1/') &&
-   !url.pathname.startsWith('/storage/') && // Add this line
-   !url.pathname.startsWith('/auth/')
-   ```
-   Storage image requests should go directly to the network (no service worker interception) so they always fetch the current CDN version.
-
-Option 1 alone is sufficient, but option 2 prevents the service worker from being the source of future confusion for any Supabase CDN content.
-
-**Warning signs:**
-- User reports "I updated the picture but it still shows the old one"
-- Hard refresh in desktop Chrome shows new image, but the installed PWA on the phone still shows old image
-- Storage bucket shows the new file but the URL still resolves to the old image visually
-
-**Phase to address:** Admin hub / item picture phase — apply both fixes before any image upload is wired up in the UI.
-
----
-
-### Pitfall 5: Bottom Nav Restructure Breaks `page.url.pathname` Active State Detection for Deep Links
-
-**What goes wrong:**
-The current `BottomNav.svelte` uses exact pathname matching (`page.url.pathname === href`) to determine which tab is active. After the restructure, the new tabs are: Handleliste (`/`), Oppskrifter (`/oppskrifter`), Anbefalinger (`/anbefalinger`), Admin (`/admin`). The Admin tab covers multiple sub-routes: `/admin/butikker`, `/admin/husstand`, `/admin/items`, `/admin/historikk`, `/admin/instillinger`. With exact matching, none of those sub-routes will mark the Admin tab as active — the user navigates into the admin hub and all four tabs appear inactive.
-
-The same problem applies to Handleliste: the current active route for shopping is `/lister/[id]`, not `/` — so navigating into a list makes the Lister tab go dark.
-
-Additionally: the `recommendationHref` currently appends `?list=...` to preserve the active list. If the tab href includes a query string and the pathname check ignores query params, the Anbefalinger tab may show inactive even when on that page.
-
-**Why it happens:**
-Exact match is the simplest implementation and works for flat nav. It breaks the moment any tab has child routes or query parameters. It is easy to miss during development because developers navigate directly to `/admin` and see it highlighted, but don't test from a sub-route like `/admin/items`.
-
-**How to avoid:**
-Replace exact pathname matching with a prefix check for tabs that own sub-routes:
-
-```typescript
-function isActive(tab: Tab): boolean {
-  const pathname = page.url.pathname;
-  if (tab.href === '/') {
-    // Lister tab: active on / and all /lister/* routes
-    return pathname === '/' || pathname.startsWith('/lister/');
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node instanceof HTMLVideoElement) {
+        node.setAttribute('playsinline', 'true')
+        node.setAttribute('muted', 'true')
+        node.muted = true
+        observer.disconnect()
+      }
+    }
   }
-  if (tab.href === '/admin') {
-    // Admin tab: active on /admin and all /admin/* routes
-    return pathname === '/admin' || pathname.startsWith('/admin/');
-  }
-  if (tab.href === '/anbefalinger') {
-    return pathname === '/anbefalinger';
-  }
-  // Default: prefix match
-  return pathname.startsWith(tab.href);
-}
-```
-
-Also verify that the PWA `start_url: "/"` in `vite.config.ts` still resolves correctly after the nav restructure. The current config sets `start_url: "/"` which maps to the Handleliste tab root — this is correct and should not change.
-
-**Warning signs:**
-- Installing the updated PWA and navigating into `/admin/items` shows no tab highlighted
-- The "back" gesture from a list detail page lands on a route where no tab is active
-- Anbefalinger tab shows as inactive when the user is on that page with a `?list=` parameter
-
-**Phase to address:** Navbar restructure phase — fix the active detection logic as part of the nav component rewrite, not as a follow-up fix.
-
----
-
-### Pitfall 6: PWA Standalone Mode Back-Navigation Trap After Nav Restructure
-
-**What goes wrong:**
-In the current app, the bottom nav's four tabs link to: `/`, `/husstand`, `/butikker`, `/anbefalinger`. After restructure, Husstand and Butikker move under `/admin`. Users who installed the PWA before the update have browser history entries pointing to `/husstand` and `/butikker`. When they tap a bottom nav tab after the update, SvelteKit's client-side router loads the new route. But if they press the Android back button or use iOS swipe-back, the history stack may try to navigate to now-removed top-level routes that no longer exist (or redirect), creating a confusing experience.
-
-More critically: in PWA standalone mode on iOS, there is **no URL bar**. If the app somehow navigates to a route that isn't precached and connectivity is poor, the user sees a blank screen with no way to recover except force-quitting the app.
-
-**Why it happens:**
-Navigation restructuring changes the URL space. Existing history entries don't automatically update. The service worker's precached routes from the previous build do not include new routes (new routes are only precached after the updated service worker installs).
-
-**How to avoid:**
-1. **Add SvelteKit redirects** for all removed top-level routes. In `+layout.server.ts` or via `src/routes/husstand/+server.ts` (a redirect endpoint), send 301 redirects from `/husstand` and `/butikker` to their new homes under `/admin/husstand` and `/admin/butikker`. This ensures old bookmarks and back-navigation history entries still resolve.
-
-2. **Verify the service worker's `SKIP_WAITING` flow.** The existing service worker responds to `SKIP_WAITING` messages (already implemented). Confirm that after deploying the restructure, users who have the old app open receive the update prompt and the new routes are precached by the updated worker.
-
-3. **Test the update transition explicitly**: open the old app in PWA standalone mode on iOS, navigate to `/butikker`, deploy the update, then reopen the app — confirm the user sees the new admin hub rather than a blank screen or routing error.
-
-**Warning signs:**
-- After restructure, navigating to the old app (before update installs) shows 404 on removed routes
-- Android back button from the new Admin hub navigates to an old route that no longer has content
-- Playwright tests that hardcode route paths fail after restructure (update the test fixtures)
-
-**Phase to address:** Navbar restructure phase — implement redirects before releasing the build that removes top-level routes.
-
----
-
-### Pitfall 7: Admin Hub Nested Layout Causes Double `household_id` Fetching via `await parent()`
-
-**What goes wrong:**
-The admin hub will live at `/admin` with sub-routes like `/admin/items`, `/admin/butikker`. The natural implementation is to create `src/routes/(protected)/admin/+layout.server.ts` that loads admin-specific data, then call `await parent()` in each sub-route's `+page.server.ts` to access `householdId` from the protected layout. This creates a **request waterfall**: SvelteKit cannot start the child `load` function until the parent `load` completes, meaning `(protected)/+layout.server.ts` runs first (fetches session + profile), then `admin/+layout.server.ts` runs (blocked waiting for parent), then the page `+page.server.ts` runs (blocked waiting for admin layout). Three sequential server round-trips instead of one.
-
-**Why it happens:**
-`await parent()` is the documented way to access parent layout data. Developers use it naturally without realizing it serializes what SvelteKit would otherwise parallelize. The performance hit is invisible in local development (all on localhost) but measurable on deployed infrastructure, particularly on first load in the PWA.
-
-**How to avoid:**
-Do not call `await parent()` in admin sub-route load functions just to get `householdId`. Instead, read `locals` directly — `householdId` is available via the profile query already run in the protected layout, but it is not in `locals` by default. The cleanest approach: move `householdId` into `event.locals` in `hooks.server.ts` (or a handle hook that runs after auth), so every server load function can read `locals.householdId` without waiting for parent.
-
-If `await parent()` is genuinely needed (for data that truly depends on parent output), call it **after** any independent data fetches, not before:
-
-```typescript
-// WRONG — waterfall
-export const load: PageServerLoad = async ({ locals, parent }) => {
-  const { householdId } = await parent(); // blocks until parent completes
-  const items = await supabase.from('items').select('*'); // runs after parent
-  return { items };
-};
-
-// CORRECT — parallel
-export const load: PageServerLoad = async ({ locals, parent }) => {
-  const itemsPromise = supabase.from('items').select('*'); // starts immediately
-  const { householdId } = await parent(); // waits in parallel
-  const { data: items } = await itemsPromise;
-  return { items };
-};
+})
+observer.observe(document.getElementById(elementId)!, { childList: true, subtree: true })
+// then call html5Qrcode.start(...)
 ```
 
 **Warning signs:**
-- Network waterfall visible in Chrome DevTools when navigating to admin sub-routes (sequential server requests)
-- Admin sub-pages feel slow to load despite simple data requirements
-- SvelteKit Vite dev server shows `load` functions running sequentially in console order
+- Camera light on device turns on (OS confirms stream is active) but scanner preview shows black
+- Issue reproduces only on installed PWA (home screen), not when accessed via Safari URL bar
+- `video.readyState` is 4 (HAVE_ENOUGH_DATA) but `video.videoWidth` is 0 in the browser console
+- Issue affects iPhone but not Android Chrome
 
-**Phase to address:** Admin hub phase — establish the data access pattern for admin sub-routes before creating individual sub-pages.
-
----
-
-### Pitfall 8: Recipe Ingredients Added to List Without Checking for Existing Items — Silent Duplicates
-
-**What goes wrong:**
-The "Add all ingredients to list" action on a recipe page creates new list item rows for each recipe ingredient. If the item already exists on the target list (user already added "Milk" manually, recipe calls for "Milk"), a duplicate entry is silently created. The shopping list then shows two "Milk" rows. In the store-layout-aware sorted view, duplicates are confusing — both rows are sorted to the same category position and appear adjacent with no indication they are duplicates.
-
-The problem is compounded when the user has already checked off one "Milk" and the recipe-added one appears unchecked — appearing to the user as though they still need to buy Milk.
-
-**Why it happens:**
-The simplest implementation of "add ingredients" is a batch insert with no duplicate detection. The recipe ingredient table references household items by `item_id`. The list items table likely links to the same `item_id`. A duplicate check requires querying the target list for existing item IDs before inserting — an extra step that is easy to skip in the first pass.
-
-**How to avoid:**
-Use a PostgreSQL upsert (`INSERT ... ON CONFLICT DO NOTHING`) on the list items table, with a unique constraint on `(list_id, item_id)`. This makes the "add to list" operation idempotent at the database level — adding an already-present ingredient is a no-op, not a duplicate.
-
-```sql
-ALTER TABLE list_items ADD CONSTRAINT uq_list_item UNIQUE (list_id, item_id);
-```
-
-```typescript
-await supabase
-  .from('list_items')
-  .upsert(
-    ingredientsToAdd.map(i => ({ list_id: targetListId, item_id: i.item_id, checked: false })),
-    { onConflict: 'list_id,item_id', ignoreDuplicates: true }
-  );
-```
-
-For the UX: after a bulk add, show a summary toast: "8 varer lagt til, 2 var allerede på listen." This communicates what happened rather than silently skipping items.
-
-**Warning signs:**
-- Testing "Add all" on a recipe that shares ingredients with manually added items produces duplicate rows
-- A checked item reappears unchecked after adding a recipe
-- The shopping list shows two identical item names in the same category section
-
-**Phase to address:** Recipes phase — apply the unique constraint in the migration that creates the schema for recipe-to-list linking; do not defer it.
+**Phase to address:** iOS scanner fix phase — this fix must be in the same phase as the black screen fix; it is the root cause, not a symptom.
 
 ---
 
-### Pitfall 9: List Picker Sheet for "Add to List" Has No Empty State for Zero Lists
+### Pitfall 2: iOS PWA Camera Permission Re-Prompts Every Session
 
 **What goes wrong:**
-The recipe ingredient "add to list" flow opens a sheet where the user picks which shopping list to add ingredients to. If the household has no lists yet (new user onboarding) or all lists have been archived, the picker renders an empty sheet with no guidance. The user taps "Add to list," sees a blank modal, and has no idea what to do. On mobile this is a dead end — there is no visible way to create a new list from within the picker.
+On iOS, camera permissions granted to a PWA (home screen app) do not persist across app launches the way they do in Safari tabs. WebKit bug 215884 (recurring permissions prompts in standalone mode) and bug 185448 (getUserMedia not working in home screen apps) remain open as of 2026. Users who install the app, grant camera permission once, and close and reopen the app will be prompted again on the next scan attempt. On some iOS versions (16.x), the permission prompt appears *multiple times within the same session* when the component unmounts and remounts (e.g., closing the scan sheet and reopening it).
 
 **Why it happens:**
-The list picker is implemented assuming the user already has at least one list (the primary use case). Empty states are added later, if at all.
+WebKit's PWA permission model treats standalone mode differently from browser mode. The origin-permission mapping used in Safari tabs is not shared with the home screen app context in the same way. Apple has not provided a guaranteed fix timeline. The current scanner implementation calls `startScanner` on every sheet open, which internally calls `getUserMedia` — this re-triggers the permission prompt on affected iOS versions.
 
 **How to avoid:**
-Design the list picker sheet to handle three states at build time, not as an afterthought:
-1. **Lists available**: show the list of lists with a tap-to-select interaction.
-2. **No lists**: show "Du har ingen handlelister. Opprett en ny liste for å komme i gang." with an inline "Ny liste" button that creates a list and then proceeds with the add operation.
-3. **Loading**: show skeleton rows while the list query is in flight (especially relevant on first render in PWA offline mode where the cached response may be stale).
+- Cache the `MediaStream` from the first successful `getUserMedia` call and reuse it across scanner sessions within the same app launch. Only call `getUserMedia` again if the cached stream has ended (`stream.active === false`).
+- Keep the scanner container element alive in the DOM (hidden, not destroyed) between scans to avoid full teardown. Show/hide with CSS visibility rather than conditional rendering.
+- Display explicit UI text warning users that iOS may ask for camera permission again and that this is expected behavior, not a bug in the app — reduces support confusion.
+- Do not treat a new permission prompt as an error state. The current `onError` path showing "Kameratilgang er avslått" fires even when the user sees and dismisses (not denied, just dismissed) the prompt.
 
 **Warning signs:**
-- QA on a fresh household account shows a blank picker
-- User testing reveals confusion when the picker opens empty
-- The "Add to list" button in the recipe view is tappable even when no lists exist
+- Camera permission prompt appears more than once during a shopping session
+- `ScannerError` with `reason: 'permission-denied'` fires without the user ever explicitly denying access
+- The issue affects users who report "scanner worked yesterday" — they are experiencing the per-launch re-prompt
 
-**Phase to address:** Recipes phase — spec all three sheet states in the task definition before implementation.
+**Phase to address:** iOS scanner fix phase — add stream caching and permission error UX distinction (dismissed vs. denied) in the same phase.
+
+---
+
+### Pitfall 3: Kassal CDN Image URLs Are Not Guaranteed to Be Stable
+
+**What goes wrong:**
+Kassal.app serves product images via Cloudinary CDN (`res.cloudinary.com/norgesgruppen/...`) and via `bilder.ngdata.no`. If the `image` field from the Kassal API response is stored directly in the `barcode_product_cache` table's `provider_payload` jsonb column (as it currently is), then displayed directly in the UI, users will see broken images when:
+- Kassal rotates the Cloudinary version token in the URL (`v[timestamp]` segment changes)
+- A product is reformulated and the supplier changes the product image
+- Kassal changes CDN providers (they have done this at least once — `bilder.kassal.app` became `bilder.ngdata.no`)
+- The image is copyright-restricted and Kassal removes it from the CDN
+
+The app would then display broken image icons throughout the shopping list, scan result sheet, and Admin → Items — with no fallback and no mechanism to refresh.
+
+**Why it happens:**
+The `barcode_product_cache` has a 30-day TTL for found products. A URL that was valid on day 1 can be dead by day 30 without any cache invalidation. The current schema stores `provider_payload` as a jsonb blob — image URLs are buried inside it, not in a dedicated column — making it difficult to query and refresh them. Developers assume CDN URLs for commercial products are permanent, but Kassal's documentation explicitly states they do not own image rights and provides no stability guarantees.
+
+**How to avoid:**
+- Extract the `image_url` into a **dedicated nullable text column** in `barcode_product_cache` — do not rely on extracting it from `provider_payload` at runtime. This makes it queryable and independently refreshable.
+- Do not store external Kassal image URLs directly in `household_item_memory` if you add an image column there. The memory table has no TTL — a URL stored 6 months ago is likely stale.
+- Implement a background refresh edge function (or scheduled job) that queries `barcode_product_cache` rows where `expires_at` is approaching and re-fetches the Kassal product to refresh the image URL.
+- In the UI, always render images with an `onerror` fallback to a local placeholder (see Pitfall 6 for the Svelte 5 `onerror` timing issue). Never show a broken `<img>` element.
+- If long-term image stability is required, proxy and store images in Supabase Storage (private bucket, path: `product-images/{ean}.jpg`). This adds storage cost but eliminates CDN dependency.
+
+**Warning signs:**
+- Images display correctly immediately after scanning but break a few days later
+- `provider_payload` jsonb contains `image` field URLs with version tokens like `v1234567890`
+- No dedicated `image_url` column in the migration plan for `barcode_product_cache`
+
+**Phase to address:** Product image storage phase — design the schema with a dedicated `image_url` column before writing any UI that reads images.
+
+---
+
+### Pitfall 4: Migration Adding Columns to `household_item_memory` With Live Data
+
+**What goes wrong:**
+`household_item_memory` is populated by a trigger on every `INSERT` and `UPDATE` to `list_items`. This table will have live rows for every active household at the time of the migration. When adding columns like `image_url` or `brand_name`:
+
+1. **Adding `NOT NULL` without a default on a populated table** — PostgreSQL must rewrite the entire table (or add a constraint check on read for newer PG versions). On Supabase Free tier, this can hit the statement timeout limit and leave the migration in an inconsistent state.
+
+2. **The trigger continues firing during migration** — if the migration is not transactional (e.g., if you add the column and separately update existing rows), the trigger can insert new rows between those steps with `NULL` for the new column while other rows have been backfilled. This creates a mixed state that breaks any `NOT NULL` constraint added afterward.
+
+3. **Column backfill is not instant** — if you add `image_url` and then want to populate it from `barcode_product_cache` with an `UPDATE ... FROM ...`, that join can be slow on tables with thousands of rows and temporarily blocks reads on Supabase's Free tier due to lock escalation.
+
+**Why it happens:**
+Developers run migrations in development against an empty database (or a small seed dataset) where all of these operations are instantaneous. Production has real data, real concurrency, and tighter timeout limits. The trigger-driven population means the table is "always being written to" while the migration runs.
+
+**How to avoid:**
+- Add all new columns as `NULL` with no default in the migration. Never add `NOT NULL` to a new column on a populated live table in a single migration step.
+- If a `NOT NULL` constraint is eventually needed, use the deferred approach: add `NULL`, backfill, then add the constraint in a separate migration after backfill is confirmed complete.
+- For `image_url` and `brand_name` on `household_item_memory`: add them as `NULL`-able text columns. Accept that existing rows will have `NULL` until the next scan or item interaction naturally updates them via the trigger or a user-initiated scan.
+- Do not attempt to backfill `household_item_memory` from `barcode_product_cache` in the same migration transaction. Run backfill as a separate, explicitly batched UPDATE if needed.
+- Test migration against a production-sized local dataset before applying to production. Use `supabase db dump` to get a row count estimate.
+
+**Warning signs:**
+- Migration script adds `NOT NULL` to any column on `household_item_memory`, `list_items`, or `barcode_product_cache`
+- Migration includes an `UPDATE ... SET image_url = ...` affecting the entire `household_item_memory` table
+- Migration uses `ALTER TABLE ... ADD COLUMN image_url text NOT NULL DEFAULT ''` — a non-NULL default forces a full table rewrite in older PostgreSQL versions
+
+**Phase to address:** Schema migration phase — must be designed with NULL-safe columns before any feature code references the new fields.
 
 ---
 
@@ -362,13 +134,12 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Storing theme in component state (`$state`) instead of `localStorage` | Simpler code | Preference resets on every app launch; FOUC on reload | Never — use `localStorage` from the start |
-| Making the image storage bucket public to skip SELECT policies | No SELECT policy needed for CDN URLs | Any authenticated user can see all households' images if they guess the path | Only if all images are genuinely non-sensitive (product photos from a public catalog are OK; family content is not) |
-| Uploading raw mobile camera images without compression | Fewer dependencies | 413 errors on free tier; slow list views; storage quota consumed rapidly | Never on the upload path — compress before upload always |
-| Using exact pathname match for all bottom nav active states | Less code | Admin sub-routes never highlight the Admin tab; looks broken | Never — prefix matching is two lines more, always correct |
-| Adding `await parent()` at the top of every sub-route load function | Consistent access to parent data | Sequential waterfall on every admin page load | Only when child data genuinely depends on parent data and the extra latency is acceptable |
-| No upsert on recipe ingredient add — plain INSERT | Simpler query | Silent duplicate list items; user confusion when checking off items | Never — unique constraint + upsert is 5 extra lines and prevents a class of bugs |
-| Reusing the same storage path when updating an item image | No need to delete old file | Old image persists in service worker cache; users see stale images | Never — include a version/timestamp in the path |
+| Store Kassal image URL directly in `provider_payload` jsonb, parse at display time | No schema change needed | Image URL becomes a string-in-blob, impossible to query/refresh independently; every UI component must know the jsonb structure | Never — add a dedicated column |
+| Use Kassal `image` URL directly in `<img src>` without fallback | Simple, no extra code | Broken images throughout the app when CDN URL rotates; no way to recover without a forced re-scan | Never in list views; acceptable in a temporary debug view |
+| Skip stream caching, call `getUserMedia` on every sheet open | Simpler code | iOS re-permission prompt on every scan; users stop using scanner and enter EAN manually | Never — kills the feature's usefulness on iOS |
+| Make `barcode_product_cache` accessible to authenticated users directly (drop `service_role` only restriction) | Simpler client queries | Users can query competitor product data, modify cache entries, or enumerate all scanned barcodes from other households | Never — keep cache restricted to `service_role` |
+| Add `image_url` as `NOT NULL` with a default `''` in migration | Avoids NULL checks in Svelte | Full table rewrite on PostgreSQL; migration timeout on larger tables | Never for populated tables |
+| Show Kassal image for all items in list view without size constraint | Easier layout | Layout shift on every list load; large images slow list scroll performance | Never — always fix dimensions |
 
 ---
 
@@ -376,14 +147,13 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Supabase Storage (new) | Creating only INSERT policy and calling it done | Create all four policies: INSERT, SELECT, UPDATE, DELETE; test each separately |
-| Supabase Storage (new) | Making bucket public to avoid writing SELECT policies | Keep bucket private; write explicit SELECT policy scoped to household path |
-| Supabase Storage (new) | Uploading raw mobile camera JPEG without compression | Compress to ≤400 KB client-side with `browser-image-compression` before calling `storage.upload()` |
-| Supabase Storage + service worker (existing) | Service worker caches the old image URL after upsert | Use versioned filenames (include timestamp in path); exclude storage CDN URLs from Workbox cache |
-| Tailwind v4 (existing) | Copying v3's `darkMode: 'class'` into a non-existent `tailwind.config.js` | Use `@custom-variant dark (&:where(.dark, .dark *));` in `app.css` |
-| SvelteKit SSR + localStorage (existing) | Applying dark class in `onMount` (causes FOUC) | Apply dark class in a synchronous inline script in `app.html` `<head>` before `%sveltekit.head%` |
-| SvelteKit nested layouts | Calling `await parent()` at the top of every load function | Read `householdId` from `locals` directly; only call `await parent()` for data that genuinely requires it, and call it after independent fetches |
-| SvelteKit route groups | Treating route group folder removal as safe without adding redirects | Add 301 redirects from old top-level routes (e.g. `/husstand`) to new admin sub-routes (e.g. `/admin/husstand`) before releasing |
+| Kassal API | Calling `https://kassal.app/api/v1/products/ean/{ean}` directly from client-side code | Always proxy through the `barcode-lookup` edge function — the API token must stay server-side; the edge function already handles this |
+| Kassal API | Not handling HTTP 429 (rate limit) in the edge function | Add exponential backoff retry (max 2 retries) and return the cache hit if a 429 occurs mid-lookup; the 60 req/min limit can be hit during concurrent family scanning |
+| Kassal API | Treating the `image` field as always present and always a valid URL | Field is nullable; some products have no image; some image URLs are CDN paths that return 403; validate and null-check before storing |
+| html5-qrcode | Calling `scanner.stop()` and then `scanner.clear()` without checking `isScanning` | `stop()` throws if the scanner was never successfully started; the existing `stopScanner` guards with `isScanning ?? true` but this can still throw on iOS if the stream was never acquired; wrap in try/catch always |
+| html5-qrcode | Initializing the `Html5Qrcode` instance with a container element ID that doesn't yet exist in the DOM | The element must be in the DOM before `new Html5Qrcode(elementId)` is called; if the dialog uses `display:none` instead of `visibility:hidden`, the element may not be measurable |
+| Supabase edge function secrets | Hardcoding the `KASSAL_API_TOKEN` value directly in `index.ts` for testing | Token rotation requires redeployment; always use `Deno.env.get('KASSAL_API_TOKEN')` — it already does this, but do not introduce hardcoded fallbacks |
+| Supabase `barcode_product_cache` | Querying this table from the client with an `authenticated` role | The table grants `select/insert/update/delete` to `service_role` only; authenticated clients will get an empty result (no error) due to RLS blocking — misleading behavior that looks like a cache miss |
 
 ---
 
@@ -391,10 +161,10 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Admin sub-route `load` functions waterfalling via `await parent()` | Admin pages load 2-3x slower than Handleliste pages; visible in Network DevTools as sequential server requests | Read `householdId` from `locals`; kick off data fetches before `await parent()` | Every navigation to an admin sub-page; more noticeable on mobile with high latency |
-| Uncompressed image uploads consumed by the free tier 50 MB limit | Uploads fail for power users with many item pictures; Storage settings show near-quota usage | Compress all uploads to ≤400 KB before sending | After ~125 uncompressed 400 KB uploads (free tier); sooner with raw mobile photos |
-| Service worker `CacheFirst` strategy serving stale item images | Image replacement appears broken; user sees outdated item or recipe photo | Versioned filenames; exclude storage CDN from service worker routes | Immediately on first image replacement after the image feature ships |
-| Bottom nav re-rendering `tabs` array on every page navigation | Minor jank on nav transitions in Svelte 5 runes mode if `tabs` is defined inside the component script and reactive | Lift the static `tabs` array outside the component or declare it as a constant (not reactive state) | Any navigation; mild performance concern, noticeable on slower Android devices |
+| Displaying Kassal images in list rows without fixed dimensions | List rows resize as images load; scroll position jumps; CLS score fails Core Web Vitals | Reserve exact space with fixed `width` and `height` attributes on `<img>` (or equivalent CSS `aspect-ratio`); use a gray placeholder background | Immediately on first load — even with 1 item in the list |
+| Loading all product images in a long shopping list eagerly | Slow initial render; unnecessary bandwidth on mobile data (grocery store WiFi is often poor) | Add `loading="lazy"` to all `<img>` tags in list rows; only the visible viewport loads images | Shopping lists over ~10 items |
+| Running image fetch (Kassal) AND Gemini enrichment serially on every cache miss | Scan-to-result latency can exceed 4-5 seconds on slow connections | Kassal fetch and Gemini call are already sequential in the edge function by design; if adding image storage to Supabase Storage (upload step), this adds more latency — consider making upload async, returning the lookup result immediately and uploading in background | Every cache miss scan |
+| Storing brand name in `household_item_memory` and joining to it on every list query | Extra join on the hot shopping list read path | Keep `household_item_memory` additions additive and nullable; evaluate if brand is worth the join cost — it may be better to fetch from `barcode_product_cache` only on item detail view | Lists over 50 items, or families with many concurrent list subscriptions |
 
 ---
 
@@ -402,11 +172,10 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Storage bucket with missing path scoping — policy allows upload to `bucket_id = 'images'` but not scoped to `households/{household_id}/` | Household A can overwrite Household B's item images by guessing the path | Add `(storage.foldername(name))[2] IN (SELECT get_my_household_ids())` to all storage policies |
-| Public storage bucket for item/recipe images | Anyone with the URL can see all images; if household is private this is a privacy violation | Use private bucket with explicit household-scoped SELECT policy |
-| Storing dark mode preference in a writable Svelte store synced only in memory | No security risk, but preference resets on reload — not a security issue | Use `localStorage` for persistence |
-| Admin hub accessible without admin role check — relying only on being a household member | Any household member can reach admin pages including "Items" edit and "Husstand" management | The current protected layout already validates `household_id`; verify that admin sub-routes re-use the same protected layout group (they should inherit from `(protected)/+layout.server.ts`) |
-| Recipe cover images uploaded with user-controlled filenames containing path traversal characters | Supabase Storage accepts most characters in filenames; a malicious path like `../../other-household/` could traverse bucket structure | Sanitize or generate filenames server-side; use `crypto.randomUUID()` + extension rather than user-provided names |
+| Exposing `barcode_product_cache` to `authenticated` role | Authenticated users could read product lookup history for all EANs (competitor price intelligence, purchase pattern inference) | Keep the table restricted to `service_role` only — the edge function handles all access |
+| Storing Kassal API token in client-side code or environment variables accessible to the browser | Token is leaked in the bundle; can be used to exhaust the API quota | Always access via edge function secret (`KASSAL_API_TOKEN` in Supabase edge function environment) |
+| Using a public Supabase Storage bucket for Kassal-proxied product images without path scoping | Any URL enumeration attack can list all product images | If storing to Supabase Storage, use a private bucket with RLS policies that do not require authentication for reads (since images are shown in list views) — or accept the small risk of a public bucket for non-sensitive product photos |
+| Blindly storing any URL returned by Kassal as an `image_url` without validation | A compromised Kassal response could inject a URL pointing to an attacker-controlled server, tracking page loads | Validate that `image_url` starts with a known CDN prefix (`res.cloudinary.com/norgesgruppen`, `bilder.ngdata.no`, `bilder.kassal.app`) before storing; reject otherwise |
 
 ---
 
@@ -414,27 +183,25 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| No visual feedback during image upload on mobile (which takes 2-4 seconds with compression) | User taps "Save" and nothing happens; they tap again and double-upload | Show a spinner or progress indicator from the moment compression begins, not just from network send |
-| "Add all ingredients" adds items without confirming which list they go to | Items land in the wrong list; user has to manually remove them | Always show a list picker sheet before bulk adding; default to the active list but require explicit confirmation |
-| Dark mode toggle only in Brukerinnstillinger (admin sub-page) — hard to find | Users expect a toggle in a more accessible location (top bar or settings shortcut) | Put the toggle in Brukerinnstillinger as scoped in v1.2, but make the path obvious from the Admin tab — a clear "Innstillinger" label in the admin hub |
-| Admin hub is a flat link list with no visual grouping | 5+ admin items on a plain list feels like a settings dump, not a hub | Group items: "Handlelister" (Historikk), "Butikker" (Butikker, Standard), "Husstand" (Husstand, Inviter), "Varer" (Items), "Bruker" (Innstillinger) |
-| Recipe ingredient names that don't match existing household items (spelling/case differences) | "Løk" in the recipe vs "Kepaløk" in the item catalog — add creates a new item instead of linking | Use fuzzy match / suggestion when creating recipe ingredients — if a similar item exists in the household catalog, offer to link to it rather than create a new one |
-| Bottom nav active state ignores all `/lister/[id]` routes after restructure | User opens a list, bottom nav shows no tab highlighted — app feels broken | Use prefix matching for the Handleliste tab: active on `/` and `/lister/*` |
+| Showing "Kameratilgang er avslått" when the iOS permission prompt was merely dismissed (not denied) | User thinks they explicitly denied access; does not understand they can try again | Distinguish between `NotAllowedError` where the user previously denied (show settings link) vs. a new prompt that was closed (show "Try again" with no alarm tone) |
+| Spinning indefinitely during scan sheet open if camera permission is pending (iOS shows prompt above the sheet) | User sees a frozen loading state with no feedback for 10-15 seconds while interacting with the system prompt | Set a 10-second timeout on the `loading` state; if `startScanner` hasn't resolved by then, transition to `camera-failure` with a "Try again" option |
+| Showing product image thumbnail immediately in the scan result before the image has loaded | Empty box flashes into image; layout shifts | Show a fixed-size placeholder (gray square with an icon) until the image `onload` fires; keep the same dimensions during transition |
+| Displaying a broken image icon in shopping list rows | Broken images feel like app bugs, erode trust | Every `<img>` rendering a Kassal image must have an `onerror` handler that hides the image and shows the item's category icon instead |
+| Not showing brand name alongside product name in the scan result | Users scan to confirm a product; brand is often the identifying information ("Q Meieriene" vs. generic) | Show brand name prominently in the scan result sheet even before the image loads; brand is available immediately from the lookup DTO |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Dark mode toggle:** Verify dark mode persists across: (1) tab close and reopen, (2) PWA force-quit and reopen on iOS, (3) system dark mode change while app is open — all three should reflect the user's stored preference without FOUC
-- [ ] **Dark mode Tailwind coverage:** Search the codebase for all `bg-`, `text-`, `border-` classes on layout-level elements and confirm each has a `dark:` counterpart — bottom nav, header, main background, sheets/modals, and toast notifications are the most likely to be missed
-- [ ] **Storage RLS coverage:** After adding storage policies, test as a non-member user: attempt to GET and PUT to the household image path — confirm both return 403, not 200
-- [ ] **Image upload flow:** Test on a real iPhone: select an image from camera roll → confirm compression runs (image < 400 KB before upload) → confirm upload succeeds → confirm image displays → replace the image → confirm the new image displays (not the old cached version)
-- [ ] **Admin sub-route active tab:** Navigate to `/admin/items` directly — confirm Admin tab is highlighted in the bottom nav
-- [ ] **Recipe duplicate prevention:** Add a recipe where 2 ingredients are already on the target list → tap "Add all" → confirm only the missing ingredients are added and no duplicates appear
-- [ ] **List picker empty state:** Open the recipe ingredient add flow on a household with no lists — confirm a "create a list first" prompt appears rather than an empty sheet
-- [ ] **Admin sub-routes still protected:** Navigate directly to `/admin/items` in a private browser session (not logged in) — confirm redirect to login, not a blank page or server error
-- [ ] **Old route redirects:** After restructure deploy, navigate to `/husstand` and `/butikker` directly — confirm 301 redirect to `/admin/husstand` and `/admin/butikker` respectively
-- [ ] **await parent() waterfalls:** Open Network DevTools, navigate to `/admin/items` — confirm server-side load functions do not appear as sequential requests (all admin data should load in one round-trip)
+- [ ] **iOS scanner fix:** Black screen appears fixed in Safari URL bar — verify it is also fixed in the *installed* home screen PWA; they are different code paths in WebKit
+- [ ] **iOS scanner fix:** Permission error handling distinguishes "dismissed" from "denied" — verify by: dismissing the permission prompt on iOS and confirming the app shows "Prøv igjen" not "Kameraet er blokkert"
+- [ ] **Image display:** Images display on the day of implementation — verify images also display 7 days later (check CDN URL stability) or that the fallback triggers correctly when they do not
+- [ ] **Image display:** Images display in Safari mobile — verify with `crossorigin` attribute if Kassal CDN returns CORS headers; without it, `onerror` may not fire as expected on cross-origin failures in some Safari versions
+- [ ] **Migration:** `ADD COLUMN` migration runs locally against an empty DB — verify it runs against a DB with at least 1000 rows in `household_item_memory` without timeout
+- [ ] **Migration:** `household_item_memory` still populates correctly (trigger still fires) after schema change — verify by adding an item to a list and checking that memory is updated with the new nullable columns as `NULL` (not as an error)
+- [ ] **Kassal cache:** `barcode_product_cache` stores `image_url` in the dedicated column — verify by querying the column directly after a scan; do not assume it is being populated because the scan result shows an image (it might be reading from `provider_payload`)
+- [ ] **Rate limits:** Edge function handles Kassal 429 responses — verify by mocking a 429 response in the edge function test suite; the current test suite does not appear to cover this case
+- [ ] **Fallback:** Open Food Facts fallback does not return an image — verify that the UI does not break (shows placeholder) when `image_url` is `NULL` because the lookup came from Open Food Facts or Gemini only
 
 ---
 
@@ -442,13 +209,11 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| FOUC on dark mode shipped to production | LOW | Add inline script to `app.html`; redeploy; users see fix on next load (no data migration) |
-| Tailwind v4 `dark:` classes not activating | LOW | Add `@custom-variant` line to `app.css`; redeploy |
-| Storage RLS too permissive (household isolation broken) | MEDIUM | Audit `storage.objects` policies; add path-based household scoping; audit existing files for cross-household path violations; revoke and re-apply policies |
-| Duplicate list items from recipe add (live in production) | MEDIUM | Write a migration that deduplicates existing `list_items` rows (keep lowest `id` per `(list_id, item_id)` pair); add unique constraint; deploy upsert-aware add logic |
-| Stale images visible across PWA users after image replacement | LOW | Move to versioned filenames going forward; old stale references resolve themselves when service worker cache expires (7-day max on Safari) |
-| Admin sub-routes not protected (security gap) | HIGH | Immediately deploy a server hook or `+layout.server.ts` that validates auth for all `/admin/*` routes; audit logs for unauthorized access attempts |
-| Old routes missing redirects — users stranded post-upgrade | LOW | Add SvelteKit redirect rules for removed routes; deploy immediately; already-cached broken routes clear on next service worker update |
+| CDN image URLs in cache are stale/broken | MEDIUM | Deploy a migration that nulls out `image_url` in `barcode_product_cache` for rows older than N days; trigger re-fetch on next scan (cache miss due to NULL image_url logic, or expire those rows) |
+| Migration added `NOT NULL` column and timed out, leaving table locked | HIGH | Connect via Supabase SQL editor; check `pg_stat_activity` for blocking queries; `pg_terminate_backend` the migration process; restore from backup if table is in broken state; re-run migration with nullable column |
+| Kassal API token expired and edge function returns 401 for all lookups | LOW | Update `KASSAL_API_TOKEN` secret in Supabase Dashboard → Edge Functions → Secrets; redeploy the function (or rely on Supabase hot-reloading secrets); cache will serve existing lookups during the gap |
+| iOS users consistently get black screen after fix attempt | MEDIUM | Collect device/iOS version data; check if html5-qrcode has a newer release addressing the issue; consider replacing html5-qrcode with the native BarcodeDetector API (supported in iOS 17+ in Safari) as a progressive enhancement |
+| Svelte 5 `onerror` doesn't fire on SSR-rendered img elements | LOW | Replace with inline `onerror` HTML attribute (non-Svelte event handler) for cross-origin image elements; this runs before Svelte hydrates and covers the SSR timing gap |
 
 ---
 
@@ -456,31 +221,32 @@ Design the list picker sheet to handle three states at build time, not as an aft
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Dark mode FOUC + Tailwind v4 config | Dark mode / Brukerinnstillinger phase | Hard-reload the PWA after toggling dark — no flash; `dark:` classes apply correctly |
-| Storage RLS missing policies | Admin hub / item pictures phase (before any upload UI) | Attempt upload and view as non-member user — both return 403 |
-| Large image upload failure on free tier | Admin hub / item pictures phase | Upload a 10 MB JPEG from a real phone — compression runs, upload succeeds, output < 400 KB |
-| Stale images after replacement | Admin hub / item pictures phase | Replace an item image — new image displays immediately in PWA without hard refresh |
-| Bottom nav active state after restructure | Navbar restructure phase | Navigate to `/admin/items` — Admin tab highlighted |
-| PWA back-navigation after restructure | Navbar restructure phase | Navigate to old `/husstand` URL — 301 redirect to `/admin/husstand` |
-| Admin nested layout waterfall | Admin hub phase | Network DevTools shows single server round-trip on admin page load |
-| Recipe duplicate items | Recipes phase | Add a recipe with shared ingredients — no duplicate rows in target list |
-| List picker empty state | Recipes phase | Open recipe add flow on household with zero lists — guided empty state appears |
-| Storage path traversal via user filenames | Admin hub / item pictures phase | Attempt upload with `../../` in filename — sanitized or rejected |
+| iOS black screen — playsinline applied too late | iOS scanner fix (Phase 1 of milestone) | Test on a real iPhone in installed PWA mode; cannot verify in simulator |
+| iOS permission re-prompt every session | iOS scanner fix (Phase 1 of milestone) | Close and reopen the PWA on iOS; confirm the camera opens without a new system prompt |
+| Kassal CDN image URL instability | Product image storage design (Phase 2 of milestone) | Confirm `image_url` is in a dedicated column; confirm fallback renders when URL is NULL |
+| Migration risks on live `household_item_memory` | Schema migration phase (before any feature code) | Run migration against a seeded DB with 1000+ rows; confirm no timeout; confirm trigger still fires |
+| Layout shift from images in list view | Product image display phase (Phase 3 of milestone) | Measure CLS in Chrome Lighthouse; target 0; confirm fixed-size placeholders render before images |
+| Kassal 429 rate limit during concurrent family scanning | Edge function improvement phase | Test with a mock returning 429; confirm the function returns cached data or degrades gracefully |
+| Svelte 5 `onerror` timing on SSR-rendered images | Product image display phase (Phase 3 of milestone) | Load the shopping list page cold (hard refresh); confirm broken images show placeholder, not broken icon |
+| Exposing `barcode_product_cache` to authenticated role | Schema migration phase | Verify via `supabase db diff` that no `GRANT SELECT ... TO authenticated` appears on that table |
 
 ---
 
 ## Sources
 
-- [Tailwind CSS v4 Dark Mode — Official Docs](https://tailwindcss.com/docs/dark-mode) — `@custom-variant` approach, removal of `darkMode` config key; HIGH confidence
-- [Implementing Dark Mode in SvelteKit (CaptainCodeman)](https://www.captaincodeman.com/implementing-dark-mode-in-sveltekit) — inline script anti-FOUC pattern; MEDIUM confidence
-- [Supabase Storage Access Control — Official Docs](https://supabase.com/docs/guides/storage/security/access-control) — four operation policies (INSERT/SELECT/UPDATE/DELETE), path scoping with `storage.foldername()`; HIGH confidence
-- [Supabase Storage File Limits — Official Docs](https://supabase.com/docs/guides/storage/uploads/file-limits) — 50 MB free tier limit, standard upload recommended for <6 MB; HIGH confidence
-- [Supabase Storage: Preventing Cached Images (WeWeb Community)](https://community.weweb.io/t/supabase-storage-preventing-cached-images-when-updating-files-replace-storage-file-issue/17601) — same-path upsert caching conflict; MEDIUM confidence
-- [SvelteKit Load Functions — `await parent()` Official Docs](https://svelte.dev/docs/kit/load) — waterfall warning, parallel fetch pattern; HIGH confidence
-- [SvelteKit GitHub Issue — `await parent()` causes parent layout load to re-run](https://github.com/sveltejs/kit/issues/8579) — confirmed waterfall behavior; HIGH confidence
-- [SvelteKit Advanced Layouts — Joy of Code](https://joyofcode.xyz/sveltekit-advanced-layouts) — route group layout inheritance, breaking out of layouts; MEDIUM confidence
-- [Client-side image compression with Supabase Storage (DEV Community)](https://dev.to/mikeesto/client-side-image-compression-with-supabase-storage-1193) — `browser-image-compression` approach; MEDIUM confidence
+- [STRICH Knowledge Base — Camera Access Issues in iOS PWA/Home Screen Apps](https://kb.strich.io/article/29-camera-access-issues-in-ios-pwa)
+- [WebKit Bug 185448 — getUserMedia not working in apps added to home screen](https://bugs.webkit.org/show_bug.cgi?id=185448)
+- [WebKit Bug 215884 — getUserMedia recurring permissions prompts in standalone mode when hash changes](https://bugs.webkit.org/show_bug.cgi?id=215884)
+- [WebKit Bug 252465 — In PWA, HTML Video Element may be unable to play stream from getUserMedia()](https://bugs.webkit.org/show_bug.cgi?id=252465)
+- [html5-qrcode Issue #713 — Camera won't launch on iOS PWA](https://github.com/mebjas/html5-qrcode/issues/713)
+- [html5-qrcode Issue #890 — iOS 17 Safari black screen after camera permission](https://github.com/mebjas/html5-qrcode/issues/890)
+- [Kassal.app API Documentation](https://kassal.app/api) — rate limit (60 req/min), image URL format (Cloudinary CDN), copyright disclaimer
+- [Svelte Issue #10352 — Svelte 5 onerror event not called on img element](https://github.com/sveltejs/svelte/issues/10352)
+- [web.dev — Optimize Cumulative Layout Shift](https://web.dev/optimize-cls/)
+- [Supabase Troubleshooting — Slow ALTER TABLE on Large Tables](https://supabase.com/docs/guides/troubleshooting/slow-execution-of-alter-table-on-large-table-when-changing-column-type-qmZRpZ)
+- [Supabase GitHub Discussion — prisma db push timeout on Free Tier when altering larger table](https://github.com/orgs/supabase/discussions/39712)
+- [SQLServerCentral — Nullable vs Non-Nullable and Adding Not Null Without Downtime in PostgreSQL](https://www.sqlservercentral.com/articles/nullable-vs-non-nullable-columns-and-adding-not-null-without-downtime-in-postgresql)
 
 ---
-*Pitfalls research for: HandleAppen v1.2 — navbar restructure, recipes, admin hub, item pictures, dark mode added to existing SvelteKit + Supabase PWA*
-*Researched: 2026-03-13*
+*Pitfalls research for: SvelteKit + Supabase PWA — barcode scanner improvement and product image/brand lookup (Milestone v2.0)*
+*Researched: 2026-03-14*
