@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 last_updated: "2026-03-14T07:18:13.657Z"
-last_activity: "2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert)."
+last_activity: "2026-03-14 — Completed Quick Task 3: Add item administration and Varekatalog."
 progress:
   total_phases: 16
   completed_phases: 8
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 Phase: 14 — Recipes and Ingredient Management (Complete)
 Plan: 5 of 5 complete
 Status: Executing.
-Last activity: 2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert).
+Last activity: 2026-03-14 — Completed Quick Task 3: Add item administration and Varekatalog.
 
 Progress: [████████░░] 87%
 
@@ -105,3 +105,4 @@ Progress: [████████░░] 87%
 |---|-------------|------|--------|-----------|
 | 1 | Add Google Auth using Supabase | 2026-03-12 | 6019636 | [1-add-google-auth-using-supabase](./quick/1-add-google-auth-using-supabase/) |
 | 2 | Improve app categories from grocery_categories.md and sync Supabase | 2026-03-12 | c8c7f59 | [2-improve-app-categories-from-grocery-cate](./quick/2-improve-app-categories-from-grocery-cate/) |
+| 3 | Add item administration and Varekatalog management | 2026-03-14 | 7f44449 | [3-add-item-administration-in-the-admin-ite](./quick/3-add-item-administration-in-the-admin-ite/) |

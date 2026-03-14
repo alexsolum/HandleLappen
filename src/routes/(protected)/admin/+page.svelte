@@ -3,7 +3,7 @@
     { label: 'Butikker', href: '/admin/butikker' },
     { label: 'Husstand', href: '/admin/husstand' },
     { label: 'Historikk', href: '/admin/historikk' },
-    { label: 'Items' },
+    { label: 'Varekatalog', href: '/admin/items' },
     { label: 'Brukerinnstillinger' }
   ]
 </script>
