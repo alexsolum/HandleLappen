@@ -59,6 +59,30 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 
 - [ ] **USRSET-01**: User can toggle dark mode from the user settings page
 
+## v2.0 Requirements
+
+Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
+
+### Scanner Reliability (SCAN)
+
+- [ ] **SCAN-01**: Barcode scanner camera opens without black screen on iOS Safari in PWA standalone mode
+- [ ] **SCAN-02**: When camera access is denied, app shows a distinct "go to Settings" message; when only dismissed, shows "Try again" without alarming UI
+- [ ] **SCAN-03**: Scanner provides haptic feedback on successful barcode detection
+
+### Product Data Enrichment (ENRICH)
+
+- [ ] **ENRICH-01**: Scanned product's brand name is fetched from Kassal.app and stored in the barcode cache
+- [ ] **ENRICH-02**: Scanned product's image URL is fetched from Kassal.app and stored in the barcode cache
+- [ ] **ENRICH-03**: Product brand and image URL are written to list items at scan-add time
+- [ ] **ENRICH-04**: Product brand and image URL are written to household item memory for future scan suggestions
+
+### Product Display (DISP)
+
+- [ ] **DISP-01**: Scan result sheet shows product image and brand before user confirms adding to list
+- [ ] **DISP-02**: Shopping list item rows show a product thumbnail when one is available, with graceful fallback if image fails to load
+- [ ] **DISP-03**: Admin → Items shows product image and brand per item
+- [ ] **DISP-04**: Varekatalog shows product image and brand per item
+
 ## Future Requirements
 
 ### Authentication & Onboarding
@@ -126,12 +150,25 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 | ITEMS-03 | Phase 15 | Pending |
 | ITEMS-04 | Phase 15 | Pending |
 | USRSET-01 | Phase 16 | Pending |
+| SCAN-01 | Phase 18 | Pending |
+| SCAN-02 | Phase 18 | Pending |
+| SCAN-03 | Phase 18 | Pending |
+| ENRICH-01 | Phase 19 | Pending |
+| ENRICH-02 | Phase 19 | Pending |
+| ENRICH-03 | Phase 20 | Pending |
+| ENRICH-04 | Phase 20 | Pending |
+| DISP-01 | Phase 20 | Pending |
+| DISP-02 | Phase 20 | Pending |
+| DISP-03 | Phase 20 | Pending |
+| DISP-04 | Phase 20 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 18 total
 - Mapped to phases: 18
+- v2.0 requirements: 11 total
+- Mapped to phases: 11 (traceability to be confirmed by roadmapper)
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-13 after defining milestone v1.2*
+*Last updated: 2026-03-14 after defining milestone v2.0*
