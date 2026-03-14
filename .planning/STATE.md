@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-last_updated: "2026-03-13T12:30:00.000Z"
-last_activity: "2026-03-13 — Starting Phase 13: Admin Hub and Subpage Routing"
+status: completed
+last_updated: "2026-03-13T16:00:00.000Z"
+last_activity: "2026-03-13 — Completed Phase 13: Admin Hub and Subpage Routing (All 4 plans complete)"
 progress:
   total_phases: 16
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 42
-  completed_plans: 32
-  percent: 76
+  completed_plans: 36
+  percent: 85
 ---
 
 # Project State
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 13 — Admin Hub and Subpage Routing
+**Current focus:** Phase 14 — Recipes and Ingredient Management
 
 ## Current Position
 
-Phase: 13 — Admin Hub and Subpage Routing (In Progress)
-Plan: 0 of 4 complete
-Status: Starting Phase 13 implementation
-Last activity: 2026-03-13 — Starting Phase 13: Admin Hub and Subpage Routing
+Phase: 14 — Recipes and Ingredient Management (In Progress)
+Plan: 1 of 4 complete
+Status: Executing.
+Last activity: 2026-03-14 — Completed Plan 14-01: Recipe Backend Foundation (migration, RLS, Storage, types, frontend queries, components, routes, tests).
 
-Progress: [████████░░] 76%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 31
 - Average duration: -
 - Total execution time: -
 
@@ -46,6 +46,10 @@ Progress: [████████░░] 76%
 | Phase 12 P01 | 15min | 1 task | 2 files |
 | Phase 12 P02 | 10min | 2 tasks | 5 files |
 | Phase 12 P03 | 10min | 2 tasks | 2 files |
+| Phase 13 P01 | 12min | 2 tasks | 3 files |
+| Phase 13 P02 | 15min | 3 tasks | 4 files |
+| Phase 13 P03 | 10min | 2 tasks | 3 files |
+| Phase 13 P04 | 15min | 5 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -66,6 +70,9 @@ Progress: [████████░░] 76%
 - [v1.2-roadmap]: Admin sub-route load functions must read householdId from locals directly — not via await parent() — to avoid serializing parallel SvelteKit load waterfalls.
 - [v1.2-roadmap]: Existing /husstand and /butikker routes need 301 redirects to their new Admin subpage destinations before the nav restructure ships, to protect existing PWA users.
 - [v1.2-roadmap]: Recipe add-to-list must use Supabase upsert with ignoreDuplicates: true against a unique constraint on (list_id, item_id) to prevent duplicate list rows.
+- [Phase 14-01-recipe-backend]: Storage RLS uses storage.foldername(name)[1] = my_household_id()::text — path prefix enforces household isolation at the bucket policy level, consistent with v1.2 roadmap decision.
+- [Phase 14-01-recipe-backend]: Image compression uses DOM canvas API (not OffscreenCanvas) for iOS 15 Safari compatibility; OffscreenCanvas risk was pre-documented in pending todos.
+- [Phase 14-01-recipe-backend]: Ingredient names stored as plain text in recipe_ingredients.name — no FK to household_item_memory; IngredientBuilder normalizes by simple lowercase dedup within a recipe session.
 - [Phase 12-01-navigation-restructure]: TDD Wave 0 test scaffold uses shared storageState in beforeAll/afterAll with per-test page isolation — avoids 8 separate login round-trips while maintaining test independence.
 - [Phase 12-01-navigation-restructure]: Pre-existing SSR crash on /logg-inn fixed — window.location in data attribute template evaluation required typeof window guard (auto-fixed as blocking Rule 3).
 - [Phase 12]: isActive uses tab.href === '/anbefalinger' (not tab.label) for consistency with other href-based checks in BottomNav
@@ -74,10 +81,8 @@ Progress: [████████░░] 76%
 - [Phase 12-03-navigation-restructure]: Existing /husstand/+page.svelte left in place after redirect — server-side redirect fires before SvelteKit renders the page component
 
 ### Pending Todos
-- Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.
-- Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
-- Confirm Supabase Storage bucket creation approach (migration SQL vs dashboard) before writing Phase 14 migration.
-- Inspect existing upsert_household_item_memory RPC for normalization logic before building recipe ingredient matching in Phase 14.
+- Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
+- Plans 14-02 through 14-04 may have reduced scope — frontend layer (queries, IngredientBuilder, /oppskrifter pages) was already committed in Plan 14-01.
 
 ### Blockers/Concerns
 - None.
