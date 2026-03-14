@@ -9,7 +9,7 @@
   let searchQuery = $state('')
 
   const filteredRecipes = $derived(
-    $recipesQuery.data?.filter((recipe) =>
+    recipesQuery.data?.filter((recipe) =>
       recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) ?? []
   )
@@ -45,7 +45,7 @@
     </div>
   </div>
 
-  {#if $recipesQuery.isLoading}
+  {#if recipesQuery.isLoading}
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {#each Array(6) as _}
         <div class="animate-pulse space-y-4">
@@ -55,7 +55,7 @@
         </div>
       {/each}
     </div>
-  {:else if $recipesQuery.error}
+  {:else if recipesQuery.error}
     <div class="rounded-2xl bg-red-50 p-8 text-center text-red-700">
       Kunne ikke laste oppskrifter. Prøv igjen senere.
     </div>

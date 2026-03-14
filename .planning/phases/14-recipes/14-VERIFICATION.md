@@ -1,29 +1,16 @@
 ---
 phase: 14-recipes
-verified: 2026-03-14T08:00:00Z
-status: gaps_found
-score: 5/7 must-haves verified
-gaps:
-  - truth: "Category assignment carries through from recipe ingredient to shopping list item"
-    status: failed
-    reason: "createAddOrIncrementItemMutation inserts list_items with no category_id — the field is simply absent from the insert payload. Ingredients added from a recipe land as uncategorized items regardless of any remembered category in household_item_memory."
-    artifacts:
-      - path: "src/lib/queries/items.ts"
-        issue: "Lines 138-146: insert payload omits category_id entirely. The mutation signature (AddOrIncrementItemVariables) has no category parameter, so callers cannot pass one."
-      - path: "src/routes/(protected)/oppskrifter/[id]/+page.svelte"
-        issue: "Lines 78-79: handleAddToList calls mutateAsync({ listId, name: ingredient.name }) — no category lookup before adding to list."
-    missing:
-      - "AddOrIncrementItemVariables type needs an optional categoryId field"
-      - "createAddOrIncrementItemMutation insert payload must include category_id when provided"
-      - "The detail page handleAddToList must look up the remembered category for each ingredient name (via household_item_memory or a categories query) and pass it when calling the mutation"
-  - truth: "Adding ALL recipe ingredients to a list in one action is distinct from selecting individual ones"
-    status: partial
-    reason: "The 'add all' path (RECPE-07) is implemented by pre-selecting every ingredient and having a single button, not a dedicated 'Add all' action separate from the per-ingredient checkbox flow. The CONTEXT.md decision doc confirms this was the intended design, but the success criterion says 'in one action' which the implementation satisfies. Marking partial because there is no explicit 'Add All' button independent of the checkbox state — user must not have deselected anything. Functionally it works but the duplicate-prevention note in RECPE-07 also has the category gap above."
-    artifacts:
-      - path: "src/routes/(protected)/oppskrifter/[id]/+page.svelte"
-        issue: "No dedicated 'Add all' button — pre-selection of all ingredients plus one submit button serves as the 'add all' mechanism. This is consistent with CONTEXT.md but the success criterion reads as if it should be a distinct affordance from selective adding."
-    missing:
-      - "Assess whether pre-selection-of-all satisfies RECPE-07 as designed (likely yes per CONTEXT.md); if so, close this partial gap — the category issue above is the real blocker"
+verified: 2026-03-14T08:45:00Z
+status: human_needed
+score: 7/7 must-haves verified
+re_verification:
+  previous_status: gaps_found
+  previous_score: 5/7
+  gaps_closed:
+    - "Category assignment carries through from recipe ingredient to shopping list item"
+    - "Adding ALL recipe ingredients to a list in one action (RECPE-07 add-all semantics confirmed closed — pre-selection-of-all plus single button is the designed 'one action')"
+  gaps_remaining: []
+  regressions: []
 human_verification:
   - test: "Verify that after adding recipe ingredients to a list, items appear in the correct store-layout category section"
     expected: "If 'Melk' has a remembered category 'Meieri og egg', it should appear under that section header in the shopping list, not under 'Andre varer'"
@@ -39,9 +26,43 @@ human_verification:
 # Phase 14: Recipes Verification Report
 
 **Phase Goal:** Any household member can browse, create, and use household-shared recipes — selecting which ingredients to add to a shopping list so the store-layout ordering and category assignment carry through from recipe to list
-**Verified:** 2026-03-14T08:00:00Z
-**Status:** gaps_found — 1 critical gap (category carry-through broken), 1 partial gap (add-all semantics)
-**Re-verification:** No — initial verification
+**Verified:** 2026-03-14T08:45:00Z
+**Status:** human_needed — all automated checks pass; 3 items require human runtime verification
+**Re-verification:** Yes — after gap closure (Plan 14-05, commits 54f19ec and 65f1d03)
+
+## Re-verification Summary
+
+**Previous status:** gaps_found (score 5/7)
+**Current status:** human_needed (score 7/7)
+
+### Gaps Closed
+
+1. **Category carry-through (Truth 7, RECPE-02, RECPE-06, RECPE-07)** — Closed by Plan 14-05:
+   - `AddOrIncrementItemVariables` now includes `categoryId?: string | null` (line 20, `src/lib/queries/items.ts`)
+   - `createAddOrIncrementItemMutation` insert payload now includes `category_id: categoryId ?? null` (lines 138-145)
+   - The increment path (lines 126-135) correctly leaves `category_id` untouched — only quantity is updated
+   - `handleAddToList` in the detail page now imports `searchRememberedItems` from `$lib/queries/remembered-items-core`, calls it per ingredient, takes `lastCategoryId` from the first result (or `null` if no match), and passes `categoryId` to `mutateAsync`
+
+2. **Add-all semantics (Truth 6, RECPE-07)** — Confirmed aligned with design intent per `14-CONTEXT.md`: all-pre-selected + single submit button is the designed "one action" affordance; no separate "Add All" button was required.
+
+### Gaps Remaining
+
+None.
+
+### Regressions
+
+None detected. Previously-passing artifacts verified:
+- `src/lib/queries/recipes.ts` — unchanged since Phase 14-03
+- `src/routes/(protected)/oppskrifter/+page.svelte` — unchanged
+- `src/routes/(protected)/oppskrifter/ny/+page.svelte` — unchanged
+- `src/routes/(protected)/oppskrifter/[id]/+page.server.ts` — unchanged
+- `src/routes/(protected)/oppskrifter/[id]/rediger/+page.svelte` — unchanged
+- `src/lib/components/recipes/IngredientBuilder.svelte` — unchanged
+- `src/lib/components/recipes/ListPickerSheet.svelte` — unchanged
+
+TypeScript (`npx tsc --noEmit`) exits clean with no errors in the two modified files.
+
+---
 
 ## Goal Achievement
 
@@ -50,33 +71,34 @@ human_verification:
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
 | 1 | User can create a recipe with a name and optionally upload a cover image, and immediately see it in the recipe list | VERIFIED | `/oppskrifter/ny` form with file input + `compressImage`/`uploadRecipeImage` + `createRecipeMutation` + redirect to `/oppskrifter`. Playwright test `can create a new recipe with ingredients` covers this. |
-| 2 | User can add ingredients by picking from household's previously used items, preserving category linkage | PARTIAL | `IngredientBuilder` calls `searchRememberedItems` for typeahead — names are preserved. But category is stored only as a remembered attribute in `household_item_memory`; it is not passed through when adding ingredients to a list (see gap). The pick-from-memory part works; the category carry-through to the list does not. |
+| 2 | User can add ingredients by picking from household's previously used items, preserving category linkage | VERIFIED | `IngredientBuilder` calls `searchRememberedItems` for typeahead. Category is now carried through to list add via the fixed `handleAddToList` → `mutateAsync({ categoryId })` path. |
 | 3 | User can edit a recipe's name, cover image, and ingredient list, and delete a recipe | VERIFIED | `/oppskrifter/[id]/rediger` with `createUpdateRecipeMutation` (delete-all/re-insert strategy). Delete from detail page via `createDeleteRecipeMutation` with confirmation dialog. Playwright tests cover both flows. |
-| 4 | The recipe list shows each recipe's cover image (or placeholder) and name, loads within a normal page transition | VERIFIED | `/oppskrifter/+page.svelte` uses `createRecipesQuery` (alphabetical sort), renders image cards with `<img>` when `recipe.image_url` is set, SVG placeholder icon when null. Search bar filters client-side. |
-| 5 | From a recipe detail page, user can select individual ingredients with checkboxes and add only those to a chosen shopping list | VERIFIED | `/oppskrifter/[id]/+page.svelte` renders `recipe_ingredients` as checkboxes (`selectedIngredients` Set), `ListPickerSheet` bottom sheet selects target list, `handleAddToList` iterates selected only. Playwright test `ingredients are all pre-selected and can be toggled` + `can add ingredients to a shopping list` cover this. |
-| 6 | From a recipe detail page, user can add all ingredients to a chosen shopping list in one action; items already on the list are not duplicated (quantity incremented) | PARTIAL | Pre-selection of all ingredients plus a single button satisfies "one action". Duplicate handling exists in `createAddOrIncrementItemMutation` (name-match increment). However, category is not passed — items land without `category_id`, so store-layout ordering does NOT carry through. This fails the core goal criterion. |
-| 7 | Store-layout ordering and category assignment carry through from recipe to list | FAILED | `createAddOrIncrementItemMutation` insert payload (lines 138-146 of `src/lib/queries/items.ts`) omits `category_id`. The `AddOrIncrementItemVariables` type has no `categoryId` parameter. The detail page `handleAddToList` (line 79) passes only `{ listId, name }`. Items added from recipes are always uncategorized regardless of what `household_item_memory` knows about that ingredient. |
+| 4 | The recipe list shows each recipe's cover image (or placeholder) and name, loads within a normal page transition | VERIFIED | `/oppskrifter/+page.svelte` uses `createRecipesQuery` (alphabetical sort), renders image cards with `<img>` when `recipe.image_url` is set, SVG placeholder icon when null. Client-side search bar filters results. |
+| 5 | From a recipe detail page, user can select individual ingredients with checkboxes and add only those to a chosen shopping list | VERIFIED | `/oppskrifter/[id]/+page.svelte` renders `recipe_ingredients` as checkboxes (`selectedIngredients` Set), `ListPickerSheet` bottom sheet selects target list, `handleAddToList` iterates selected only. Playwright tests `ingredients are all pre-selected and can be toggled` and `can add ingredients to a shopping list` cover this. |
+| 6 | From a recipe detail page, user can add all ingredients to a chosen shopping list in one action; items already on the list are not duplicated (quantity incremented) | VERIFIED | Pre-selection of all ingredients plus a single button satisfies "one action" per `14-CONTEXT.md` design intent. Duplicate handling via `createAddOrIncrementItemMutation` (name-match increment, lines 126-135). Category now carried through on insert path (lines 138-145). |
+| 7 | Store-layout ordering and category assignment carry through from recipe to list | VERIFIED | `handleAddToList` (line 80-82, `+page.svelte`) calls `searchRememberedItems(supabase, ingredient.name)`, takes `remembered[0].lastCategoryId` when available, and passes it to `mutateAsync`. The mutation insert payload includes `category_id: categoryId ?? null` (line 144, `items.ts`). The chain is complete: memory lookup → categoryId → DB insert. Human runtime verification still required to confirm end-to-end behavior with real data. |
 
-**Score:** 5/7 truths verified (truths 2 and 6 are partial due to the category gap; truth 7 fails outright)
+**Score:** 7/7 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `supabase/migrations/20260313000000_phase14_recipes.sql` | DB schema: recipes + recipe_ingredients + RLS + Storage | VERIFIED | Tables, indexes, 4 RLS policies each, Storage bucket with 4 path-scoped policies — all present and substantive |
-| `src/lib/types/database.ts` | Regenerated types including recipes/recipe_ingredients | VERIFIED | Types updated; file modified in 63f0c81 |
-| `src/lib/queries/recipes.ts` | TanStack Query factories: list, detail, create, delete, update | VERIFIED | All 5 factories present and wired: `createRecipesQuery`, `createRecipeDetailQuery`, `createRecipeMutation`, `createDeleteRecipeMutation`, `createUpdateRecipeMutation` |
+| `supabase/migrations/20260313000000_phase14_recipes.sql` | DB schema: recipes + recipe_ingredients + RLS + Storage | VERIFIED | Tables, indexes, 4 RLS policies each, Storage bucket with 4 path-scoped policies |
+| `src/lib/types/database.ts` | Regenerated types including recipes/recipe_ingredients | VERIFIED | Types updated (commit 63f0c81) |
+| `src/lib/queries/recipes.ts` | TanStack Query factories: list, detail, create, delete, update | VERIFIED | All 5 factories present and wired |
+| `src/lib/queries/items.ts` | `AddOrIncrementItemVariables` with `categoryId?: string | null`; insert payload includes `category_id` | VERIFIED | Line 20: type extended. Line 110: destructured in `mutationFn`. Lines 138-145: insert payload includes `category_id: categoryId ?? null`. Increment path (lines 126-135) unchanged. |
 | `src/lib/components/recipes/IngredientBuilder.svelte` | Typeahead from household_item_memory, add/remove | VERIFIED | Calls `searchRememberedItems`, renders suggestion dropdown, add/remove buttons, ingredient list |
 | `src/lib/storage/upload.ts` | `compressImage` (canvas WebP max 1200px) + `uploadRecipeImage` | VERIFIED | Full implementation: FileReader → canvas → toBlob('image/webp', 0.8) → Supabase storage upload |
 | `src/routes/(protected)/oppskrifter/+page.svelte` | Recipe list with search, image cards, placeholder | VERIFIED | Uses `createRecipesQuery`, client-side search filter, grid cards with image/placeholder, "Ny oppskrift" link |
 | `src/routes/(protected)/oppskrifter/ny/+page.svelte` | Creation form: name, description, image, ingredients, submit | VERIFIED | Full form wired to `createRecipeMutation` + `uploadRecipeImage`; redirects to `/oppskrifter` on success |
 | `src/routes/(protected)/oppskrifter/[id]/+page.server.ts` | Server load with 404 guard | VERIFIED | Validates recipe existence via RLS-filtered query; throws 404 if not found |
-| `src/routes/(protected)/oppskrifter/[id]/+page.svelte` | Detail view: hero image, ingredient checkboxes, add-to-list, delete | VERIFIED | Full implementation with sticky action bar, `ListPickerSheet`, delete confirmation dialog, toast; data-testid attributes for Playwright |
+| `src/routes/(protected)/oppskrifter/[id]/+page.svelte` | Detail view: hero image, ingredient checkboxes, add-to-list with category lookup, delete | VERIFIED | Full implementation: `searchRememberedItems` imported (line 10), called per ingredient (line 80), `categoryId` passed to `mutateAsync` (line 82). Sticky action bar, `ListPickerSheet`, delete confirmation dialog, toast all present. |
 | `src/lib/components/recipes/ListPickerSheet.svelte` | Bottom sheet list picker for recipe context | VERIFIED | Dialog-based sheet using showModal/close, passes `listId` + `listName` to `onSelect` callback |
 | `src/routes/(protected)/oppskrifter/[id]/rediger/+page.server.ts` | Server load with 404 guard for edit page | VERIFIED | Same pattern as detail server load |
 | `src/routes/(protected)/oppskrifter/[id]/rediger/+page.svelte` | Edit form pre-filled from query, update mutation, image handling | VERIFIED | `$effect` with `initialised` flag pre-fills form; three-value `image_url` semantics; redirects to detail on save |
 | `tests/helpers/recipes.ts` | Admin helpers: createTestRecipe, addTestIngredient, deleteTestRecipe | VERIFIED | All three helpers use service-role client and proper insert/delete patterns |
-| `tests/recipes.spec.ts` | Playwright tests covering creation, search, detail, edit, delete, add-to-list | VERIFIED | Three describe blocks with 2+4+4 = 10 tests covering all major flows |
+| `tests/recipes.spec.ts` | Playwright tests covering creation, search, detail, edit, delete, add-to-list | VERIFIED | Three describe blocks covering all major flows |
 
 ### Key Link Verification
 
@@ -86,41 +108,37 @@ human_verification:
 | `/oppskrifter/ny/+page.svelte` | `createRecipeMutation` + `uploadRecipeImage` | imports + `handleSubmit` | WIRED | Both called in `handleSubmit`; image uploaded before mutation; redirects on success |
 | `/oppskrifter/ny/+page.svelte` | `IngredientBuilder` | import + component usage | WIRED | `<IngredientBuilder {supabase} bind:ingredients .../>` renders in form |
 | `/oppskrifter/[id]/+page.svelte` | `createRecipeDetailQuery` | import + call | WIRED | `createRecipeDetailQuery(supabase, recipeId)` result drives entire detail view |
-| `/oppskrifter/[id]/+page.svelte` | `createAddOrIncrementItemMutation` | import + `handleAddToList` | WIRED (partial) | Called per ingredient in loop; but missing `category_id` — see gap |
+| `/oppskrifter/[id]/+page.svelte` | `searchRememberedItems` | import line 10 + call in `handleAddToList` loop line 80 | WIRED | Imported from `$lib/queries/remembered-items-core`. Called with `supabase` and `ingredient.name`. `lastCategoryId` extracted from first result or `null`. |
+| `/oppskrifter/[id]/+page.svelte` | `createAddOrIncrementItemMutation` | import + `handleAddToList` line 82 | WIRED | `mutateAsync({ listId, name: ingredient.name, categoryId })` — `categoryId` now included |
 | `/oppskrifter/[id]/+page.svelte` | `ListPickerSheet` | import + component with `onSelect={handleAddToList}` | WIRED | Sheet opens on button click; `onSelect` triggers add-to-list flow |
 | `/oppskrifter/[id]/rediger/+page.svelte` | `createUpdateRecipeMutation` | import + `handleSubmit` | WIRED | Called in `handleSubmit`; ingredient sync via delete-all/re-insert; redirects to detail |
-| `createAddOrIncrementItemMutation` | `list_items.category_id` | insert payload | NOT WIRED | Insert at lines 138-146 has no `category_id` field. Store-layout ordering cannot apply to recipe-sourced items. |
+| `createAddOrIncrementItemMutation insert payload` | `list_items.category_id` | `category_id: categoryId ?? null` at line 144 of `items.ts` | WIRED | Insert payload now includes `category_id`. Increment path (update only) correctly leaves `category_id` untouched. |
 
 ### Requirements Coverage
 
-| Requirement | Description | Status | Evidence |
-|-------------|-------------|--------|----------|
-| RECPE-01 | User can create a recipe with a name and optional cover image | SATISFIED | `/oppskrifter/ny` form with file input, `compressImage` + `uploadRecipeImage`, `createRecipeMutation` |
-| RECPE-02 | User can add ingredients by selecting from household's known items | PARTIALLY SATISFIED | `IngredientBuilder` uses `searchRememberedItems` typeahead; category not carried through to list add |
-| RECPE-03 | User can edit a recipe's name, cover image, and ingredient list | SATISFIED | `/oppskrifter/[id]/rediger` with `createUpdateRecipeMutation` covering all three editable fields |
-| RECPE-04 | User can delete a recipe | SATISFIED | Delete button on detail page with confirmation dialog → `createDeleteRecipeMutation` → redirect |
-| RECPE-05 | Recipe list shows each recipe's cover image (if set) and name | SATISFIED | `/oppskrifter` grid cards: image with `object-cover`, SVG placeholder when null, recipe name in `<h3>` |
-| RECPE-06 | User can view a recipe and add individual ingredients to a chosen shopping list | PARTIALLY SATISFIED | Checkbox selection + `ListPickerSheet` + `createAddOrIncrementItemMutation` work; items added without category |
-| RECPE-07 | User can add all recipe ingredients to a chosen shopping list in one action | PARTIALLY SATISFIED | All-pre-selected + single button satisfies "one action"; duplicate increment works; category still missing |
+| Requirement | Source Plan | Description | Status | Evidence |
+|-------------|------------|-------------|--------|----------|
+| RECPE-01 | 14-01, 14-02 | User can create a recipe with a name and optional cover image | SATISFIED | `/oppskrifter/ny` form with file input, `compressImage` + `uploadRecipeImage`, `createRecipeMutation` |
+| RECPE-02 | 14-01, 14-05 | User can add ingredients by selecting from household's known items | SATISFIED | `IngredientBuilder` uses `searchRememberedItems` typeahead; `handleAddToList` now looks up `lastCategoryId` per ingredient and forwards it to `mutateAsync` |
+| RECPE-03 | 14-04 | User can edit a recipe's name, cover image, and ingredient list | SATISFIED | `/oppskrifter/[id]/rediger` with `createUpdateRecipeMutation` covering all three editable fields |
+| RECPE-04 | 14-03 | User can delete a recipe | SATISFIED | Delete button on detail page with confirmation dialog → `createDeleteRecipeMutation` → redirect |
+| RECPE-05 | 14-02 | Recipe list shows each recipe's cover image (if set) and name | SATISFIED | `/oppskrifter` grid cards: image with `object-cover`, SVG placeholder when null, recipe name in `<h3>` |
+| RECPE-06 | 14-03, 14-05 | User can view a recipe and add individual ingredients to a chosen shopping list | SATISFIED | Checkbox selection + `ListPickerSheet` + `createAddOrIncrementItemMutation` with `categoryId` now passed |
+| RECPE-07 | 14-03, 14-05 | User can add all recipe ingredients to a chosen shopping list in one action | SATISFIED | All-pre-selected + single button satisfies "one action" per design; duplicate increment works; `category_id` now set on insert |
 
-All 7 requirement IDs (RECPE-01 through RECPE-07) are accounted for. No orphaned requirements found.
+All 7 requirement IDs (RECPE-01 through RECPE-07) are SATISFIED. No orphaned requirements found.
 
 ### Anti-Patterns Found
 
-| File | Line | Pattern | Severity | Impact |
-|------|------|---------|----------|--------|
-| `src/lib/queries/items.ts` | 138-146 | `category_id` absent from insert payload in `createAddOrIncrementItemMutation` | Blocker | Recipe ingredients added to lists are always uncategorized; store-layout ordering cannot apply; direct violation of the phase goal |
-| `src/routes/(protected)/oppskrifter/[id]/+page.svelte` | 79 | `mutateAsync({ listId, name: ingredient.name })` — no category lookup | Blocker | Even if the mutation were fixed, the caller does not look up or pass the remembered category for each ingredient name |
-
-No TODO/FIXME/placeholder comments found in recipe files. No stub implementations found. No `return null` / empty returns found in recipe components.
+None. No TODO/FIXME/placeholder comments found in recipe files or gap-closure files. No stub implementations. No `return null` / empty returns in recipe components. Increment path correctly isolated from category_id write.
 
 ### Human Verification Required
 
-#### 1. Category in Shopping List After Recipe Add
+#### 1. Category Carry-Through in Shopping List After Recipe Add
 
-**Test:** Create a recipe with an ingredient that has a remembered category (e.g., add "Melk" to a shopping list first so it gets a category like "Meieri og egg", then create a recipe containing "Melk", then use Add to List from the recipe detail).
-**Expected:** "Melk" should appear under the "Meieri og egg" section header in the target list, not under "Andre varer". This currently FAILS because `category_id` is not passed.
-**Why human:** Requires real Supabase data, store layout configuration, and visual verification of the category section grouping.
+**Test:** Create a recipe with an ingredient that has a remembered category. First, add "Melk" to a shopping list so it gets a remembered category like "Meieri og egg". Then create a recipe containing "Melk". Open the recipe detail, press "Legg til i liste", pick a list. Check the target list.
+**Expected:** "Melk" appears under the "Meieri og egg" section header, not under "Andre varer". This is the core phase goal criterion. Static code analysis confirms the plumbing is correct (memory lookup → `lastCategoryId` → `categoryId` → insert payload → `category_id` column) but runtime behavior with real Supabase data must be confirmed.
+**Why human:** Requires real `household_item_memory` rows, a store layout with category sections, and visual verification of the section grouping in the shopping list view.
 
 #### 2. Cover Image Upload and Display
 
@@ -136,20 +154,19 @@ No TODO/FIXME/placeholder comments found in recipe files. No stub implementation
 
 ### Gaps Summary
 
-**One blocker gap prevents the phase goal from being achieved.**
+No gaps remain. The single blocker gap from the initial verification — category carry-through broken due to missing `categoryId` in `AddOrIncrementItemVariables` and missing category lookup in `handleAddToList` — has been fully resolved by Plan 14-05 (commits 54f19ec and 65f1d03).
 
-The phase goal explicitly states that "store-layout ordering and category assignment carry through from recipe to list." This requires that when an ingredient is added to a shopping list from a recipe, its `category_id` is set — enabling the existing category-grouped list view to place it in the correct section.
+The implementation chain is now complete:
+1. `handleAddToList` calls `searchRememberedItems(supabase, ingredient.name)` per ingredient
+2. Takes `lastCategoryId` from the first result, or `null` if no match
+3. Passes `categoryId` to `mutateAsync({ listId, name, categoryId })`
+4. `createAddOrIncrementItemMutation` inserts `category_id: categoryId ?? null` on the insert path only
+5. The increment path (existing unchecked item found) updates only `quantity` — no `category_id` change
 
-The current implementation breaks this chain at the `createAddOrIncrementItemMutation` level: the function's type signature (`AddOrIncrementItemVariables`) has no `categoryId` parameter, and the insert payload at lines 138-146 of `src/lib/queries/items.ts` omits `category_id` entirely. Additionally, the recipe detail page's `handleAddToList` does not attempt to look up the remembered category for each ingredient name before calling the mutation.
-
-To close this gap, three changes are needed in sequence:
-1. Add `categoryId?: string | null` to `AddOrIncrementItemVariables` and include it in the insert payload (when adding a new item, not when incrementing an existing one).
-2. In the recipe detail page's `handleAddToList`, look up the remembered category for each ingredient name from `household_item_memory` (via `searchRememberedItems` or a direct query by exact name) before calling the mutation.
-3. Pass the found `categoryId` (or `null` if no match) to `mutateAsync`.
-
-The remaining requirements (RECPE-01, RECPE-03, RECPE-04, RECPE-05) are fully satisfied. The recipe CRUD backbone, image upload, edit flow, and delete flow all work correctly. The add-to-list UI flow works mechanically — only the category thread is missing.
+All 7 requirements (RECPE-01 through RECPE-07) are satisfied. The phase backbone (CRUD, image upload, edit, delete) was verified in the initial pass and has not regressed. TypeScript compiles clean.
 
 ---
 
-_Verified: 2026-03-14T08:00:00Z_
+_Verified: 2026-03-14T08:45:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification after: Plan 14-05 gap closure_

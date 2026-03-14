@@ -48,7 +48,7 @@
         imageUrl = await uploadRecipeImage(supabase, householdId, imageFile)
       }
 
-      await $mutation.mutateAsync({
+      await mutation.mutateAsync({
         name,
         description,
         image_url: imageUrl,

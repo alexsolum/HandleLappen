@@ -30,7 +30,7 @@ test.describe('Recipe Creation Flow', () => {
     
     // Navigate to recipes
     await page.goto('/oppskrifter')
-    await expect(page.getByRole('heading', { name: 'Oppskrifter' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Oppskrifter', exact: true })).toBeVisible()
 
     // Click "Ny oppskrift"
     await page.getByRole('link', { name: 'Ny oppskrift' }).click()
@@ -45,11 +45,11 @@ test.describe('Recipe Creation Flow', () => {
     const ingredients = ['Melk', 'Brød', 'Egg']
     for (const ingredient of ingredients) {
       const input = page.getByPlaceholder('Søk eller skriv inn ingrediens...')
-      await input.fill(ingredient)
+      await input.pressSequentially(ingredient, { delay: 30 })
       // Small wait to ensure state update
       await page.waitForTimeout(100)
       await page.getByRole('button', { name: 'Legg til' }).click()
-      await expect(page.getByText(ingredient)).toBeVisible()
+      await expect(page.getByText(ingredient, { exact: true }).first()).toBeVisible()
     }
 
     // Submit recipe
@@ -57,7 +57,7 @@ test.describe('Recipe Creation Flow', () => {
 
     // Should redirect back to list and show the new recipe
     await page.waitForURL('**/oppskrifter')
-    await expect(page.getByRole('heading', { name: 'Oppskrifter' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Oppskrifter', exact: true })).toBeVisible()
     await expect(page.getByText(recipeName)).toBeVisible()
   })
 
@@ -69,7 +69,7 @@ test.describe('Recipe Creation Flow', () => {
     for (const name of recipes) {
       await page.goto('/oppskrifter/ny')
       await page.getByLabel('Navn på oppskrift').fill(name)
-      await page.getByPlaceholder('Søk eller skriv inn ingrediens...').fill('Vann')
+      await page.getByPlaceholder('Søk eller skriv inn ingrediens...').pressSequentially('Vann', { delay: 30 })
       await page.waitForTimeout(100)
       await page.getByRole('button', { name: 'Legg til' }).click()
       await page.getByRole('button', { name: 'Lagre oppskrift' }).click()
@@ -205,7 +205,7 @@ test.describe('Recipe Detail View', () => {
     // All three ingredients should be visible
     await expect(page.getByText('Spaghetti')).toBeVisible()
     await expect(page.getByText('Bacon')).toBeVisible()
-    await expect(page.getByText('Egg')).toBeVisible()
+    await expect(page.getByTestId('ingredients-list').getByText('Egg', { exact: true })).toBeVisible()
   })
 
   test('ingredients are all pre-selected and can be toggled', async ({ page }) => {
@@ -286,6 +286,6 @@ test.describe('Recipe Detail View', () => {
 
     // Should redirect to list
     await page.waitForURL('**/oppskrifter')
-    await expect(page.getByRole('heading', { name: 'Oppskrifter' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Oppskrifter', exact: true })).toBeVisible()
   })
 })

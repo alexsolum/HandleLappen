@@ -27,7 +27,7 @@
 
   // When recipe loads, populate form fields (runs once)
   $effect(() => {
-    const recipe = $recipeQuery.data
+    const recipe = recipeQuery.data
     if (recipe && !initialised) {
       name = recipe.name
       description = recipe.description ?? ''
@@ -75,7 +75,7 @@
         newImageUrl = null
       }
 
-      await $updateMutation.mutateAsync({
+      await updateMutation.mutateAsync({
         id: recipeId,
         name,
         description,
@@ -93,7 +93,7 @@
   }
 </script>
 
-{#if $recipeQuery.isLoading}
+{#if recipeQuery.isLoading}
   <div class="mx-auto max-w-2xl px-4 py-8">
     <div class="animate-pulse space-y-6">
       <div class="h-8 w-1/2 rounded bg-gray-200"></div>
@@ -101,13 +101,13 @@
       <div class="h-4 w-full rounded bg-gray-200"></div>
     </div>
   </div>
-{:else if $recipeQuery.error}
+{:else if recipeQuery.error}
   <div class="mx-auto max-w-2xl px-4 py-8">
     <div class="rounded-2xl bg-red-50 p-8 text-center text-red-700">
       Kunne ikke laste oppskriften. Prøv igjen senere.
     </div>
   </div>
-{:else if $recipeQuery.data}
+{:else if recipeQuery.data}
   <div class="mx-auto max-w-2xl px-4 py-8">
     <div class="mb-8 flex items-center justify-between">
       <h1 class="text-2xl font-bold text-gray-900" data-testid="edit-recipe-heading">Rediger oppskrift</h1>

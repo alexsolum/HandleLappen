@@ -29,7 +29,7 @@
 
   // When recipe loads, pre-select all ingredients
   $effect(() => {
-    const ingredients = $recipeQuery.data?.recipe_ingredients
+    const ingredients = recipeQuery.data?.recipe_ingredients
     if (ingredients && selectedIngredients.size === 0) {
       selectedIngredients = new Set(ingredients.map((i: RecipeIngredient) => i.id))
     }
@@ -46,7 +46,7 @@
   }
 
   function selectAll() {
-    const ingredients = $recipeQuery.data?.recipe_ingredients ?? []
+    const ingredients = recipeQuery.data?.recipe_ingredients ?? []
     selectedIngredients = new Set(ingredients.map((i: RecipeIngredient) => i.id))
   }
 
@@ -67,7 +67,7 @@
     listPickerOpen = false
     isAddingToList = true
 
-    const ingredients = $recipeQuery.data?.recipe_ingredients ?? []
+    const ingredients = recipeQuery.data?.recipe_ingredients ?? []
     const selected = ingredients.filter((i: RecipeIngredient) => selectedIngredients.has(i.id))
 
     if (selected.length === 0) {
@@ -79,7 +79,7 @@
       for (const ingredient of selected) {
         const remembered = await searchRememberedItems(supabase, ingredient.name)
         const categoryId = remembered.length > 0 ? remembered[0].lastCategoryId : null
-        await $addOrIncrementMutation.mutateAsync({ listId, name: ingredient.name, categoryId })
+        await addOrIncrementMutation.mutateAsync({ listId, name: ingredient.name, categoryId })
       }
       showToast(`La til ${selected.length} ingrediens${selected.length === 1 ? '' : 'er'} i ${listName}`)
     } catch (err) {
@@ -94,7 +94,7 @@
     if (isDeleting) return
     isDeleting = true
     try {
-      await $deleteMutation.mutateAsync({ id: recipeId })
+      await deleteMutation.mutateAsync({ id: recipeId })
       goto('/oppskrifter')
     } catch (err) {
       console.error('Failed to delete recipe:', err)
@@ -104,14 +104,14 @@
   }
 
   const selectedCount = $derived(selectedIngredients.size)
-  const totalIngredients = $derived($recipeQuery.data?.recipe_ingredients?.length ?? 0)
+  const totalIngredients = $derived(recipeQuery.data?.recipe_ingredients?.length ?? 0)
 
   const lists = $derived(
-    ($listsQuery.data ?? []).map((l) => ({ id: l.id, name: l.name }))
+    (listsQuery.data ?? []).map((l: any) => ({ id: l.id, name: l.name }))
   )
 </script>
 
-{#if $recipeQuery.isLoading}
+{#if recipeQuery.isLoading}
   <div class="mx-auto max-w-2xl px-4 py-8">
     <div class="animate-pulse space-y-6">
       <div class="aspect-video w-full rounded-2xl bg-gray-200"></div>
@@ -120,14 +120,14 @@
       <div class="h-4 w-5/6 rounded bg-gray-200"></div>
     </div>
   </div>
-{:else if $recipeQuery.error}
+{:else if recipeQuery.error}
   <div class="mx-auto max-w-2xl px-4 py-8">
     <div class="rounded-2xl bg-red-50 p-8 text-center text-red-700">
       Kunne ikke laste oppskriften. Prøv igjen senere.
     </div>
   </div>
-{:else if $recipeQuery.data}
-  {@const recipe = $recipeQuery.data}
+{:else if recipeQuery.data}
+  {@const recipe = recipeQuery.data}
   {@const ingredients = recipe.recipe_ingredients ?? []}
 
   <div class="mx-auto max-w-2xl pb-32">
