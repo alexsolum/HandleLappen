@@ -100,12 +100,13 @@ Plans:
   3. When Kassal.app does not find the EAN, the app silently retries via Open Food Facts; the user sees one result or a clear "not found" message — never two separate results
   4. Barcode scanning works in iOS Safari PWA standalone mode using the WASM polyfill; no native BarcodeDetector API is required
   5. The Kassal.app Bearer token is never visible in browser DevTools network requests; all external API calls go through the Edge Function
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
 - [x] 04-02: Barcode scanner UI component — iOS-safe scanner library/polyfill, rear-camera preference, explicit scan trigger, manual EAN fallback
 - [x] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
+- [ ] 04-04-PLAN.md — Gap closure: add BARC-01..04 definitions and traceability rows to REQUIREMENTS.md; update 04-VERIFICATION.md to passed
 
 ### Phase 5: PWA and Offline Support
 **Goal**: The app is installable on a mobile home screen and continues to work for core shopping actions when in-store connectivity is poor or absent — syncing queued changes when the connection returns
@@ -347,7 +348,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
-| 4. Barcode Scanning | 3/3 | Complete   | 2026-03-14 |
+| 4. Barcode Scanning | 3/4 | Gap closure in progress | 2026-03-14 |
 | 5. PWA and Offline Support | 3/3 | Complete | 2026-03-12 |
 | 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
