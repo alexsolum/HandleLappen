@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: active
-last_updated: "2026-03-14T20:15:00.000Z"
-last_activity: 2026-03-14 — Phase 04-03 complete; all BARC requirements closed; manual device validation approved
+status: completed
+last_updated: "2026-03-14T20:47:43.442Z"
+last_activity: 2026-03-14 — Phase 04-03 Task 3 manual device validation approved; Phase 4 complete
 progress:
   total_phases: 20
   completed_phases: 10
-  total_plans: 39
+  total_plans: 40
   completed_plans: 35
   percent: 90
 ---
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 04 of 20 (Barcode Scanning — complete)
-Plan: 04-03 — Scan-to-add workflow (complete — all 3 tasks done including manual device validation)
-Status: Phase 4 complete — all BARC-01 through BARC-04 requirements closed; ready for Phase 17 (v2.0 Schema Migrations)
-Last activity: 2026-03-14 — Phase 04-03 Task 3 manual device validation approved; Phase 4 complete
+Plan: 04-04 — Gap closure (complete — BARC-01..04 definitions and traceability added; VERIFICATION.md now shows status: passed 12/12)
+Status: Phase 4 fully complete — REQUIREMENTS.md traceability gap closed; ready for Phase 17 (v2.0 Schema Migrations)
+Last activity: 2026-03-14 — Phase 04-04 gap closure complete; 04-VERIFICATION.md raised from 11/12 to 12/12 passed
 
-Progress: [█████████░] 90% (overall, v1.0 + v1.1 + v1.2 history; v2.0 Phase 4 now complete)
+Progress: [█████████░] 88% (overall, v1.0 + v1.1 + v1.2 history; v2.0 Phase 4 now fully complete)
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [█████████░] 90% (overall, v1.0 + v1.1 + v1.2 hist
 | Phase 14 P04 | 3 | 4 tasks | 4 files |
 | Phase 14-recipes P05 | 5 | 2 tasks | 2 files |
 | Phase 04-03 barcode scan-to-add | 20min | 3 tasks | 6 files |
+| Phase 04 P04 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,7 @@ Progress: [█████████░] 90% (overall, v1.0 + v1.1 + v1.2 hist
 - [v2.0-roadmap]: All new DB columns are nullable text with no defaults — safe on live tables with trigger activity; no backfill in migration transaction.
 - [v2.0-roadmap]: ProductThumbnail must use onerror fallback — Kassal CDN URLs (Cloudinary version tokens) can rotate before the 30-day cache TTL expires.
 - [v2.0-roadmap]: Phase 17 is infrastructure-only (no user-facing requirements); Phase 18 (iOS fix) is independent of 19/20 and can ship as a hotfix; Phase 20 depends on both 17 and 19.
+- [Phase 04-04-gap-closure]: v1.0 Barcode Scanning section inserted at the TOP of REQUIREMENTS.md before v1.1, preserving chronological milestone ordering; traceability rows placed before MOBL-01 to maintain ascending phase-number order
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
