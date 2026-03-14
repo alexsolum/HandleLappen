@@ -304,6 +304,6 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
 | 12. Navigation Restructure | 3/3 | Complete    | 2026-03-13 |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
-| 14. Recipes | 1/4 | In Progress | - |
+| 14. Recipes | 2/4 | In Progress | - |
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
