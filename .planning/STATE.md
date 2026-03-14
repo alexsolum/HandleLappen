@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-14T06:57:45.475Z"
-last_activity: "2026-03-14 — Completed Plan 14-03: Recipe Detail and Add to List (detail page, ListPickerSheet, Playwright tests)."
+last_updated: "2026-03-14T07:02:45.112Z"
+last_activity: "2026-03-14 — Completed Plan 14-04: Edit Recipe (edit page at /oppskrifter/[id]/rediger, updateRecipeMutation, Playwright tests)."
 progress:
   total_phases: 16
   completed_phases: 8
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 14 — Recipes and Ingredient Management (In Progress)
-Plan: 3 of 4 complete
+Phase: 14 — Recipes and Ingredient Management (Complete)
+Plan: 4 of 4 complete
 Status: Executing.
-Last activity: 2026-03-14 — Completed Plan 14-03: Recipe Detail and Add to List (detail page, ListPickerSheet, Playwright tests).
+Last activity: 2026-03-14 — Completed Plan 14-04: Edit Recipe (edit page at /oppskrifter/[id]/rediger, updateRecipeMutation, Playwright tests).
 
 Progress: [████████░░] 87%
 
@@ -53,6 +53,7 @@ Progress: [████████░░] 87%
 | Phase 14 P01 | 20min | 3 tasks | 10 files |
 | Phase 14 P02 | 8min | 5 verified + 1 fix | 1 file |
 | Phase 14 P03 | 3min | 2 tasks | 4 files |
+| Phase 14 P04 | 3 | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Progress: [████████░░] 87%
 - [Phase 12-03-navigation-restructure]: Existing /husstand/+page.svelte left in place after redirect — server-side redirect fires before SvelteKit renders the page component
 - [Phase 14-03-recipe-detail]: Add to List iterates selected ingredients sequentially calling createAddOrIncrementItemMutation per item — consistent with existing pattern, no batch mutation needed
 - [Phase 14-03-recipe-detail]: All ingredients pre-selected on detail load — user deselects what they don't need (faster path for adding full recipes)
+- [Phase 14]: Ingredient sync uses delete-all + re-insert strategy — simpler than diff, handles adds/removes/reorders equally for MVP recipe sizes
+- [Phase 14]: image_url passed as undefined when no image change made — three-value semantics: undefined=keep, null=remove, string=new URL
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
