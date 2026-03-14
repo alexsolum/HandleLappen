@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Barcode Scanner Improvement and Product Lookup
-status: defining
+status: roadmapped
 last_updated: "2026-03-14T00:00:00.000Z"
-last_activity: "2026-03-14 — Milestone v2.0 started"
+last_activity: "2026-03-14 — v2.0 roadmap created (Phases 17–20)"
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Defining requirements for v2.0
+**Current focus:** v2.0 Phase 17 — Schema Migrations (ready to plan)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 17 of 20 in v2.0 (Schema Migrations)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-14 — Milestone v2.0 started
+Status: Ready to plan
+Last activity: 2026-03-14 — v2.0 roadmap written; Phases 17–20 defined
 
-Progress: [████████░░] 87%
+Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 history; v2.0 not started)
 
 ## Performance Metrics
 
@@ -91,10 +91,18 @@ Progress: [████████░░] 87%
 - [Phase 14]: image_url passed as undefined when no image change made — three-value semantics: undefined=keep, null=remove, string=new URL
 - [Phase 14-05]: Category carry-through resolves at add-time via searchRememberedItems per ingredient — no schema changes or new tables required; two file edits suffice
 - [Phase 14-05]: Increment path (existing unchecked item on list) intentionally leaves category_id untouched — only the insert path receives the looked-up category
+- [v2.0-roadmap]: iOS black screen fix uses MutationObserver to intercept the video element synchronously before html5-qrcode's start() callback fires and set playsinline/muted/autoplay — confirmed by WebKit bugs 185448, 252465 and html5-qrcode issues #890, #713.
+- [v2.0-roadmap]: Image and brand bypass Gemini entirely — Gemini is used only for name normalization and category resolution; sending image URLs adds token cost with zero benefit.
+- [v2.0-roadmap]: Write-at-insert-time for list_items (product_image_url, brand) consistent with existing category_id pattern — no JOIN on hot list read path.
+- [v2.0-roadmap]: All new DB columns are nullable text with no defaults — safe on live tables with trigger activity; no backfill in migration transaction.
+- [v2.0-roadmap]: ProductThumbnail must use onerror fallback — Kassal CDN URLs (Cloudinary version tokens) can rotate before the 30-day cache TTL expires.
+- [v2.0-roadmap]: Phase 17 is infrastructure-only (no user-facing requirements); Phase 18 (iOS fix) is independent of 19/20 and can ship as a hotfix; Phase 20 depends on both 17 and 19.
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
 - Plan 14-04 may have reduced scope — edit/delete functionality is already implemented (edit link in detail header links to /oppskrifter/[id]/rediger; delete confirmed working via detail page).
+- Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
+- Phase 20 Svelte 5 onerror event timing with SSR hydration (sveltejs/svelte#10352) — verify early whether Svelte event binding works or inline HTML onerror attribute is required for cross-origin images.
 
 ### Blockers/Concerns
 - None.
