@@ -121,19 +121,19 @@ export function createRecipeMutation(supabase: SupabaseClient) {
 export function createDeleteRecipeMutation(supabase: SupabaseClient) {
   const queryClient = useQueryClient()
 
-  return createMutation<void, Error, { id: string }>({
+  return createMutation<void, Error, { id: string }>(() => ({
     mutationFn: async ({ id }) => {
       const { error } = await supabase
         .from('recipes')
         .delete()
         .eq('id', id)
-      
+
       if (error) throw error
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: recipesQueryKey() })
     },
-  })
+  }))
 }
 
 async function getMyHouseholdId(supabase: SupabaseClient): Promise<string> {
