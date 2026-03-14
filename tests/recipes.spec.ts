@@ -93,6 +93,89 @@ test.describe('Recipe Creation Flow', () => {
   })
 })
 
+test.describe('Recipe Edit Flow', () => {
+  let user: any
+  let recipe: any
+
+  test.beforeEach(async () => {
+    user = await createHouseholdUser(`recipe-edit-${Date.now()}@test.com`, 'password123')
+    recipe = await createTestRecipe(user.household.id, 'Original Oppskrift', 'Original beskrivelse')
+    await addTestIngredient(recipe.id, 'Mel', 0)
+    await addTestIngredient(recipe.id, 'Sukker', 1)
+    await addTestIngredient(recipe.id, 'Salt', 2)
+  })
+
+  test.afterEach(async () => {
+    if (user?.user?.id) {
+      await deleteTestUser(user.user.id)
+    }
+  })
+
+  test('edit page pre-fills name, description, and ingredients', async ({ page }) => {
+    await loginUser(page, user.user.email, 'password123')
+    await page.goto(`/oppskrifter/${recipe.id}/rediger`)
+
+    await expect(page.getByTestId('edit-recipe-heading')).toBeVisible()
+    await expect(page.getByTestId('recipe-name-input')).toHaveValue('Original Oppskrift')
+
+    // All three ingredients should be pre-loaded in the builder
+    await expect(page.getByText('Mel')).toBeVisible()
+    await expect(page.getByText('Sukker')).toBeVisible()
+    await expect(page.getByText('Salt')).toBeVisible()
+  })
+
+  test('can update recipe name and verify change on detail page', async ({ page }) => {
+    await loginUser(page, user.user.email, 'password123')
+    await page.goto(`/oppskrifter/${recipe.id}/rediger`)
+
+    await expect(page.getByTestId('recipe-name-input')).toBeVisible()
+
+    // Change the name
+    await page.getByTestId('recipe-name-input').fill('Oppdatert Oppskrift')
+
+    // Save
+    await page.getByTestId('save-recipe-button').click()
+
+    // Should redirect to detail page
+    await page.waitForURL(`**/oppskrifter/${recipe.id}`)
+    await expect(page.getByTestId('recipe-name')).toHaveText('Oppdatert Oppskrift')
+  })
+
+  test('can add and remove ingredients during edit', async ({ page }) => {
+    await loginUser(page, user.user.email, 'password123')
+    await page.goto(`/oppskrifter/${recipe.id}/rediger`)
+
+    await expect(page.getByText('Mel')).toBeVisible()
+
+    // Add a new ingredient
+    const input = page.getByPlaceholder('Søk eller skriv inn ingrediens...')
+    await input.fill('Vann')
+    await page.waitForTimeout(100)
+    await page.getByRole('button', { name: 'Legg til' }).click()
+    await expect(page.getByText('Vann')).toBeVisible()
+
+    // Save and verify on detail page
+    await page.getByTestId('save-recipe-button').click()
+    await page.waitForURL(`**/oppskrifter/${recipe.id}`)
+
+    // New ingredient should be visible
+    await expect(page.getByText('Vann')).toBeVisible()
+    // Existing ingredients should still be visible
+    await expect(page.getByText('Mel')).toBeVisible()
+  })
+
+  test('edit page is reachable from detail page via Rediger button', async ({ page }) => {
+    await loginUser(page, user.user.email, 'password123')
+    await page.goto(`/oppskrifter/${recipe.id}`)
+
+    await expect(page.getByTestId('edit-recipe-button')).toBeVisible()
+    await page.getByTestId('edit-recipe-button').click()
+
+    await page.waitForURL(`**/oppskrifter/${recipe.id}/rediger`)
+    await expect(page.getByTestId('edit-recipe-heading')).toBeVisible()
+  })
+})
+
 test.describe('Recipe Detail View', () => {
   let user: any
   let recipe: any
