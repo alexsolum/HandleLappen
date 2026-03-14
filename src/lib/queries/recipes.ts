@@ -28,6 +28,16 @@ export type CreateRecipeVariables = {
   ingredients: string[]
 }
 
+export type UpdateRecipeVariables = {
+  id: string
+  name: string
+  description?: string
+  /** Pass undefined to keep existing image, null to clear it, string to set a new URL */
+  image_url?: string | null
+  /** Full ingredient name list after edit — replaces existing list */
+  ingredients: string[]
+}
+
 export function recipesQueryKey() {
   return ['recipes']
 }
@@ -132,6 +142,59 @@ export function createDeleteRecipeMutation(supabase: SupabaseClient) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: recipesQueryKey() })
+    },
+  }))
+}
+
+export function createUpdateRecipeMutation(supabase: SupabaseClient) {
+  const queryClient = useQueryClient()
+
+  return createMutation<Recipe, Error, UpdateRecipeVariables>(() => ({
+    mutationFn: async ({ id, name, description, image_url, ingredients }) => {
+      // 1. Update recipe fields
+      const updatePayload: Partial<Recipe> & { name: string } = { name, description: description ?? null }
+      if (image_url !== undefined) {
+        updatePayload.image_url = image_url
+      }
+
+      const { data: recipe, error: recipeError } = await supabase
+        .from('recipes')
+        .update(updatePayload)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (recipeError) throw recipeError
+
+      // 2. Sync ingredients: fetch current, delete all, re-insert in submitted order
+      // Simple strategy: delete all existing, re-insert submitted list.
+      // Handles adds, removes, and reorders atomically without diff complexity.
+      const { error: deleteError } = await supabase
+        .from('recipe_ingredients')
+        .delete()
+        .eq('recipe_id', id)
+
+      if (deleteError) throw deleteError
+
+      if (ingredients.length > 0) {
+        const ingredientsToInsert = ingredients.map((ingredientName, index) => ({
+          recipe_id: id,
+          name: ingredientName,
+          position: index,
+        }))
+
+        const { error: insertError } = await supabase
+          .from('recipe_ingredients')
+          .insert(ingredientsToInsert)
+
+        if (insertError) throw insertError
+      }
+
+      return recipe as Recipe
+    },
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: recipesQueryKey() })
+      queryClient.invalidateQueries({ queryKey: recipeDetailQueryKey(variables.id) })
     },
   }))
 }
