@@ -1,11 +1,18 @@
 {
-    "mcpServers": {
-      "playwright": {
-        "command": "npx",
-        "args": ["@playwright/mcp@latest", "--extension"],
-        "env": {
-          "PLAYWRIGHT_MCP_EXTENSION_TOKEN": "l9zXfpJnqmN1FqqiJ8l8fmNhhXO9DIvIA5odQ2fzUN0"
-        }
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--extension"
+      ],
+      "env": {
+        "PLAYWRIGHT_MCP_EXTENSION_TOKEN": "l9zXfpJnqmN1FqqiJ8l8fmNhhXO9DIvIA5odQ2fzUN0"
       }
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=jnbmivrzlezanebcwgyj",
+      "type": "http"
     }
   }
+}

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-last_updated: "2026-03-13T12:30:00.000Z"
-last_activity: "2026-03-13 — Starting Phase 13: Admin Hub and Subpage Routing"
+status: executing
+last_updated: "2026-03-14T07:18:13.657Z"
+last_activity: "2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert)."
 progress:
   total_phases: 16
   completed_phases: 8
-  total_plans: 42
+  total_plans: 38
   completed_plans: 32
-  percent: 76
+  percent: 87
 ---
 
 # Project State
@@ -20,21 +20,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 13 — Admin Hub and Subpage Routing
+**Current focus:** Phase 14 — Recipes and Ingredient Management
 
 ## Current Position
 
-Phase: 13 — Admin Hub and Subpage Routing (In Progress)
-Plan: 0 of 4 complete
-Status: Starting Phase 13 implementation
-Last activity: 2026-03-13 — Starting Phase 13: Admin Hub and Subpage Routing
+Phase: 14 — Recipes and Ingredient Management (Complete)
+Plan: 5 of 5 complete
+Status: Executing.
+Last activity: 2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert).
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 31
 - Average duration: -
 - Total execution time: -
 
@@ -46,6 +46,15 @@ Progress: [████████░░] 76%
 | Phase 12 P01 | 15min | 1 task | 2 files |
 | Phase 12 P02 | 10min | 2 tasks | 5 files |
 | Phase 12 P03 | 10min | 2 tasks | 2 files |
+| Phase 13 P01 | 12min | 2 tasks | 3 files |
+| Phase 13 P02 | 15min | 3 tasks | 4 files |
+| Phase 13 P03 | 10min | 2 tasks | 3 files |
+| Phase 13 P04 | 15min | 5 tasks | 5 files |
+| Phase 14 P01 | 20min | 3 tasks | 10 files |
+| Phase 14 P02 | 8min | 5 verified + 1 fix | 1 file |
+| Phase 14 P03 | 3min | 2 tasks | 4 files |
+| Phase 14 P04 | 3 | 4 tasks | 4 files |
+| Phase 14-recipes P05 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,18 +75,26 @@ Progress: [████████░░] 76%
 - [v1.2-roadmap]: Admin sub-route load functions must read householdId from locals directly — not via await parent() — to avoid serializing parallel SvelteKit load waterfalls.
 - [v1.2-roadmap]: Existing /husstand and /butikker routes need 301 redirects to their new Admin subpage destinations before the nav restructure ships, to protect existing PWA users.
 - [v1.2-roadmap]: Recipe add-to-list must use Supabase upsert with ignoreDuplicates: true against a unique constraint on (list_id, item_id) to prevent duplicate list rows.
+- [Phase 14-01-recipe-backend]: Storage RLS uses storage.foldername(name)[1] = my_household_id()::text — path prefix enforces household isolation at the bucket policy level, consistent with v1.2 roadmap decision.
+- [Phase 14-01-recipe-backend]: Image compression uses DOM canvas API (not OffscreenCanvas) for iOS 15 Safari compatibility; OffscreenCanvas risk was pre-documented in pending todos.
+- [Phase 14-01-recipe-backend]: Ingredient names stored as plain text in recipe_ingredients.name — no FK to household_item_memory; IngredientBuilder normalizes by simple lowercase dedup within a recipe session.
+- [Phase 14-02-recipe-list-creation]: createMutation in @tanstack/svelte-query v5 requires an accessor function () => ({...}) not a plain object — fixed in createDeleteRecipeMutation; pattern now consistent with createRecipeMutation.
 - [Phase 12-01-navigation-restructure]: TDD Wave 0 test scaffold uses shared storageState in beforeAll/afterAll with per-test page isolation — avoids 8 separate login round-trips while maintaining test independence.
 - [Phase 12-01-navigation-restructure]: Pre-existing SSR crash on /logg-inn fixed — window.location in data attribute template evaluation required typeof window guard (auto-fixed as blocking Rule 3).
 - [Phase 12]: isActive uses tab.href === '/anbefalinger' (not tab.label) for consistency with other href-based checks in BottomNav
 - [Phase 12]: Admin sub-pages are non-interactive divs in Phase 12 — Phase 13 activates them as real navigation links
 - [Phase 12-03-navigation-restructure]: 301 (permanent) used for /husstand and /butikker redirects — PWA clients cache 301 and update back-history so users are never routed to dead URLs
 - [Phase 12-03-navigation-restructure]: Existing /husstand/+page.svelte left in place after redirect — server-side redirect fires before SvelteKit renders the page component
+- [Phase 14-03-recipe-detail]: Add to List iterates selected ingredients sequentially calling createAddOrIncrementItemMutation per item — consistent with existing pattern, no batch mutation needed
+- [Phase 14-03-recipe-detail]: All ingredients pre-selected on detail load — user deselects what they don't need (faster path for adding full recipes)
+- [Phase 14]: Ingredient sync uses delete-all + re-insert strategy — simpler than diff, handles adds/removes/reorders equally for MVP recipe sizes
+- [Phase 14]: image_url passed as undefined when no image change made — three-value semantics: undefined=keep, null=remove, string=new URL
+- [Phase 14-05]: Category carry-through resolves at add-time via searchRememberedItems per ingredient — no schema changes or new tables required; two file edits suffice
+- [Phase 14-05]: Increment path (existing unchecked item on list) intentionally leaves category_id untouched — only the insert path receives the looked-up category
 
 ### Pending Todos
-- Verify exact SECURITY DEFINER function name (my_household_id() vs get_my_household_ids()) before writing Storage RLS policies in Phase 14/15.
-- Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
-- Confirm Supabase Storage bucket creation approach (migration SQL vs dashboard) before writing Phase 14 migration.
-- Inspect existing upsert_household_item_memory RPC for normalization logic before building recipe ingredient matching in Phase 14.
+- Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
+- Plan 14-04 may have reduced scope — edit/delete functionality is already implemented (edit link in detail header links to /oppskrifter/[id]/rediger; delete confirmed working via detail page).
 
 ### Blockers/Concerns
 - None.

@@ -253,7 +253,13 @@ Plans:
   4. The recipe list shows each recipe's cover image (if uploaded) and name, and loads within a normal page transition
   5. From a recipe detail page, user can select individual ingredients with checkboxes and add only those to a chosen shopping list
   6. From a recipe detail page, user can add all ingredients to a chosen shopping list in one action; items already on the list are not duplicated
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [x] 14-01-PLAN.md — Database & Backend: recipes, recipe_ingredients, RLS, Storage bucket
+- [ ] 14-02-PLAN.md — Recipe Creation: /oppskrifter/ny, IngredientBuilder with typeahead, Image upload with client-side compression
+- [ ] 14-03-PLAN.md — Recipe Detail: /oppskrifter/[id], Add to List mutation with list picker and quantity increment
+- [ ] 14-04-PLAN.md — Edit/Delete Recipe: /oppskrifter/[id]/rediger, update mutation, sync ingredients
 
 ### Phase 15: Item Management
 **Goal**: Any household member can correct an item's name or category and add a photo to any household item, so the shopping list stays accurate and visually recognizable
@@ -298,6 +304,6 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
 | 12. Navigation Restructure | 3/3 | Complete    | 2026-03-13 |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
-| 14. Recipes | 0/TBD | Not started | - |
+| 14. Recipes | 2/4 | In Progress | - |
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |

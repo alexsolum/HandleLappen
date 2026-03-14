@@ -34,12 +34,12 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 ### Recipes (RECPE)
 
 - [ ] **RECPE-01**: User can create a recipe with a name and optional cover image (upload or URL)
-- [ ] **RECPE-02**: User can add ingredients to a recipe by selecting from the household's known items
+- [x] **RECPE-02**: User can add ingredients to a recipe by selecting from the household's known items
 - [ ] **RECPE-03**: User can edit a recipe's name, cover image, and ingredient list
 - [ ] **RECPE-04**: User can delete a recipe
 - [ ] **RECPE-05**: Recipe list shows each recipe's cover image (if set) and name
-- [ ] **RECPE-06**: User can view a recipe and add individual ingredients to a chosen shopping list
-- [ ] **RECPE-07**: User can add all recipe ingredients to a chosen shopping list in one action
+- [x] **RECPE-06**: User can view a recipe and add individual ingredients to a chosen shopping list
+- [x] **RECPE-07**: User can add all recipe ingredients to a chosen shopping list in one action
 
 ### Admin Hub (ADMIN)
 
@@ -115,12 +115,12 @@ Requirements for milestone v1.2: Navbar Restructure and Recipes.
 | ADMIN-03 | Phase 13 | Pending |
 | ADMIN-04 | Phase 13 | Pending |
 | RECPE-01 | Phase 14 | Pending |
-| RECPE-02 | Phase 14 | Pending |
+| RECPE-02 | Phase 14 | Complete |
 | RECPE-03 | Phase 14 | Pending |
 | RECPE-04 | Phase 14 | Pending |
 | RECPE-05 | Phase 14 | Pending |
-| RECPE-06 | Phase 14 | Pending |
-| RECPE-07 | Phase 14 | Pending |
+| RECPE-06 | Phase 14 | Complete |
+| RECPE-07 | Phase 14 | Complete |
 | ITEMS-01 | Phase 15 | Pending |
 | ITEMS-02 | Phase 15 | Pending |
 | ITEMS-03 | Phase 15 | Pending |

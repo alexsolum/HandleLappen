@@ -17,7 +17,7 @@ type Item = {
 }
 
 type AddItemVariables = { name: string; quantity?: number | null; categoryId?: string | null }
-type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number }
+type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number; categoryId?: string | null }
 type DeleteItemVariables = { id: string }
 type ChangeQuantityVariables = {
   id: string
@@ -107,7 +107,7 @@ export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
   const queryClient = useQueryClient()
 
   return createMutation<AddOrIncrementResult, Error, AddOrIncrementItemVariables>(() => ({
-    mutationFn: async ({ listId, name, amount = 1 }) => {
+    mutationFn: async ({ listId, name, amount = 1, categoryId }) => {
       const trimmedName = name.trim()
       const normalizedName = trimmedName.toLowerCase()
 
@@ -141,6 +141,7 @@ export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
           list_id: listId,
           name: trimmedName,
           quantity: amount,
+          category_id: categoryId ?? null,
         })
         .select('id')
         .single()
