@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 
 ## Current Position
 
-Phase: 17 of 20 in v2.0 (Schema Migrations)
-Plan: 17-01 — Schema migration (in progress)
-Status: Executing schema migration plan
-Last activity: 2026-03-14 — Added Phase 17 schema migration + verification guidance
+Phase: 04 of 20 (Barcode Scanning — active)
+Plan: 04-03 — Scan-to-add workflow (Tasks 1+2 complete; paused at Task 3 manual device validation checkpoint)
+Status: Awaiting manual device validation (Android Chrome + iPhone Safari + iPhone PWA)
+Last activity: 2026-03-14 — Phase 04-03 Tasks 1 and 2 complete; SUMMARY created; checkpoint at manual UAT
 
 Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 history; v2.0 not started)
 
@@ -59,6 +59,9 @@ Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 hist
 ## Accumulated Context
 
 ### Decisions
+- [Phase 04-03-barcode-scan-to-add]: BarcodeLookupSheet is a dumb props-driven component; all state (loading/found/not_found/error) is owned by the list page so it composes cleanly with scanner and manual-EAN resume flows already in ItemInput.
+- [Phase 04-03-barcode-scan-to-add]: Category ID resolution has two opportunities — at mutation settle time and via a reactive $effect — to handle the case where categories load after the mutation resolves.
+- [Phase 04-03-barcode-scan-to-add]: Confirmed barcode-add goes through the standard addItemMutation + assignCategoryMutation path so inserted items are indistinguishable from typed items and trigger the household item-memory pipeline.
 - [Phase 08-traceability-reconciliation]: Central BACKLOG.md created to capture functional tech debt and v2 features, separating milestone closure from debt resolution.
 - [Phase 08-reaudit]: v1.0-FINAL-AUDIT.md passed. 100% requirement traceability achieved for v1 milestone.
 - [Phase 09-mobile-layout-hardening]: All mobile sheets now share one inset, capped-height contract, and the signed-in shell uses a safe-area-aware dock stack with horizontal overflow clipping.
