@@ -56,8 +56,8 @@
     )
   }
 
-  $: categoryLookup = new Map(
-    (categoriesQuery.data ?? []).map((category) => [category.id, category.name])
+  const categoryLookup = $derived(
+    new Map((categoriesQuery.data ?? []).map((category) => [category.id, category.name]))
   )
 </script>
 
