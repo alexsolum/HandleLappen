@@ -7,6 +7,7 @@
   } from '$lib/queries/recipes'
   import { createListsQuery } from '$lib/queries/lists'
   import { createAddOrIncrementItemMutation } from '$lib/queries/items'
+  import { searchRememberedItems } from '$lib/queries/remembered-items-core'
   import ListPickerSheet from '$lib/components/recipes/ListPickerSheet.svelte'
 
   let { data } = $props()
@@ -76,7 +77,9 @@
 
     try {
       for (const ingredient of selected) {
-        await $addOrIncrementMutation.mutateAsync({ listId, name: ingredient.name })
+        const remembered = await searchRememberedItems(supabase, ingredient.name)
+        const categoryId = remembered.length > 0 ? remembered[0].lastCategoryId : null
+        await $addOrIncrementMutation.mutateAsync({ listId, name: ingredient.name, categoryId })
       }
       showToast(`La til ${selected.length} ingrediens${selected.length === 1 ? '' : 'er'} i ${listName}`)
     } catch (err) {
