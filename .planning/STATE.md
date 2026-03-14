@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-14T07:02:45.112Z"
-last_activity: "2026-03-14 — Completed Plan 14-04: Edit Recipe (edit page at /oppskrifter/[id]/rediger, updateRecipeMutation, Playwright tests)."
+last_updated: "2026-03-14T07:18:13.657Z"
+last_activity: "2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert)."
 progress:
   total_phases: 16
   completed_phases: 8
   total_plans: 38
-  completed_plans: 33
+  completed_plans: 32
   percent: 87
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 14 — Recipes and Ingredient Management (Complete)
-Plan: 4 of 4 complete
+Plan: 5 of 5 complete
 Status: Executing.
-Last activity: 2026-03-14 — Completed Plan 14-04: Edit Recipe (edit page at /oppskrifter/[id]/rediger, updateRecipeMutation, Playwright tests).
+Last activity: 2026-03-14 — Completed Plan 14-05: Category carry-through for recipe ingredients (searchRememberedItems lookup in handleAddToList, category_id on insert).
 
 Progress: [████████░░] 87%
 
@@ -54,6 +54,7 @@ Progress: [████████░░] 87%
 | Phase 14 P02 | 8min | 5 verified + 1 fix | 1 file |
 | Phase 14 P03 | 3min | 2 tasks | 4 files |
 | Phase 14 P04 | 3 | 4 tasks | 4 files |
+| Phase 14-recipes P05 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [████████░░] 87%
 - [Phase 14-03-recipe-detail]: All ingredients pre-selected on detail load — user deselects what they don't need (faster path for adding full recipes)
 - [Phase 14]: Ingredient sync uses delete-all + re-insert strategy — simpler than diff, handles adds/removes/reorders equally for MVP recipe sizes
 - [Phase 14]: image_url passed as undefined when no image change made — three-value semantics: undefined=keep, null=remove, string=new URL
+- [Phase 14-05]: Category carry-through resolves at add-time via searchRememberedItems per ingredient — no schema changes or new tables required; two file edits suffice
+- [Phase 14-05]: Increment path (existing unchecked item on list) intentionally leaves category_id untouched — only the insert path receives the looked-up category
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
