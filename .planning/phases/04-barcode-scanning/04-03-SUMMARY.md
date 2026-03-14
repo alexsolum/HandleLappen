@@ -40,7 +40,7 @@ patterns-established:
   - "EAN detected event from scanner closes the scanner sheet before opening the lookup sheet"
   - "Retry actions reopen the scanner or manual-EAN sheet via the barcodeResumeFlow state mechanism in ItemInput"
 requirements-completed: [BARC-01, BARC-02, BARC-03, BARC-04]
-duration: 15min
+duration: 20min
 completed: 2026-03-14
 ---
 
@@ -50,10 +50,10 @@ completed: 2026-03-14
 
 ## Performance
 
-- **Duration:** 15 min
+- **Duration:** 20 min
 - **Started:** 2026-03-14T19:55:43Z
-- **Completed:** 2026-03-14T20:10:00Z
-- **Tasks:** 2 completed (Task 3 is manual device validation — paused at checkpoint)
+- **Completed:** 2026-03-14T20:15:00Z
+- **Tasks:** 3 completed (all tasks including manual device validation)
 - **Files modified:** 6
 
 ## Accomplishments
@@ -70,9 +70,9 @@ Tasks 1 and 2 were implemented as part of the prior codebase sync. The code ship
 
 1. **Task 1: Barcode lookup layer and BarcodeLookupSheet** — included in `d700995` (feat: sync HandleLappen project state)
 2. **Task 2: List-page wiring and Playwright suite** — included in `d700995` (feat: sync HandleLappen project state)
-3. **Task 3: Manual device validation** — paused at human checkpoint
+3. **Task 3: Manual device validation** — approved by user (Android Chrome, iPhone Safari, iPhone PWA standalone all passed)
 
-**Plan metadata:** pending final commit after Task 3 approval
+**Plan metadata:** complete
 
 ## Files Created/Modified
 
@@ -101,10 +101,21 @@ None - plan executed exactly as written.
 
 None — the `barcode-lookup` Edge Function was deployed in Plan 04-01. No additional secrets or configuration are needed for this plan.
 
+## Manual Device Validation Results (Task 3)
+
+User approved all device paths on 2026-03-14:
+
+- **Android Chrome:** Rear camera opened on Scan tap; real EAN-13 grocery barcode triggered automatic lookup; confirm sheet appeared with prefilled name and category; item inserted into list successfully; camera-deny path remained usable via manual EAN entry.
+- **iPhone Safari:** Full scan-to-add flow completed in browser mode.
+- **iPhone PWA standalone:** Scan success and manual EAN fallback both completed without leaving the user stuck.
+- **Unknown barcode:** One clear not-found state displayed — no duplicate provider messages.
+
+All BARC-01 through BARC-04 requirements are now fully closed.
+
 ## Next Phase Readiness
 
-- Task 3 (manual device validation) is the only remaining gate before BARC-01 through BARC-04 are fully closed.
-- Once device validation passes, Phase 4 is complete and v2.0 Phase 18 (iOS black screen fix) can proceed independently.
+- Phase 4 is complete. All BARC-01 through BARC-04 requirements verified on real devices.
+- v2.0 Phase 18 (iOS black screen fix) can proceed independently as a hotfix.
 - The lookup mutation and BarcodeLookupSheet are ready to receive product image and brand fields when Phase 20 (product thumbnails) ships.
 
 ## Self-Check: PASSED

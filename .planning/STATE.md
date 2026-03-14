@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Barcode Scanner Improvement and Product Lookup
-status: roadmapped
-last_updated: "2026-03-14T00:00:00.000Z"
-last_activity: "2026-03-14 — v2.0 roadmap created (Phases 17–20)"
+milestone: v1.0
+milestone_name: milestone
+status: active
+last_updated: "2026-03-14T20:15:00.000Z"
+last_activity: 2026-03-14 — Phase 04-03 complete; all BARC requirements closed; manual device validation approved
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 1
-  completed_plans: 0
-  percent: 0
+  total_phases: 20
+  completed_phases: 10
+  total_plans: 39
+  completed_plans: 35
+  percent: 90
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 
 ## Current Position
 
-Phase: 04 of 20 (Barcode Scanning — active)
-Plan: 04-03 — Scan-to-add workflow (Tasks 1+2 complete; paused at Task 3 manual device validation checkpoint)
-Status: Awaiting manual device validation (Android Chrome + iPhone Safari + iPhone PWA)
-Last activity: 2026-03-14 — Phase 04-03 Tasks 1 and 2 complete; SUMMARY created; checkpoint at manual UAT
+Phase: 04 of 20 (Barcode Scanning — complete)
+Plan: 04-03 — Scan-to-add workflow (complete — all 3 tasks done including manual device validation)
+Status: Phase 4 complete — all BARC-01 through BARC-04 requirements closed; ready for Phase 17 (v2.0 Schema Migrations)
+Last activity: 2026-03-14 — Phase 04-03 Task 3 manual device validation approved; Phase 4 complete
 
-Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 history; v2.0 not started)
+Progress: [█████████░] 90% (overall, v1.0 + v1.1 + v1.2 history; v2.0 Phase 4 now complete)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 hist
 | Phase 14 P03 | 3min | 2 tasks | 4 files |
 | Phase 14 P04 | 3 | 4 tasks | 4 files |
 | Phase 14-recipes P05 | 5 | 2 tasks | 2 files |
+| Phase 04-03 barcode scan-to-add | 20min | 3 tasks | 6 files |
 
 ## Accumulated Context
 

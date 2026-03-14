@@ -347,7 +347,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
-| 4. Barcode Scanning | 3/3 | Complete | 2026-03-11 |
+| 4. Barcode Scanning | 3/3 | Complete   | 2026-03-14 |
 | 5. PWA and Offline Support | 3/3 | Complete | 2026-03-12 |
 | 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
