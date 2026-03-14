@@ -8,7 +8,7 @@ last_activity: "2026-03-14 — v2.0 roadmap created (Phases 17–20)"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 17 of 20 in v2.0 (Schema Migrations)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-14 — v2.0 roadmap written; Phases 17–20 defined
+Plan: 17-01 — Schema migration (in progress)
+Status: Executing schema migration plan
+Last activity: 2026-03-14 — Added Phase 17 schema migration + verification guidance
 
 Progress: [████████░░] 87% (overall, v1.0 + v1.1 + v1.2 history; v2.0 not started)
 

@@ -299,7 +299,10 @@ Plans:
   1. `barcode_product_cache` has a nullable `image_url text` column and a nullable `brand text` column; existing rows are unaffected
   2. `household_item_memory` has a nullable `product_image_url text` column and a nullable `brand text` column; trigger-driven writes to this table continue without errors
   3. `list_items` has a nullable `product_image_url text` column and a nullable `brand text` column; existing list items display correctly with no visible change
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 17-01-PLAN.md — Add the expand-only schema migration and verify nullable-column shape, trigger compatibility, null-safe reads, and index/constraint non-regression on an isolated database
 
 ### Phase 18: iOS Scanner Black Screen Fix
 **Goal**: The barcode scanner camera opens reliably on iOS Safari in PWA standalone mode, permission errors are communicated clearly without alarm UI, and successful scans give haptic feedback
@@ -357,7 +360,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 14. Recipes | 2/4 | In Progress | - |
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
-| 17. Schema Migrations | 0/TBD | Not started | - |
+| 17. Schema Migrations | 0/1 | Not started | - |
 | 18. iOS Scanner Black Screen Fix | 0/TBD | Not started | - |
 | 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
 | 20. Client Image Display | 0/TBD | Not started | - |

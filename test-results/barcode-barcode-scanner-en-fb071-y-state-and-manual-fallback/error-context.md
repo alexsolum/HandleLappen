@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "HandleAppen" [ref=e6] [cursor=pointer]:
+      - /url: /
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - link "← Lister" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - heading "Strekkodeliste" [level=1] [ref=e11]
+      - paragraph [ref=e12]: Ingen varer. Legg til den første varen nedenfor.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - textbox "Legg til vare" [ref=e17]:
+          - /placeholder: Legg til vare…
+        - generic [ref=e18]:
+          - button "Reduser antall" [ref=e19]: "-"
+          - generic "Antall" [ref=e20]: "1"
+          - button "Øk antall" [ref=e21]: +
+      - generic [ref=e22]:
+        - button "Skann strekkode" [ref=e23]:
+          - img [ref=e24]
+        - button "Legg til" [ref=e27]
+    - dialog [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - heading "Scan strekkode" [level=2] [ref=e33]
+            - paragraph [ref=e34]: Vi starter kameraet og ser etter strekkoden.
+          - button "Lukk skanner" [active] [ref=e35]: ✕
+        - paragraph [ref=e39]: Trykk på nytt for å starte skanneren.
+        - generic [ref=e40]:
+          - button "Skriv EAN manuelt" [ref=e41]
+          - button "Avbryt" [ref=e42]
+  - navigation [ref=e43]:
+    - generic [ref=e45]:
+      - link "Handleliste" [ref=e46] [cursor=pointer]:
+        - /url: /
+        - img [ref=e48]
+        - generic [ref=e50]: Handleliste
+      - link "Oppskrifter" [ref=e51] [cursor=pointer]:
+        - /url: /oppskrifter
+        - img [ref=e53]
+        - generic [ref=e55]: Oppskrifter
+      - link "Anbefalinger" [ref=e56] [cursor=pointer]:
+        - /url: /anbefalinger?list=19ae4ad7-c5b1-4bde-8200-37276627f1df
+        - img [ref=e58]
+        - generic [ref=e60]: Anbefalinger
+      - link "Admin" [ref=e61] [cursor=pointer]:
+        - /url: /admin
+        - img [ref=e63]
+        - generic [ref=e66]: Admin
+```
