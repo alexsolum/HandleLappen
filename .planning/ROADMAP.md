@@ -313,7 +313,11 @@ Plans:
   1. On an iPhone installed as a PWA (home screen), tapping the scan button opens the camera without a black screen — the live viewfinder is visible within two seconds
   2. When a user denies camera access, the scanner shows a message directing them to iOS Settings with no alarming error UI; when a user merely dismisses the permission prompt, the scanner shows a "Prøv igjen" retry action instead
   3. A successfully detected barcode produces a haptic pulse on devices that support the Vibration API; devices that do not support it continue to work silently
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — TDD implementation: MutationObserver video intercept, split permission UX, haptic feedback
+- [ ] 18-02-PLAN.md — Human verification checkpoint: real iPhone PWA black screen test
 
 ### Phase 19: Edge Function and DTO Enrichment
 **Goal**: Every new barcode scan returns brand and image URL from Kassal.app, stores them in the cache, and delivers them to the client — without routing image data through Gemini
@@ -362,6 +366,6 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
 | 17. Schema Migrations | 0/1 | Not started | - |
-| 18. iOS Scanner Black Screen Fix | 0/TBD | Not started | - |
+| 18. iOS Scanner Black Screen Fix | 0/2 | Not started | - |
 | 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
 | 20. Client Image Display | 0/TBD | Not started | - |
