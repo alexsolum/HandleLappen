@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-14T06:51:34.420Z"
-last_activity: "2026-03-14 — Completed Plan 14-02: Recipe List and Creation Flow (verified pre-built frontend layer, fixed createDeleteRecipeMutation TypeScript bug)."
+last_updated: "2026-03-14T06:57:45.475Z"
+last_activity: "2026-03-14 — Completed Plan 14-03: Recipe Detail and Add to List (detail page, ListPickerSheet, Playwright tests)."
 progress:
   total_phases: 16
   completed_phases: 8
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 14 — Recipes and Ingredient Management (In Progress)
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: Executing.
-Last activity: 2026-03-14 — Completed Plan 14-02: Recipe List and Creation Flow (verified pre-built frontend layer, fixed createDeleteRecipeMutation TypeScript bug).
+Last activity: 2026-03-14 — Completed Plan 14-03: Recipe Detail and Add to List (detail page, ListPickerSheet, Playwright tests).
 
 Progress: [████████░░] 87%
 
@@ -52,6 +52,7 @@ Progress: [████████░░] 87%
 | Phase 13 P04 | 15min | 5 tasks | 5 files |
 | Phase 14 P01 | 20min | 3 tasks | 10 files |
 | Phase 14 P02 | 8min | 5 verified + 1 fix | 1 file |
+| Phase 14 P03 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -82,10 +83,12 @@ Progress: [████████░░] 87%
 - [Phase 12]: Admin sub-pages are non-interactive divs in Phase 12 — Phase 13 activates them as real navigation links
 - [Phase 12-03-navigation-restructure]: 301 (permanent) used for /husstand and /butikker redirects — PWA clients cache 301 and update back-history so users are never routed to dead URLs
 - [Phase 12-03-navigation-restructure]: Existing /husstand/+page.svelte left in place after redirect — server-side redirect fires before SvelteKit renders the page component
+- [Phase 14-03-recipe-detail]: Add to List iterates selected ingredients sequentially calling createAddOrIncrementItemMutation per item — consistent with existing pattern, no batch mutation needed
+- [Phase 14-03-recipe-detail]: All ingredients pre-selected on detail load — user deselects what they don't need (faster path for adding full recipes)
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
-- Plans 14-03 and 14-04 may have reduced scope — all recipe creation frontend was delivered in 14-01; 14-02 only needed a TypeScript bugfix.
+- Plan 14-04 may have reduced scope — edit/delete functionality is already implemented (edit link in detail header links to /oppskrifter/[id]/rediger; delete confirmed working via detail page).
 
 ### Blockers/Concerns
 - None.
