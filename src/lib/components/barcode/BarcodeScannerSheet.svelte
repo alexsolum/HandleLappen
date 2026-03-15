@@ -17,14 +17,14 @@
     onOpenManualEntry: () => void
   }
 
-  type ScannerViewState = 'idle' | 'loading' | 'scanning' | 'permission-denied' | 'camera-failure'
+  type ScannerViewState = 'idle' | 'loading' | 'scanning' | 'permission-denied' | 'permission-dismissed' | 'camera-failure'
 
   let { open, onClose, onDetected, onOpenManualEntry }: Props = $props()
 
   let dialogEl: HTMLDialogElement | null = null
   let session: ScannerSession | null = null
-  let state: ScannerViewState = 'idle'
-  let message = 'Vi starter kameraet og ser etter strekkoden.'
+  let state: ScannerViewState = $state('idle')
+  let message = $state('Vi starter kameraet og ser etter strekkoden.')
 
   const previewId = `barcode-scanner-preview`
   let removeVisibilityCleanup: (() => void) | null = null
@@ -35,7 +35,7 @@
 
     const mock = (
       window as Window & {
-        __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: { mode?: 'active' | 'permission-denied' }
+        __HANDLEAPPEN_BARCODE_SCANNER_MOCK__?: { mode?: 'active' | 'permission-denied' | 'permission-dismissed' }
       }
     ).__HANDLEAPPEN_BARCODE_SCANNER_MOCK__
 
@@ -49,11 +49,14 @@
   }
 
   function updateFailureState(error: ScannerError) {
-    state = error.reason
-    message =
-      error.reason === 'permission-denied'
-        ? 'Kameratilgang er avslått. Du kan gi tilgang og prøve igjen, eller skrive EAN manuelt.'
-        : 'Kameraet kunne ikke startes. Prøv igjen, eller skriv EAN manuelt.'
+    state = error.reason as ScannerViewState
+    if (error.reason === 'permission-denied') {
+      message = 'Gå til Innstillinger → Safari → Kamera for å gi tilgang.'
+    } else if (error.reason === 'permission-dismissed') {
+      message = 'Kameratilgang ble ikke gitt. Trykk «Prøv igjen» for å åpne på nytt.'
+    } else {
+      message = 'Kameraet kunne ikke startes. Prøv igjen, eller skriv EAN manuelt.'
+    }
   }
 
   async function teardownScanner() {
@@ -75,6 +78,10 @@
     if (getMockMode() === 'active') {
       const handleMockDetected = async (event: Event) => {
         const barcode = (event as CustomEvent<string>).detail
+        // Haptic pulse on detection — fires before lookup (SCAN-03)
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(50)
+        }
         state = 'idle'
         await onDetected(barcode)
       }
@@ -108,6 +115,10 @@
       session = await startScanner({
         elementId: previewId,
         onDetected: async (ean) => {
+          // Haptic pulse on detection — fires before lookup (SCAN-03)
+          if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+            navigator.vibrate(50)
+          }
           state = 'idle'
           await onDetected(ean)
         },
@@ -203,8 +214,13 @@
               </div>
             {:else if state === 'permission-denied'}
               <div class="space-y-2 px-6 py-10">
-                <p class="font-medium text-white">Kameratilgang mangler</p>
-                <p class="text-sm text-gray-200">Gi tilgang i nettleseren og prøv igjen, eller bruk manuell EAN.</p>
+                <p class="font-medium text-white">Kameratilgang er avslått</p>
+                <p class="text-sm text-gray-200">Gå til Innstillinger → Safari → Kamera for å gi tilgang.</p>
+              </div>
+            {:else if state === 'permission-dismissed'}
+              <div class="space-y-2 px-6 py-10">
+                <p class="font-medium text-white">Kameratilgang ble ikke gitt</p>
+                <p class="text-sm text-gray-200">Trykk «Prøv igjen» for å åpne kameratilgangsforespørselen på nytt.</p>
               </div>
             {:else if state === 'camera-failure'}
               <div class="space-y-2 px-6 py-10">
@@ -219,7 +235,7 @@
       </div>
 
       <div class="sticky bottom-0 flex flex-col gap-2 border-t border-gray-100 bg-white px-4 pb-4 pt-3 sm:flex-row" data-testid="sheet-actions">
-        {#if state === 'permission-denied' || state === 'camera-failure'}
+        {#if state === 'permission-dismissed' || state === 'camera-failure'}
           <button
             type="button"
             class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"

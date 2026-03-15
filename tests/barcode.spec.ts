@@ -150,7 +150,7 @@ test.describe('barcode scanner entry', () => {
 
       await openScanner(page)
 
-      await expect(page.getByText(/Innstillinger.*Safari.*Kamera/)).toBeVisible()
+      await expect(page.getByText(/Innstillinger.*Safari.*Kamera/).first()).toBeVisible()
       await expect(page.getByRole('button', { name: 'Prøv igjen' })).not.toBeVisible()
       await expect(page.getByRole('button', { name: 'Skriv EAN manuelt' })).toBeVisible()
     } finally {
@@ -216,7 +216,7 @@ test.describe('barcode scanner entry', () => {
       await openScanner(page)
 
       await expect(page.getByRole('button', { name: 'Prøv igjen' })).toBeVisible()
-      await expect(page.getByText(/Innstillinger.*Kamera/)).not.toBeVisible()
+      await expect(page.getByText(/Innstillinger.*Kamera/).first()).not.toBeVisible()
     } finally {
       await deleteTestUser(user.id)
     }
