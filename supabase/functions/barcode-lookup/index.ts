@@ -25,6 +25,8 @@ const CORS_HEADERS = {
 
 const FOUND_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const NOT_FOUND_TTL_MS = 3 * 24 * 60 * 60 * 1000
+// Cache entries created before this date may lack brand/image_url — trigger re-fetch
+const ACTIVATION_DATE = '2026-03-14T00:00:00Z'
 
 type LookupRequestBody = {
   ean?: unknown
@@ -81,12 +83,22 @@ function extractKassalProduct(payload: unknown): KassalProduct | null {
 
   const record = payload as Record<string, unknown>
 
-  if (record.product && typeof record.product === 'object') {
-    return record.product as KassalProduct
+  // Kassal API v1 returns { data: { products: [...] } }
+  if (record.data && typeof record.data === 'object' && !Array.isArray(record.data)) {
+    const data = record.data as Record<string, unknown>
+    if (Array.isArray(data.products) && data.products[0] && typeof data.products[0] === 'object') {
+      return data.products[0] as KassalProduct
+    }
   }
 
+  // Kassal API v1 alternate: { data: [...] }
   if (Array.isArray(record.data) && record.data[0] && typeof record.data[0] === 'object') {
     return record.data[0] as KassalProduct
+  }
+
+  // Legacy: { product: {...} }
+  if (record.product && typeof record.product === 'object') {
+    return record.product as KassalProduct
   }
 
   return record as KassalProduct
@@ -126,6 +138,8 @@ function createCacheRow(
     provider_fetched_at: now.toISOString(),
     ai_enriched_at: dto.source.includes('+gemini') ? now.toISOString() : null,
     expires_at: expiresAt.toISOString(),
+    brand: dto.brand ?? null,
+    image_url: dto.imageUrl ?? null,
   }
 }
 
@@ -159,11 +173,37 @@ async function parseRequestBody(request: Request) {
 }
 
 function buildGeminiPrompt(payload: ReducedProviderPayload) {
+  // Strip brand and image URLs from the Gemini payload — Gemini is only used for
+  // name normalization and category resolution; sending image URLs adds token cost
+  // with zero benefit (see v2.0-roadmap decision)
+  const geminiPayload = {
+    ean: payload.ean,
+    source: payload.source,
+    productName: payload.productName,
+    categoryHints: payload.categoryHints,
+    providers: {
+      kassal: payload.providers.kassal
+        ? {
+            id: payload.providers.kassal.id,
+            name: payload.providers.kassal.name,
+            category: payload.providers.kassal.category,
+          }
+        : null,
+      openFoodFacts: payload.providers.openFoodFacts
+        ? {
+            code: payload.providers.openFoodFacts.code,
+            productName: payload.providers.openFoodFacts.productName,
+            categoriesTags: payload.providers.openFoodFacts.categoriesTags,
+          }
+        : null,
+    },
+  }
+
   return [
     'Normalize this grocery barcode lookup into one safe shopping DTO.',
     'Return JSON only.',
     `Allowed canonical categories: ${CANONICAL_CATEGORIES.join(', ')}`,
-    JSON.stringify(payload),
+    JSON.stringify(geminiPayload),
   ].join('\n')
 }
 
@@ -203,7 +243,7 @@ function createRuntimeDependencies(): Dependencies {
       const { data, error } = await admin
         .from('barcode_product_cache')
         .select(
-          'ean, normalized_name, canonical_category, confidence, source, status, provider_payload, provider_fetched_at, ai_enriched_at, expires_at'
+          'ean, normalized_name, canonical_category, confidence, source, status, provider_payload, provider_fetched_at, ai_enriched_at, expires_at, brand, image_url'
         )
         .eq('ean', ean)
         .gt('expires_at', nowIso)
@@ -213,7 +253,21 @@ function createRuntimeDependencies(): Dependencies {
         throw error
       }
 
-      return data ? cacheRowToLookupDto(data as BarcodeCacheRow) : null
+      if (!data) return null
+
+      const row = data as BarcodeCacheRow
+
+      // Activation Date Safeguard: if this cache entry predates brand/image support
+      // and is missing brand or image_url, discard it to trigger a fresh fetch
+      if (
+        (row.brand === null || row.image_url === null) &&
+        row.provider_fetched_at != null &&
+        row.provider_fetched_at < ACTIVATION_DATE
+      ) {
+        return null
+      }
+
+      return cacheRowToLookupDto(row)
     },
     writeCache: async (row) => {
       const { error } = await admin.from('barcode_product_cache').upsert(row, {
