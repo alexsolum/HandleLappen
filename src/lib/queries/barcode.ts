@@ -25,8 +25,10 @@ export function createBarcodeLookupMutation(
 ) {
   return createMutation<BarcodeSheetModel, Error, { ean: string }>(() => ({
     mutationFn: async ({ ean }) => {
+      const { data: { session } } = await supabase.auth.getSession()
       const { data, error } = await supabase.functions.invoke('barcode-lookup', {
         body: { ean, listId: options.listId },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       })
 
       if (error) {
