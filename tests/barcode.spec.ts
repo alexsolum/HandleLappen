@@ -9,7 +9,7 @@ import {
   type BarcodeLookupDto,
 } from './helpers/barcode'
 
-type ScannerMockMode = 'active' | 'permission-denied'
+type ScannerMockMode = 'active' | 'permission-denied' | 'permission-dismissed'
 
 async function installScannerMock(
   page: Page,
@@ -25,6 +25,22 @@ async function installScannerMock(
       }
 
       window.__HANDLEAPPEN_BARCODE_SCANNER_MOCK__ = state
+
+      if (currentMode === 'permission-dismissed') {
+        Object.defineProperty(navigator, 'permissions', {
+          value: {
+            query: async () => ({ state: 'prompt' })
+          },
+          configurable: true
+        })
+      } else if (currentMode === 'permission-denied') {
+        Object.defineProperty(navigator, 'permissions', {
+          value: {
+            query: async () => ({ state: 'denied' })
+          },
+          configurable: true
+        })
+      }
     },
     { currentMode: options.mode, currentEan: options.detectedEan ?? null }
   )
@@ -134,8 +150,8 @@ test.describe('barcode scanner entry', () => {
 
       await openScanner(page)
 
-      await expect(page.getByText('Kameratilgang mangler')).toBeVisible()
-      await expect(page.getByRole('button', { name: 'Prøv igjen' })).toBeVisible()
+      await expect(page.getByText(/Innstillinger.*Safari.*Kamera/).first()).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Prøv igjen' })).not.toBeVisible()
       await expect(page.getByRole('button', { name: 'Skriv EAN manuelt' })).toBeVisible()
     } finally {
       await deleteTestUser(user.id)
@@ -175,6 +191,32 @@ test.describe('barcode scanner entry', () => {
       await page.getByRole('button', { name: 'Fortsett' }).click()
 
       await expect(page.getByRole('heading', { name: 'Skriv EAN manuelt' })).toHaveCount(0)
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('permission dismissed shows retry action without settings message', async ({ page }) => {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceKey) {
+      test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set')
+      return
+    }
+
+    await installScannerMock(page, { mode: 'permission-dismissed' })
+
+    const email = `barcode-dismissed-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+    const list = await createTestList(household.id, 'Strekkodeliste')
+
+    try {
+      await loginAndOpenList(page, email, password, list.id)
+
+      await openScanner(page)
+
+      await expect(page.getByRole('button', { name: 'Prøv igjen' })).toBeVisible()
+      await expect(page.getByText(/Innstillinger.*Kamera/).first()).not.toBeVisible()
     } finally {
       await deleteTestUser(user.id)
     }
@@ -396,6 +438,43 @@ test.describe('barcode lookup flow', () => {
       await dialog.getByRole('button', { name: 'Legg til manuelt' }).click()
 
       await expect(page.locator('text=Mystery Soda')).toBeVisible()
+    } finally {
+      await deleteTestUser(user.id)
+    }
+  })
+
+  test('navigator.vibrate is called with 50 on barcode detection', async ({ page }) => {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceKey) {
+      test.skip(true, 'SUPABASE_SERVICE_ROLE_KEY not set')
+      return
+    }
+
+    await page.addInitScript(() => {
+      ;(window as any).__vibrateCalls = []
+      ;(navigator as any).vibrate = (pattern: unknown) => {
+        ;(window as any).__vibrateCalls.push(pattern)
+        return true
+      }
+    })
+    await installScannerMock(page, { mode: 'active' })
+    await mockBarcodeLookup(page, { '7044610878304': buildGeminiNormalizedResponse() })
+
+    const email = `barcode-vibrate-${Date.now()}@test.example`
+    const password = 'password123'
+    const { user, household } = await createHouseholdUser(email, password)
+    const list = await createTestList(household.id, 'Vibrate test')
+
+    try {
+      await seedDefaultCategories(household.id)
+      await loginAndOpenList(page, email, password, list.id)
+
+      await openScanner(page)
+      await emitScannerDetection(page, '7044610878304')
+
+      await expect(page.getByTestId('barcode-lookup-sheet')).toBeVisible()
+      const vibrateCalls = await page.evaluate(() => (window as any).__vibrateCalls)
+      expect(vibrateCalls).toContain(50)
     } finally {
       await deleteTestUser(user.id)
     }

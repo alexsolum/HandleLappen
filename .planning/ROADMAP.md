@@ -100,12 +100,13 @@ Plans:
   3. When Kassal.app does not find the EAN, the app silently retries via Open Food Facts; the user sees one result or a clear "not found" message — never two separate results
   4. Barcode scanning works in iOS Safari PWA standalone mode using the WASM polyfill; no native BarcodeDetector API is required
   5. The Kassal.app Bearer token is never visible in browser DevTools network requests; all external API calls go through the Edge Function
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 04-01: Supabase Edge Function `barcode-lookup` — Kassal.app primary, Open Food Facts fallback, `barcode_product_cache` table with 30-day TTL, Gemini category/name normalization
 - [x] 04-02: Barcode scanner UI component — iOS-safe scanner library/polyfill, rear-camera preference, explicit scan trigger, manual EAN fallback
 - [x] 04-03: Scan-to-add flow — unified lookup/result sheet, confirm to insert `list_item`, manual EAN retry, graceful not-found and camera-failure states
+- [ ] 04-04-PLAN.md — Gap closure: add BARC-01..04 definitions and traceability rows to REQUIREMENTS.md; update 04-VERIFICATION.md to passed
 
 ### Phase 5: PWA and Offline Support
 **Goal**: The app is installable on a mobile home screen and continues to work for core shopping actions when in-store connectivity is poor or absent — syncing queued changes when the connection returns
@@ -312,7 +313,11 @@ Plans:
   1. On an iPhone installed as a PWA (home screen), tapping the scan button opens the camera without a black screen — the live viewfinder is visible within two seconds
   2. When a user denies camera access, the scanner shows a message directing them to iOS Settings with no alarming error UI; when a user merely dismisses the permission prompt, the scanner shows a "Prøv igjen" retry action instead
   3. A successfully detected barcode produces a haptic pulse on devices that support the Vibration API; devices that do not support it continue to work silently
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — TDD implementation: MutationObserver video intercept, split permission UX, haptic feedback
+- [ ] 18-02-PLAN.md — Human verification checkpoint: real iPhone PWA black screen test
 
 ### Phase 19: Edge Function and DTO Enrichment
 **Goal**: Every new barcode scan returns brand and image URL from Kassal.app, stores them in the cache, and delivers them to the client — without routing image data through Gemini
@@ -347,7 +352,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 1. Auth and Household Foundation | 3/3 | Complete | 2026-03-09 |
 | 2. Shopping Lists and Core Loop | 4/4 | Complete   | 2026-03-10 |
 | 3. Store Layouts and Category Ordering | 4/4 | Complete | 2026-03-10 |
-| 4. Barcode Scanning | 3/3 | Complete | 2026-03-11 |
+| 4. Barcode Scanning | 4/4 | Complete   | 2026-03-14 |
 | 5. PWA and Offline Support | 3/3 | Complete | 2026-03-12 |
 | 6. History View and Recommendations | 3/3 | Complete | 2026-03-12 |
 | 7. Verification and Evidence Closure | 3/3 | Complete | 2026-03-12 |
@@ -361,6 +366,6 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
 | 17. Schema Migrations | 0/1 | Not started | - |
-| 18. iOS Scanner Black Screen Fix | 0/TBD | Not started | - |
+| 18. iOS Scanner Black Screen Fix | 1/2 | In Progress|  |
 | 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
 | 20. Client Image Display | 0/TBD | Not started | - |

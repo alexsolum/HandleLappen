@@ -3,6 +3,15 @@
 **Defined:** 2026-03-08
 **Core Value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
 
+## v1.0 Requirements (Complete)
+
+### Barcode Scanning (BARC)
+
+- [x] **BARC-01**: User taps a "Scan" button, the camera opens, and a detected barcode triggers a product lookup without any additional user action
+- [x] **BARC-02**: Kassal.app is the primary provider; when Kassal does not find the EAN, Open Food Facts is used as a silent fallback — the user sees one result or a clear "not found" message, never two separate provider results
+- [x] **BARC-03**: Scanned product name and canonical category are normalized via Gemini and pre-filled in the confirmation sheet within 2 seconds for a recognized Norwegian product EAN
+- [x] **BARC-04**: Barcode scanning works in iOS Safari PWA standalone mode using the html5-qrcode WASM polyfill; no native BarcodeDetector API is required, and the Kassal.app Bearer token never appears in browser DevTools network requests
+
 ## v1.1 Requirements (Complete)
 
 ### Mobile Experience
@@ -65,9 +74,9 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 
 ### Scanner Reliability (SCAN)
 
-- [ ] **SCAN-01**: Barcode scanner camera opens without black screen on iOS Safari in PWA standalone mode
-- [ ] **SCAN-02**: When camera access is denied, app shows a distinct "go to Settings" message; when only dismissed, shows "Try again" without alarming UI
-- [ ] **SCAN-03**: Scanner provides haptic feedback on successful barcode detection
+- [x] **SCAN-01**: Barcode scanner camera opens without black screen on iOS Safari in PWA standalone mode
+- [x] **SCAN-02**: When camera access is denied, app shows a distinct "go to Settings" message; when only dismissed, shows "Try again" without alarming UI
+- [x] **SCAN-03**: Scanner provides haptic feedback on successful barcode detection
 
 ### Product Data Enrichment (ENRICH)
 
@@ -124,6 +133,10 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| BARC-01 | Phase 4 | Complete |
+| BARC-02 | Phase 4 | Complete |
+| BARC-03 | Phase 4 | Complete |
+| BARC-04 | Phase 4 | Complete |
 | MOBL-01 | Phase 9 | Complete |
 | MOBL-02 | Phase 9 | Complete |
 | MOBL-03 | Phase 9 | Complete |
@@ -150,9 +163,9 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | ITEMS-03 | Phase 15 | Pending |
 | ITEMS-04 | Phase 15 | Pending |
 | USRSET-01 | Phase 16 | Pending |
-| SCAN-01 | Phase 18 | Pending |
-| SCAN-02 | Phase 18 | Pending |
-| SCAN-03 | Phase 18 | Pending |
+| SCAN-01 | Phase 18 | Complete |
+| SCAN-02 | Phase 18 | Complete |
+| SCAN-03 | Phase 18 | Complete |
 | ENRICH-01 | Phase 19 | Pending |
 | ENRICH-02 | Phase 19 | Pending |
 | ENRICH-03 | Phase 20 | Pending |
@@ -163,12 +176,14 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | DISP-04 | Phase 20 | Pending |
 
 **Coverage:**
+- v1.0 requirements: 4 total
+- v1.1 requirements: 8 total (part of v1.2 release)
 - v1.2 requirements: 18 total
-- Mapped to phases: 18
+- Mapped to phases: 22
 - v2.0 requirements: 11 total
 - Mapped to phases: 11 (traceability to be confirmed by roadmapper)
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-14 after defining milestone v2.0*
+*Last updated: 2026-03-14 after adding BARC-01..04 v1.0 Barcode Scanning section (Plan 04-04)*
