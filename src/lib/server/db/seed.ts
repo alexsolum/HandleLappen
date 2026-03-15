@@ -2,13 +2,16 @@
  * Database seed script — items catalog
  *
  * Populates the global `items` table with top products from Kassal.
- * Run: npx tsx src/lib/server/db/seed.ts
+ * Run: npm run db:seed
  *
  * Requires env vars: PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  * Optional:          KASSAL_API_TOKEN (for authenticated Kassal requests)
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { fileURLToPath } from 'url'
+import { resolve } from 'path'
+import dotenv from 'dotenv'
 import { fetchAndEnrichTopProducts } from '../kassal/seed-items.js'
 
 function getRequiredEnv(name: string): string {
@@ -53,7 +56,7 @@ export async function seedItems(): Promise<{ imported: number; updated: number; 
   // Upsert in batches to avoid request size limits
   const BATCH_SIZE = 50
   let imported = 0
-  let updated = 0
+  const updated = 0
 
   for (let i = 0; i < products.length; i += BATCH_SIZE) {
     const batch = products.slice(i, i + BATCH_SIZE)
@@ -143,9 +146,9 @@ export async function verifySeedData() {
   }
 }
 
-// CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const dotenv = await import('dotenv')
+// CLI entry point — cross-platform path resolution (Windows: file:///C:/... vs C:\...)
+const __filename = fileURLToPath(import.meta.url)
+if (resolve(process.argv[1] ?? '') === resolve(__filename)) {
   dotenv.config({ path: '.env' })
   dotenv.config({ path: '.env.local', override: true })
 
