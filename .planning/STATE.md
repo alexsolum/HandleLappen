@@ -129,3 +129,4 @@ Progress: [████████░░] 84% (37/44 plans complete)
 | 1 | Add Google Auth using Supabase | 2026-03-12 | 6019636 | [1-add-google-auth-using-supabase](./quick/1-add-google-auth-using-supabase/) |
 | 2 | Improve app categories from grocery_categories.md and sync Supabase | 2026-03-12 | c8c7f59 | [2-improve-app-categories-from-grocery-cate](./quick/2-improve-app-categories-from-grocery-cate/) |
 | 3 | Add item administration and Varekatalog management | 2026-03-14 | 7f44449 | [3-add-item-administration-in-the-admin-ite](./quick/3-add-item-administration-in-the-admin-ite/) |
+| 5 | Fill items database with top products from Kassal | 2026-03-15 | 01dadca | [5-fill-items-database-with-top-products-fr](./quick/5-fill-items-database-with-top-products-fr/) |
