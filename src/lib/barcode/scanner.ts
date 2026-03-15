@@ -10,7 +10,7 @@ type ScannerStatus = 'idle' | 'starting' | 'running' | 'stopping'
 
 export type SupportedBarcodeFormat = 'EAN_13' | 'EAN_8' | 'UPC_A' | 'UPC_E'
 
-export type ScannerErrorReason = 'permission-denied' | 'camera-failure'
+export type ScannerErrorReason = 'permission-denied' | 'permission-dismissed' | 'camera-failure'
 
 export class ScannerError extends Error {
   reason: ScannerErrorReason
@@ -92,28 +92,40 @@ function normalizeRetailBarcode(value: string): string | null {
   return digitsOnly
 }
 
-function inferErrorReason(error: unknown): ScannerErrorReason {
+async function inferErrorReason(error: unknown): Promise<ScannerErrorReason> {
   const message = String(error ?? '').toLowerCase()
-  if (
+  const isPermissionRelated =
     message.includes('permission') ||
     message.includes('notallowederror') ||
     message.includes('denied') ||
     message.includes('notallowed')
-  ) {
-    return 'permission-denied'
+
+  if (!isPermissionRelated) return 'camera-failure'
+
+  if (typeof navigator !== 'undefined' && navigator.permissions) {
+    try {
+      const status = await navigator.permissions.query({ name: 'camera' as PermissionName })
+      if (status.state === 'denied') return 'permission-denied'
+      return 'permission-dismissed'
+    } catch {
+      // Permissions API unsupported or permission name rejected
+    }
   }
 
-  return 'camera-failure'
+  // Fallback: conservative — default to dismissed (allows retry)
+  return 'permission-dismissed'
 }
 
-function toScannerError(error: unknown): ScannerError {
-  const reason = inferErrorReason(error)
+async function toScannerError(error: unknown): Promise<ScannerError> {
+  const reason = await inferErrorReason(error)
   const message =
     error instanceof Error
       ? error.message
       : reason === 'permission-denied'
-        ? 'Kameratilgang ble avslatt.'
-        : 'Kameraet kunne ikke startes.'
+        ? 'Kameratilgang er avslått. Gå til Innstillinger for å gi tilgang.'
+        : reason === 'permission-dismissed'
+          ? 'Kameratilgang ble ikke gitt.'
+          : 'Kameraet kunne ikke startes.'
 
   return new ScannerError(reason, message, { cause: error })
 }
@@ -198,7 +210,7 @@ export async function startScanner({
       mockController = mockState
       mockState.starts = (mockState.starts ?? 0) + 1
 
-      if (mockState.mode === 'permission-denied') {
+      if (mockState.mode === 'permission-denied' || mockState.mode === 'permission-dismissed') {
         const error = new Error('NotAllowedError')
         error.name = 'NotAllowedError'
         throw error
@@ -219,43 +231,60 @@ export async function startScanner({
       }
     } else {
       const htmlScanner = scanner as Html5Qrcode
-      await htmlScanner.start(
-        { facingMode: { ideal: 'environment' } },
-        getScanConfig(),
-        async (decodedText: string, result: Html5QrcodeResult) => {
-          if (session.stopped || session.status === 'stopping') return
-          if (!isSupportedResult(result)) return
+      const container = document.getElementById(elementId)
+      let videoObserver: MutationObserver | null = null
 
-          const normalized = normalizeRetailBarcode(decodedText)
-          if (!normalized || normalized === session.lastValue) return
+      if (container) {
+        videoObserver = new MutationObserver((mutations) => {
+          for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+              if (node instanceof HTMLVideoElement) {
+                node.setAttribute('playsinline', 'true')
+                node.setAttribute('muted', 'true')
+                node.setAttribute('autoplay', 'true')
+                node.muted = true // IDL attribute — belt-and-suspenders for autoplay policy
+                videoObserver?.disconnect()
+                videoObserver = null
+              }
+            }
+          }
+        })
+        videoObserver.observe(container, { childList: true, subtree: true })
+      }
 
-          session.lastValue = normalized
-          session.status = 'stopping'
+      try {
+        await htmlScanner.start(
+          { facingMode: { ideal: 'environment' } },
+          getScanConfig(),
+          async (decodedText: string, result: Html5QrcodeResult) => {
+            if (session.stopped || session.status === 'stopping') return
+            if (!isSupportedResult(result)) return
 
-          await stopScanner(session)
-          await onDetected(normalized)
-        },
-        (_errorMessage: string, _error?: unknown) => {
-          // Frame-level decode misses are expected; ignore until a valid retail barcode is found.
-        }
-      )
+            const normalized = normalizeRetailBarcode(decodedText)
+            if (!normalized || normalized === session.lastValue) return
+
+            session.lastValue = normalized
+            session.status = 'stopping'
+
+            await stopScanner(session)
+            await onDetected(normalized)
+          },
+          (_errorMessage: string, _error?: unknown) => {
+            // Frame-level decode misses are expected; ignore until a valid retail barcode is found.
+          }
+        )
+      } finally {
+        videoObserver?.disconnect() // Clean up if video was never inserted (error path)
+      }
     }
 
     session.status = 'running'
-
-    const region = document.getElementById(elementId)
-    const video = region?.querySelector('video')
-    if (video instanceof HTMLVideoElement) {
-      video.setAttribute('playsinline', 'true')
-      video.setAttribute('muted', 'true')
-      video.muted = true
-    }
 
     return session
   } catch (error) {
     session.stopped = true
     session.status = 'idle'
-    const scannerError = toScannerError(error)
+    const scannerError = await toScannerError(error)
     await onError?.(scannerError)
     throw scannerError
   }
