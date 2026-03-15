@@ -35,6 +35,8 @@ export type BarcodeLookupDto = {
   canonicalCategory: CanonicalCategory | null
   confidence: number | null
   source: string
+  brand: string | null
+  imageUrl: string | null
 }
 
 export type BarcodeCacheRow = {
@@ -48,6 +50,8 @@ export type BarcodeCacheRow = {
   provider_fetched_at: string | null
   ai_enriched_at: string | null
   expires_at: string | null
+  brand: string | null
+  image_url: string | null
   created_at?: string | null
   updated_at?: string | null
 }
@@ -68,6 +72,10 @@ export type OpenFoodFactsProduct = {
   brands?: string | null
   categories?: string | null
   categories_tags?: string[] | null
+  image_front_no_small_url?: string | null
+  image_front_small_url?: string | null
+  image_small_url?: string | null
+  image_thumb_url?: string | null
 }
 
 export type ReducedProviderPayload = {
@@ -75,18 +83,21 @@ export type ReducedProviderPayload = {
   source: 'kassal' | 'open_food_facts' | 'kassal+open_food_facts' | 'not_found'
   productName: string | null
   brand: string | null
+  imageUrl: string | null
   categoryHints: string[]
   providers: {
     kassal: null | {
       id: number | string | null
       name: string | null
       brand: string | null
+      image: string | null
       category: string | null
     }
     openFoodFacts: null | {
       code: string | null
       productName: string | null
       brands: string | null
+      image: string | null
       categoriesTags: string[]
     }
   }
@@ -133,6 +144,25 @@ const CATEGORY_PATTERNS: Array<{ category: CanonicalCategory; patterns: RegExp[]
   { category: 'dyremat', patterns: [/dyremat/i, /hundemat/i, /kattemat/i, /pet food/i, /dog food/i, /cat food/i] },
 ]
 
+const JUNK_BRANDS = new Set(['none', 'n/a', 'ukjent', 'unknown', 'na', '-', ''])
+
+export function isJunkBrand(brand: string | null): string | null {
+  if (brand == null) return null
+  const trimmed = brand.trim()
+  if (JUNK_BRANDS.has(trimmed.toLowerCase())) return null
+  return trimmed.length > 0 ? trimmed : null
+}
+
+export function getOFFImage(product: OpenFoodFactsProduct): string | null {
+  return (
+    asTrimmedString(product.image_front_no_small_url) ??
+    asTrimmedString(product.image_front_small_url) ??
+    asTrimmedString(product.image_small_url) ??
+    asTrimmedString(product.image_thumb_url) ??
+    null
+  )
+}
+
 function asTrimmedString(value: unknown) {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
@@ -167,10 +197,12 @@ export function buildReducedProviderPayload(input: {
   openFoodFactsProduct: OpenFoodFactsProduct | null
 }): ReducedProviderPayload {
   const kassalName = asTrimmedString(input.kassalProduct?.name)
-  const kassalBrand = asTrimmedString(input.kassalProduct?.brand)
+  const kassalBrand = isJunkBrand(asTrimmedString(input.kassalProduct?.brand))
+  const kassalImage = asTrimmedString(input.kassalProduct?.image)
   const kassalCategory = asTrimmedString(input.kassalProduct?.category)
   const openFoodFactsName = asTrimmedString(input.openFoodFactsProduct?.product_name)
-  const openFoodFactsBrand = asTrimmedString(input.openFoodFactsProduct?.brands)
+  const openFoodFactsBrand = isJunkBrand(asTrimmedString(input.openFoodFactsProduct?.brands))
+  const openFoodFactsImage = input.openFoodFactsProduct ? getOFFImage(input.openFoodFactsProduct) : null
   const openFoodFactsCategories = input.openFoodFactsProduct?.categories_tags?.filter(Boolean) ?? []
 
   const source =
@@ -182,11 +214,16 @@ export function buildReducedProviderPayload(input: {
           ? 'open_food_facts'
           : 'not_found'
 
+  // Kassal is preferred for brand and image; fall back to Open Food Facts
+  const brand = kassalBrand ?? openFoodFactsBrand
+  const imageUrl = kassalImage ?? openFoodFactsImage
+
   return {
     ean: input.ean,
     source,
     productName: kassalName ?? openFoodFactsName,
-    brand: kassalBrand ?? openFoodFactsBrand,
+    brand,
+    imageUrl,
     categoryHints: [kassalCategory, ...openFoodFactsCategories].filter(
       (value): value is string => Boolean(value)
     ),
@@ -196,6 +233,7 @@ export function buildReducedProviderPayload(input: {
             id: input.kassalProduct.id ?? null,
             name: kassalName,
             brand: kassalBrand,
+            image: kassalImage,
             category: kassalCategory,
           }
         : null,
@@ -204,6 +242,7 @@ export function buildReducedProviderPayload(input: {
             code: asTrimmedString(input.openFoodFactsProduct.code),
             productName: openFoodFactsName,
             brands: openFoodFactsBrand,
+            image: openFoodFactsImage,
             categoriesTags: openFoodFactsCategories,
           }
         : null,
@@ -239,6 +278,8 @@ export function fallbackLookupFromProviderPayload(
     canonicalCategory,
     confidence: payload.productName ? (canonicalCategory ? 0.66 : 0.42) : null,
     source: payload.source,
+    brand: payload.brand,
+    imageUrl: payload.imageUrl,
   }
 }
 
@@ -276,6 +317,8 @@ export function applyGeminiResult(
     canonicalCategory: geminiResult.canonicalCategory,
     confidence: geminiResult.confidence,
     source: `${payload.source}+gemini`,
+    brand: payload.brand,
+    imageUrl: payload.imageUrl,
   }
 }
 
@@ -287,6 +330,8 @@ export function createNotFoundLookup(ean: string): BarcodeLookupDto {
     canonicalCategory: null,
     confidence: null,
     source: 'not_found',
+    brand: null,
+    imageUrl: null,
   }
 }
 
@@ -299,5 +344,7 @@ export function cacheRowToLookupDto(row: BarcodeCacheRow): BarcodeLookupDto {
       row.status === 'found' ? asCategory(row.canonical_category) : null,
     confidence: row.status === 'found' ? row.confidence : null,
     source: row.source,
+    brand: row.brand ?? null,
+    imageUrl: row.image_url ?? null,
   }
 }

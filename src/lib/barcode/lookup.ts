@@ -32,6 +32,8 @@ export type BarcodeLookupDto = {
   canonicalCategory: CanonicalCategory | null
   confidence: number | null
   source: string
+  brand: string | null
+  imageUrl: string | null
 }
 
 export type BarcodeCategoryOption = {
@@ -50,6 +52,8 @@ export type BarcodeSheetModel = {
   canonicalCategory: CanonicalCategory | null
   confidence: number | null
   source: string
+  brand: string | null
+  imageUrl: string | null
 }
 
 const CANONICAL_CATEGORY_NAMES: Record<CanonicalCategory, string[]> = {
@@ -100,7 +104,9 @@ export function isBarcodeLookupDto(value: unknown): value is BarcodeLookupDto {
     typeof row.source === 'string' &&
     (typeof row.itemName === 'string' || row.itemName == null) &&
     (typeof row.canonicalCategory === 'string' || row.canonicalCategory == null) &&
-    (typeof row.confidence === 'number' || row.confidence == null)
+    (typeof row.confidence === 'number' || row.confidence == null) &&
+    (typeof row.brand === 'string' || row.brand == null) &&
+    (typeof row.imageUrl === 'string' || row.imageUrl == null)
   )
 }
 
@@ -130,5 +136,7 @@ export function mapBarcodeLookupResult(
     canonicalCategory: dto.canonicalCategory,
     confidence: dto.confidence,
     source: dto.source,
+    brand: dto.brand ?? null,
+    imageUrl: dto.imageUrl ?? null,
   }
 }

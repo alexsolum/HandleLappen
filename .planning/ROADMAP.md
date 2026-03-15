@@ -31,8 +31,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
 - [ ] **Phase 16: Dark Mode and User Settings** - Brukerinnstillinger page with dark mode toggle, FOUC prevention, and system-preference fallback
 - [ ] **Phase 17: Schema Migrations** - Nullable image and brand columns added to barcode_product_cache, household_item_memory, and list_items ahead of enrichment work
-- [ ] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback
-- [ ] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated
+- [x] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback (completed 2026-03-15)
+- [x] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated (completed 2026-03-15)
 - [ ] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog
 
 ## Phase Details
@@ -366,6 +366,6 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
 | 17. Schema Migrations | 0/1 | Not started | - |
-| 18. iOS Scanner Black Screen Fix | 1/2 | In Progress|  |
-| 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
+| 18. iOS Scanner Black Screen Fix | 1/2 | Complete    | 2026-03-15 |
+| 19. Edge Function and DTO Enrichment | 1/1 | Complete    | 2026-03-15 |
 | 20. Client Image Display | 0/TBD | Not started | - |
