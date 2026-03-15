@@ -210,7 +210,6 @@ function buildGeminiPrompt(payload: ReducedProviderPayload) {
 function createRuntimeDependencies(): Dependencies {
   const supabaseUrl = ensureEnv('SUPABASE_URL')
   const serviceRoleKey = ensureEnv('SUPABASE_SERVICE_ROLE_KEY')
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ensureEnv('SUPABASE_PUBLISHABLE_KEY')
   const kassalApiToken = ensureEnv('KASSAL_API_TOKEN')
   const geminiApiKey = ensureEnv('GEMINI_API_KEY')
   const geminiModel = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.0-flash'
@@ -222,15 +221,7 @@ function createRuntimeDependencies(): Dependencies {
     now: () => new Date(),
     validateAuth: async (request) => {
       const token = extractBearerToken(request)
-      const authClient = createClient(supabaseUrl, anonKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      })
-      const { data, error } = await authClient.auth.getUser(token)
+      const { data, error } = await admin.auth.getUser(token)
 
       if (error || !data.user) {
         throw new HttpError(401, 'Unauthorized')
@@ -371,7 +362,7 @@ function createRuntimeDependencies(): Dependencies {
 
 export async function handleBarcodeLookupRequest(
   request: Request,
-  dependencies: Dependencies = createRuntimeDependencies()
+  dependencies?: Dependencies
 ) {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS })
@@ -381,20 +372,22 @@ export async function handleBarcodeLookupRequest(
     return json(405, { error: 'Method not allowed' })
   }
 
+  const deps = dependencies ?? createRuntimeDependencies()
+
   try {
-    await dependencies.validateAuth(request)
+    await deps.validateAuth(request)
 
     const { ean } = await parseRequestBody(request)
-    const cached = await dependencies.readCache(ean)
+    const cached = await deps.readCache(ean)
 
     if (cached) {
       return json(200, cached)
     }
 
-    const kassalProduct = await dependencies.fetchKassalProduct(ean)
+    const kassalProduct = await deps.fetchKassalProduct(ean)
     const openFoodFactsProduct = isKassalProductUsable(kassalProduct)
       ? null
-      : await dependencies.fetchOpenFoodFactsProduct(ean)
+      : await deps.fetchOpenFoodFactsProduct(ean)
 
     const providerPayload = buildReducedProviderPayload({
       ean,
@@ -408,7 +401,7 @@ export async function handleBarcodeLookupRequest(
 
     if (providerPayload.source !== 'not_found') {
       const geminiResult = validateGeminiResponse(
-        await dependencies.enrichWithGemini(providerPayload)
+        await deps.enrichWithGemini(providerPayload)
       )
 
       if (geminiResult) {
@@ -416,7 +409,7 @@ export async function handleBarcodeLookupRequest(
       }
     }
 
-    await dependencies.writeCache(createCacheRow(dto, providerPayload, dependencies.now()))
+    await deps.writeCache(createCacheRow(dto, providerPayload, deps.now()))
 
     return json(200, dto)
   } catch (error) {
