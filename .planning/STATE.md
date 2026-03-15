@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-15T16:40:00.000Z"
-last_activity: 2026-03-15 — Quick Task 5 complete; 82 Kassal products populated in Varekatalog (household_item_memory)
+last_updated: "2026-03-15T17:55:00.000Z"
+last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database + household_item_memory
 progress:
   total_phases: 20
   completed_phases: 10
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 Phase: 19 of 20 (Edge Function and DTO Enrichment — in progress)
 Plan: 19-01 — complete (brand/imageUrl enrichment, Kassal v1 fix, Activation Date Safeguard, Gemini prompt stripping, unit tests)
 Status: Phase 19 Plan 01 complete — ready for Phase 20 (ProductThumbnail UI) or 17 (DB migrations) or 18-02 (validation)
-Last activity: 2026-03-15 — Phase 19-01 complete; brand/imageUrl enriched in DTO pipeline via isJunkBrand, getOFFImage, Activation Date Safeguard
+Last activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
 
 Progress: [████████░░] 84% (37/44 plans complete)
 
