@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-15T09:56:08.071Z"
-last_activity: 2026-03-15 — Phase 18-01 complete; iOS scanner black screen fix, permission-dismissed UX, haptic vibrate all implemented and tested
+last_updated: "2026-03-15T10:43:00.970Z"
+last_activity: 2026-03-15 — Phase 19-01 complete; brand/imageUrl enriched in barcode DTO pipeline via isJunkBrand, getOFFImage, Activation Date Safeguard
 progress:
   total_phases: 20
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 44
-  completed_plans: 36
+  completed_plans: 37
   percent: 84
 ---
 
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** v2.0 Phase 18 — iOS Scanner Black Screen Fix (01 complete, 02 remaining)
+**Current focus:** v2.0 Phase 19 — Edge Function and DTO Enrichment (01 complete)
 
 ## Current Position
 
-Phase: 18 of 20 (iOS Scanner Black Screen Fix — in progress)
-Plan: 18-01 — complete (MutationObserver video intercept, permission-dismissed UX split, haptic feedback — SCAN-01/02/03 satisfied)
-Status: Phase 18 Plan 01 complete — ready for 18-02 (validation plan) or Phase 17/19/20
-Last activity: 2026-03-15 — Phase 18-01 complete; iOS scanner black screen fix, permission-dismissed UX, haptic vibrate all implemented and tested
+Phase: 19 of 20 (Edge Function and DTO Enrichment — in progress)
+Plan: 19-01 — complete (brand/imageUrl enrichment, Kassal v1 fix, Activation Date Safeguard, Gemini prompt stripping, unit tests)
+Status: Phase 19 Plan 01 complete — ready for Phase 20 (ProductThumbnail UI) or 17 (DB migrations) or 18-02 (validation)
+Last activity: 2026-03-15 — Phase 19-01 complete; brand/imageUrl enriched in DTO pipeline via isJunkBrand, getOFFImage, Activation Date Safeguard
 
-Progress: [████████░░] 84% (36/43 plans complete)
+Progress: [████████░░] 84% (37/44 plans complete)
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [████████░░] 84% (36/43 plans complete)
 | Phase 04-03 barcode scan-to-add | 20min | 3 tasks | 6 files |
 | Phase 04 P04 | 2min | 2 tasks | 2 files |
 | Phase 18-ios-scanner-black-screen-fix P01 | 34 | 3 tasks | 4 files |
+| Phase 19 P01 | 4 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,10 @@ Progress: [████████░░] 84% (36/43 plans complete)
 - [Phase 18-ios-scanner-black-screen-fix]: MutationObserver is installed universally before htmlScanner.start() to intercept video element synchronously — no UA sniffing, applies to all browsers
 - [Phase 18-ios-scanner-black-screen-fix]: Svelte 5 state/message variables use $state() so async callback assignments from external onError handlers trigger reactivity — dialogEl/session remain plain let to avoid $state() proxy breaking bind:this and showModal()
 - [Phase 18-ios-scanner-black-screen-fix]: permission-dismissed is the safe fallback when Permissions API unavailable — allows retry instead of blocking the user with permanent denied UI
+- [Phase 19-01]: isJunkBrand filters: none/n/a/ukjent/unknown/na/-/empty (case-insensitive, trimmed)
+- [Phase 19-01]: Activation Date Safeguard 2026-03-14: pre-activation cache entries missing brand or image_url discarded to force re-fetch, no DB migration needed
+- [Phase 19-01]: Gemini prompt receives stripped payload (no brand/imageUrl/image fields) to minimize tokens — consistent with v2.0-roadmap decision
+- [Phase 19-01]: Kassal API v1 returns data.products[0] not data[0] — extractKassalProduct updated with nested structure check first
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
