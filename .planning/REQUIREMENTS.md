@@ -74,9 +74,9 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 
 ### Scanner Reliability (SCAN)
 
-- [ ] **SCAN-01**: Barcode scanner camera opens without black screen on iOS Safari in PWA standalone mode
-- [ ] **SCAN-02**: When camera access is denied, app shows a distinct "go to Settings" message; when only dismissed, shows "Try again" without alarming UI
-- [ ] **SCAN-03**: Scanner provides haptic feedback on successful barcode detection
+- [x] **SCAN-01**: Barcode scanner camera opens without black screen on iOS Safari in PWA standalone mode
+- [x] **SCAN-02**: When camera access is denied, app shows a distinct "go to Settings" message; when only dismissed, shows "Try again" without alarming UI
+- [x] **SCAN-03**: Scanner provides haptic feedback on successful barcode detection
 
 ### Product Data Enrichment (ENRICH)
 
@@ -163,9 +163,9 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | ITEMS-03 | Phase 15 | Pending |
 | ITEMS-04 | Phase 15 | Pending |
 | USRSET-01 | Phase 16 | Pending |
-| SCAN-01 | Phase 18 | Pending |
-| SCAN-02 | Phase 18 | Pending |
-| SCAN-03 | Phase 18 | Pending |
+| SCAN-01 | Phase 18 | Complete |
+| SCAN-02 | Phase 18 | Complete |
+| SCAN-03 | Phase 18 | Complete |
 | ENRICH-01 | Phase 19 | Pending |
 | ENRICH-02 | Phase 19 | Pending |
 | ENRICH-03 | Phase 20 | Pending |

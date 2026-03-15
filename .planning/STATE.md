@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-14T20:48:42.712Z"
-last_activity: 2026-03-14 — Phase 04-04 gap closure complete; 04-VERIFICATION.md raised from 11/12 to 12/12 passed
+last_updated: "2026-03-15T06:00:51.545Z"
+last_activity: 2026-03-15 — Phase 18-01 complete; iOS scanner black screen fix, permission-dismissed UX split, haptic feedback implemented
 progress:
   total_phases: 20
   completed_phases: 10
-  total_plans: 40
-  completed_plans: 35
-  percent: 88
+  total_plans: 43
+  completed_plans: 36
+  percent: 84
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** v2.0 Phase 17 — Schema Migrations (ready to plan)
+**Current focus:** v2.0 Phase 18 — iOS Scanner Black Screen Fix (01 complete, 02 remaining)
 
 ## Current Position
 
-Phase: 04 of 20 (Barcode Scanning — complete)
-Plan: 04-04 — Gap closure (complete — BARC-01..04 definitions and traceability added; VERIFICATION.md now shows status: passed 12/12)
-Status: Phase 4 fully complete — REQUIREMENTS.md traceability gap closed; ready for Phase 17 (v2.0 Schema Migrations)
-Last activity: 2026-03-14 — Phase 04-04 gap closure complete; 04-VERIFICATION.md raised from 11/12 to 12/12 passed
+Phase: 18 of 20 (iOS Scanner Black Screen Fix — in progress)
+Plan: 18-01 — complete (MutationObserver video intercept, permission-dismissed UX split, haptic feedback — SCAN-01/02/03 satisfied)
+Status: Phase 18 Plan 01 complete — ready for 18-02 (validation plan) or Phase 17/19/20
+Last activity: 2026-03-15 — Phase 18-01 complete; iOS scanner black screen fix, permission-dismissed UX, haptic vibrate all implemented and tested
 
-Progress: [█████████░] 88% (overall, v1.0 + v1.1 + v1.2 history; v2.0 Phase 4 now fully complete)
+Progress: [████████░░] 84% (36/43 plans complete)
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████████░] 88% (overall, v1.0 + v1.1 + v1.2 hist
 | Phase 14-recipes P05 | 5 | 2 tasks | 2 files |
 | Phase 04-03 barcode scan-to-add | 20min | 3 tasks | 6 files |
 | Phase 04 P04 | 2min | 2 tasks | 2 files |
+| Phase 18-ios-scanner-black-screen-fix P01 | 34 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Progress: [█████████░] 88% (overall, v1.0 + v1.1 + v1.2 hist
 - [v2.0-roadmap]: ProductThumbnail must use onerror fallback — Kassal CDN URLs (Cloudinary version tokens) can rotate before the 30-day cache TTL expires.
 - [v2.0-roadmap]: Phase 17 is infrastructure-only (no user-facing requirements); Phase 18 (iOS fix) is independent of 19/20 and can ship as a hotfix; Phase 20 depends on both 17 and 19.
 - [Phase 04-04-gap-closure]: v1.0 Barcode Scanning section inserted at the TOP of REQUIREMENTS.md before v1.1, preserving chronological milestone ordering; traceability rows placed before MOBL-01 to maintain ascending phase-number order
+- [Phase 18-ios-scanner-black-screen-fix]: MutationObserver is installed universally before htmlScanner.start() to intercept video element synchronously — no UA sniffing, applies to all browsers
+- [Phase 18-ios-scanner-black-screen-fix]: Svelte 5 state/message variables use $state() so async callback assignments from external onError handlers trigger reactivity — dialogEl/session remain plain let to avoid $state() proxy breaking bind:this and showModal()
+- [Phase 18-ios-scanner-black-screen-fix]: permission-dismissed is the safe fallback when Permissions API unavailable — allows retry instead of blocking the user with permanent denied UI
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)

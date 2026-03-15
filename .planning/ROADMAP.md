@@ -366,6 +366,6 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
 | 17. Schema Migrations | 0/1 | Not started | - |
-| 18. iOS Scanner Black Screen Fix | 0/2 | Not started | - |
+| 18. iOS Scanner Black Screen Fix | 1/2 | In Progress|  |
 | 19. Edge Function and DTO Enrichment | 0/TBD | Not started | - |
 | 20. Client Image Display | 0/TBD | Not started | - |
