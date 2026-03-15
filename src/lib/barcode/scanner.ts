@@ -36,7 +36,7 @@ type MockScannerController = {
 }
 
 type MockScannerState = {
-  mode?: 'active' | 'permission-denied'
+  mode?: 'active' | 'permission-denied' | 'permission-dismissed'
   starts?: number
   stops?: number
   clears?: number
