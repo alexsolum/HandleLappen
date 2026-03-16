@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-16T19:03:28.009Z"
+last_updated: "2026-03-16T19:05:52.207Z"
 last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
 progress:
   total_phases: 20
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 48
-  completed_plans: 40
+  completed_plans: 41
   percent: 79
 ---
 
@@ -77,6 +77,7 @@ Progress: [████████░░] 84% (37/44 plans complete)
 | Phase 20 P04 | 2min | 1 tasks | 1 files |
 | Phase 20 P03 | 4min | 2 tasks | 5 files |
 | Phase 20 P02 | 2min | 2 tasks | 2 files |
+| Phase 20 P01 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,7 @@ Progress: [████████░░] 84% (37/44 plans complete)
 - [Phase 20-03]: UpdateItemMutation extended with optional brand field: brand=undefined means keep existing value, avoids overwriting with null on non-brand edits
 - [Phase 20-02]: Smart Dedup: brand subtitle hidden when brand.toLowerCase() is a substring of draftName.toLowerCase() — consistent with 20-03 and 20-04 pattern
 - [Phase 20-02]: onConfirm extended with brand and imageUrl so scanned products are stored enriched at insert time — consistent with write-at-insert-time v2.0-roadmap decision
+- [Phase 20-01]: COALESCE upsert: brand = coalesce(excluded.brand, memory.brand) — new value wins only when non-null, preserving existing enrichment
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
