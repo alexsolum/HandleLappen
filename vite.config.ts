@@ -10,7 +10,7 @@ export default defineConfig({
 		SvelteKitPWA({
 			strategies: 'injectManifest',
 			srcDir: 'src',
-			filename: 'service-worker.ts',
+			filename: 'service-worker.js',
 			registerType: 'autoUpdate',
 			injectRegister: false,
 			manifest: {
