@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-16T18:54:23.649Z"
+last_updated: "2026-03-16T19:00:15.554Z"
 last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
 progress:
   total_phases: 20
   completed_phases: 10
   total_plans: 48
-  completed_plans: 38
+  completed_plans: 39
   percent: 79
 ---
 
@@ -75,6 +75,7 @@ Progress: [████████░░] 84% (37/44 plans complete)
 | Phase 18-ios-scanner-black-screen-fix P01 | 34 | 3 tasks | 4 files |
 | Phase 19 P01 | 4 | 3 tasks | 4 files |
 | Phase 20 P04 | 2min | 1 tasks | 1 files |
+| Phase 20 P03 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,9 @@ Progress: [████████░░] 84% (37/44 plans complete)
 - [Phase 19-01]: Kassal API v1 returns data.products[0] not data[0] — extractKassalProduct updated with nested structure check first
 - [Phase 20-04]: Smart Dedup: brand subtitle hidden when brand text is a case-insensitive substring of the product name
 - [Phase 20-04]: onerror fallback uses inline HTML attribute (not Svelte event binding) for cross-origin image errors before hydration
+- [Phase 20-03]: ItemRow uses Svelte $state(imgLoaded/imgError) + $effect to reset on item change — avoids stale shimmer from previous item
+- [Phase 20-03]: Smart Dedup in ItemDetailSheet: brand subtitle hidden when brand.toLowerCase() is a substring of name.toLowerCase()
+- [Phase 20-03]: UpdateItemMutation extended with optional brand field: brand=undefined means keep existing value, avoids overwriting with null on non-brand edits
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
