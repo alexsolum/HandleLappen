@@ -13,6 +13,9 @@ export default defineConfig({
 			filename: 'service-worker.js',
 			registerType: 'autoUpdate',
 			injectRegister: false,
+			injectManifest: {
+				injectionPoint: false
+			},
 			manifest: {
 				name: 'HandleAppen',
 				short_name: 'HandleAppen',

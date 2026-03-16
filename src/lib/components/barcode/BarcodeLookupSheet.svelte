@@ -113,7 +113,7 @@
                 src={result.imageUrl}
                 alt={result.itemName}
                 class="h-14 w-14 rounded-full border border-gray-100 object-cover {imgLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200"
-                onerror="this.style.display='none';this.parentElement.querySelector('[data-fallback]').style.display='flex'"
+                onerror={(e) => { e.target.style.display = 'none'; e.target.parentElement.querySelector('[data-fallback]').style.display = 'flex' }}
                 onload={() => { imgLoaded = true }}
               />
               <!-- Package icon fallback (hidden by default, shown on image error) -->

@@ -130,7 +130,7 @@
                     src={item.product_image_url}
                     alt={item.display_name}
                     class="h-10 w-10 rounded-full object-cover"
-                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+                    onerror={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex' }}
                   />
                   <!-- Fallback icon (hidden unless image errors) -->
                   <div
@@ -237,7 +237,7 @@
                       src={editingImageUrl.trim()}
                       alt="Forhåndsvisning"
                       class="h-12 w-12 rounded-full object-cover border border-gray-200"
-                      onerror="this.parentElement.style.display='none'"
+                      onerror={(e) => { e.target.parentElement.style.display = 'none' }}
                     />
                     <span class="text-xs text-gray-500">Forhåndsvisning</span>
                   </div>
