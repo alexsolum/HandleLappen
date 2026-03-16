@@ -11,7 +11,7 @@
     onClose: () => void
     onRetry: () => void
     onOpenManualEntry: () => void
-    onConfirm: (input: { name: string; quantity: number | null; categoryId: string | null }) => void
+    onConfirm: (input: { name: string; quantity: number | null; categoryId: string | null; brand: string | null; imageUrl: string | null }) => void
   }
 
   let {
@@ -31,6 +31,9 @@
   let draftName = $state('')
   let draftQuantity = $state('1')
   let draftCategoryId = $state<string | null>(null)
+  let draftBrand = $state('')
+  let imgLoaded = $state(false)
+  let imgError = $state(false)
 
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === dialogEl) onClose()
@@ -57,7 +60,15 @@
       name: trimmedName,
       quantity: parseQuantity(draftQuantity),
       categoryId: draftCategoryId,
+      brand: draftBrand.trim() || null,
+      imageUrl: result?.imageUrl ?? null,
     })
+  }
+
+  // Smart Dedup: hide brand subtitle when brand is a substring of the product name
+  function shouldShowBrand(name: string, brand: string | null | undefined): boolean {
+    if (!brand) return false
+    return !name.toLowerCase().includes(brand.toLowerCase())
   }
 
   $effect(() => {
@@ -65,6 +76,9 @@
       draftName = result?.itemName ?? ''
       draftQuantity = String(result?.quantity ?? 1)
       draftCategoryId = result?.categoryId ?? null
+      draftBrand = result?.brand ?? ''
+      imgLoaded = false
+      imgError = false
     }
   })
 
@@ -88,33 +102,66 @@
   <div class="flex min-h-full items-end justify-center p-2 sm:p-4">
     <div class="mx-auto flex max-h-[calc(100dvh-1rem)] w-[calc(100%-0.5rem)] max-w-lg flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-2xl" data-testid="barcode-lookup-sheet">
       <div class="flex items-center justify-between border-b border-gray-100 px-4 pb-4 pt-5">
-        <div>
-          <h2 class="text-lg font-semibold text-gray-900">
-            {#if viewState === 'loading'}
-              Søker etter vare
-            {:else if viewState === 'found'}
-              Bekreft vare
-            {:else if viewState === 'not_found'}
-              Finner ikke varen
-            {:else}
-              Kunne ikke søke opp varen
+        <div class="flex items-center gap-3">
+          {#if viewState === 'found' && result?.imageUrl}
+            <!-- Circular product image with shimmer skeleton -->
+            <div class="relative h-14 w-14 shrink-0">
+              {#if !imgLoaded && !imgError}
+                <div class="absolute inset-0 animate-pulse rounded-full bg-gray-200"></div>
+              {/if}
+              <img
+                src={result.imageUrl}
+                alt={result.itemName}
+                class="h-14 w-14 rounded-full border border-gray-100 object-cover {imgLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200"
+                onerror="this.style.display='none';this.parentElement.querySelector('[data-fallback]').style.display='flex'"
+                onload={() => { imgLoaded = true }}
+              />
+              <!-- Package icon fallback (hidden by default, shown on image error) -->
+              <div
+                data-fallback
+                class="absolute inset-0 hidden items-center justify-center rounded-full bg-gray-100 text-gray-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 10V11" />
+                </svg>
+              </div>
+            </div>
+          {/if}
+
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">
+              {#if viewState === 'loading'}
+                Søker etter vare
+              {:else if viewState === 'found'}
+                Bekreft vare
+              {:else if viewState === 'not_found'}
+                Finner ikke varen
+              {:else}
+                Kunne ikke søke opp varen
+              {/if}
+            </h2>
+
+            {#if viewState === 'found' && result?.brand && shouldShowBrand(draftName, result.brand)}
+              <p class="mt-0.5 text-sm text-gray-500">{result.brand}</p>
             {/if}
-          </h2>
-          <p class="mt-1 text-sm text-gray-500">
-            {#if viewState === 'loading'}
-              Vi henter navn og kategori automatisk.
-            {:else if viewState === 'found'}
-              Kontroller navnet og kategorien før du legger varen i listen.
-            {:else if viewState === 'not_found'}
-              Du kan prøve på nytt, skrive inn en annen EAN eller legge til varen manuelt.
-            {:else}
-              Prøv igjen eller fortsett med manuell EAN.
-            {/if}
-          </p>
+
+            <p class="mt-1 text-sm text-gray-500">
+              {#if viewState === 'loading'}
+                Vi henter navn og kategori automatisk.
+              {:else if viewState === 'found'}
+                Kontroller navnet og kategorien før du legger varen i listen.
+              {:else if viewState === 'not_found'}
+                Du kan prøve på nytt, skrive inn en annen EAN eller legge til varen manuelt.
+              {:else}
+                Prøv igjen eller fortsett med manuell EAN.
+              {/if}
+            </p>
+          </div>
         </div>
+
         <button
           type="button"
-          class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          class="self-start rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
           onclick={onClose}
           aria-label="Lukk strekkodesøk"
         >
@@ -142,6 +189,16 @@
                 type="text"
                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
                 placeholder="F.eks. Pepsi Max 1,5 L"
+              />
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-gray-700">Merke</span>
+              <input
+                bind:value={draftBrand}
+                type="text"
+                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                placeholder="F.eks. Pepsi"
               />
             </label>
 
