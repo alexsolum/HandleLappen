@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry (completed 2026-03-12)
 - [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
 - [ ] **Phase 13: Admin Hub and Subpage Routing** - Admin hub page linking to all admin areas; Butikker, Husstand, and Historikk accessible as subpages; householdId-from-locals pattern established
-- [ ] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow
+- [x] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow (completed 2026-03-16)
 - [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
 - [ ] **Phase 16: Dark Mode and User Settings** - Brukerinnstillinger page with dark mode toggle, FOUC prevention, and system-preference fallback
 - [ ] **Phase 17: Schema Migrations** - Nullable image and brand columns added to barcode_product_cache, household_item_memory, and list_items ahead of enrichment work
@@ -362,7 +362,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 11. Household Item Memory and Suggestions | 3/3 | Complete | 2026-03-12 |
 | 12. Navigation Restructure | 3/3 | Complete    | 2026-03-13 |
 | 13. Admin Hub and Subpage Routing | 0/TBD | Not started | - |
-| 14. Recipes | 2/4 | In Progress | - |
+| 14. Recipes | 2/4 | Complete    | 2026-03-16 |
 | 15. Item Management | 0/TBD | Not started | - |
 | 16. Dark Mode and User Settings | 0/TBD | Not started | - |
 | 17. Schema Migrations | 0/1 | Not started | - |
