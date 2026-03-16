@@ -14,10 +14,25 @@ type Item = {
   sort_order: number
   category_id: string | null
   created_at: string
+  brand?: string | null
+  product_image_url?: string | null
 }
 
-type AddItemVariables = { name: string; quantity?: number | null; categoryId?: string | null }
-type AddOrIncrementItemVariables = { listId: string; name: string; amount?: number; categoryId?: string | null }
+type AddItemVariables = {
+  name: string
+  quantity?: number | null
+  categoryId?: string | null
+  brand?: string | null
+  imageUrl?: string | null
+}
+type AddOrIncrementItemVariables = {
+  listId: string
+  name: string
+  amount?: number
+  categoryId?: string | null
+  brand?: string | null
+  imageUrl?: string | null
+}
 type DeleteItemVariables = { id: string }
 type ChangeQuantityVariables = {
   id: string
@@ -35,7 +50,7 @@ type ToggleItemVariables = {
   }
 }
 type AssignCategoryVariables = { itemId: string; categoryId: string | null }
-type UpdateItemVariables = { id: string; name: string; quantity: number | null }
+type UpdateItemVariables = { id: string; name: string; quantity: number | null; brand?: string | null }
 type MutationContext = { previous: Item[] | undefined }
 type AddOrIncrementResult = { action: 'added' | 'incremented'; itemId: string }
 type ChangeQuantityResult = { action: 'updated' | 'deleted'; quantity: number | null }
@@ -50,7 +65,9 @@ export function createItemsQuery(supabase: SupabaseClient, listId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('list_items')
-        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
+        .select(
+          'id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at, brand, product_image_url'
+        )
         .eq('list_id', listId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true })
@@ -65,16 +82,25 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
   const queryKey = itemsQueryKey(listId)
 
   return createMutation<Item, Error, AddItemVariables, MutationContext>(() => ({
-    mutationFn: async ({ name, quantity, categoryId }) => {
+    mutationFn: async ({ name, quantity, categoryId, brand, imageUrl }) => {
       const { data, error } = await supabase
         .from('list_items')
-        .insert({ list_id: listId, name, quantity: quantity ?? 1, category_id: categoryId ?? null })
-        .select('id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at')
+        .insert({
+          list_id: listId,
+          name,
+          quantity: quantity ?? 1,
+          category_id: categoryId ?? null,
+          brand: brand ?? null,
+          product_image_url: imageUrl ?? null,
+        })
+        .select(
+          'id, list_id, name, quantity, is_checked, checked_at, sort_order, category_id, created_at, brand, product_image_url'
+        )
         .single()
       if (error) throw error
       return data as Item
     },
-    onMutate: async ({ name, quantity, categoryId }) => {
+    onMutate: async ({ name, quantity, categoryId, brand, imageUrl }) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<Item[]>(queryKey)
       queryClient.setQueryData<Item[]>(queryKey, (old = []) => [
@@ -89,6 +115,8 @@ export function createAddItemMutation(supabase: SupabaseClient, listId: string) 
           sort_order: 0,
           category_id: categoryId ?? null,
           created_at: new Date().toISOString(),
+          brand: brand ?? null,
+          product_image_url: imageUrl ?? null,
         },
       ])
       return { previous }
@@ -107,7 +135,7 @@ export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
   const queryClient = useQueryClient()
 
   return createMutation<AddOrIncrementResult, Error, AddOrIncrementItemVariables>(() => ({
-    mutationFn: async ({ listId, name, amount = 1, categoryId }) => {
+    mutationFn: async ({ listId, name, amount = 1, categoryId, brand, imageUrl }) => {
       const trimmedName = name.trim()
       const normalizedName = trimmedName.toLowerCase()
 
@@ -142,6 +170,8 @@ export function createAddOrIncrementItemMutation(supabase: SupabaseClient) {
           name: trimmedName,
           quantity: amount,
           category_id: categoryId ?? null,
+          brand: brand ?? null,
+          product_image_url: imageUrl ?? null,
         })
         .select('id')
         .single()
@@ -370,15 +400,22 @@ export function createUpdateItemMutation(supabase: SupabaseClient, listId: strin
   const queryKey = itemsQueryKey(listId)
 
   return createMutation<void, Error, UpdateItemVariables, MutationContext>(() => ({
-    mutationFn: async ({ id, name, quantity }) => {
-      const { error } = await supabase.from('list_items').update({ name, quantity }).eq('id', id)
+    mutationFn: async ({ id, name, quantity, brand }) => {
+      const patch: Record<string, unknown> = { name, quantity }
+      if (brand !== undefined) patch.brand = brand
+      const { error } = await supabase.from('list_items').update(patch).eq('id', id)
       if (error) throw error
     },
-    onMutate: async ({ id, name, quantity }) => {
+    onMutate: async ({ id, name, quantity, brand }) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<Item[]>(queryKey)
       queryClient.setQueryData<Item[]>(queryKey, (old = []) =>
-        old.map((item) => (item.id === id ? { ...item, name, quantity } : item))
+        old.map((item) => {
+          if (item.id !== id) return item
+          const updated = { ...item, name, quantity }
+          if (brand !== undefined) updated.brand = brand
+          return updated
+        })
       )
       return { previous }
     },

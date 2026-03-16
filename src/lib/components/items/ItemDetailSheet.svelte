@@ -1,11 +1,18 @@
 <script lang="ts">
   type Category = { id: string; name: string }
-  type Item = { id: string; name: string; quantity: number | null; category_id: string | null }
+  type Item = {
+    id: string
+    name: string
+    quantity: number | null
+    category_id: string | null
+    brand?: string | null
+    product_image_url?: string | null
+  }
 
   interface Props {
     item: Item | null
     categories: Category[]
-    onSave: (id: string, name: string, quantity: number | null, categoryId: string | null) => void
+    onSave: (id: string, name: string, quantity: number | null, categoryId: string | null, brand: string | null) => void
     onClose: () => void
   }
 
@@ -15,18 +22,24 @@
   let draftName = $state('')
   let draftQuantity = $state('')
   let draftCategoryId = $state<string | null>(null)
+  let draftBrand = $state('')
+  let imgError = $state(false)
 
   $effect(() => {
     if (!item) {
       draftName = ''
       draftQuantity = ''
       draftCategoryId = null
+      draftBrand = ''
+      imgError = false
       return
     }
 
     draftName = item.name
     draftQuantity = item.quantity == null ? '' : String(item.quantity)
     draftCategoryId = item.category_id
+    draftBrand = item.brand ?? ''
+    imgError = false
   })
 
   $effect(() => {
@@ -40,6 +53,12 @@
     if (dialogEl.open) dialogEl.close()
   })
 
+  // Smart Dedup: hide brand subtitle if brand is a substring of the product name
+  const showBrandSubtitle = $derived(
+    !!item?.brand &&
+    !item.name.toLowerCase().includes(item.brand.toLowerCase())
+  )
+
   function handleBackdropClick(event: MouseEvent) {
     if (event.target === dialogEl) onClose()
   }
@@ -51,7 +70,8 @@
     if (!trimmedName) return
 
     const parsedQuantity = draftQuantity === '' ? null : Number.parseInt(draftQuantity, 10)
-    onSave(item.id, trimmedName, Number.isNaN(parsedQuantity) ? null : parsedQuantity, draftCategoryId)
+    const brandValue = draftBrand.trim() === '' ? null : draftBrand.trim()
+    onSave(item.id, trimmedName, Number.isNaN(parsedQuantity) ? null : parsedQuantity, draftCategoryId, brandValue)
   }
 </script>
 
@@ -63,7 +83,34 @@
   <div class="flex min-h-full items-end justify-center p-2 sm:p-4">
     <div class="mx-auto flex max-h-[calc(100dvh-1rem)] w-[calc(100%-0.5rem)] max-w-lg flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-2xl">
       <div class="flex items-center justify-between border-b border-gray-100 px-4 pb-4 pt-5">
-        <h2 class="text-lg font-semibold text-gray-900">Rediger vare</h2>
+        <div class="flex items-center gap-3">
+          <!-- Product image (48x48, circular) -->
+          <div class="relative h-12 w-12 flex-shrink-0">
+            {#if item?.product_image_url && !imgError}
+              <img
+                src={item.product_image_url}
+                alt=""
+                aria-hidden="true"
+                class="h-12 w-12 rounded-full object-cover"
+                onerror={() => { imgError = true }}
+              />
+            {:else}
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+              </div>
+            {/if}
+          </div>
+
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Rediger vare</h2>
+            {#if showBrandSubtitle}
+              <p class="text-sm text-gray-400">{item?.brand}</p>
+            {/if}
+          </div>
+        </div>
+
         <button
           type="button"
           class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
@@ -80,6 +127,16 @@
           <input
             bind:value={draftName}
             type="text"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          />
+        </label>
+
+        <label class="block space-y-2">
+          <span class="text-sm font-medium text-gray-700">Merke</span>
+          <input
+            bind:value={draftBrand}
+            type="text"
+            placeholder="Valgfritt"
             class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
           />
         </label>

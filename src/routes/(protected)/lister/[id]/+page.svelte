@@ -37,6 +37,8 @@
     quantity: number | null
     is_checked: boolean
     category_id: string | null
+    brand?: string | null
+    product_image_url?: string | null
   }
 
   let { data } = $props()
@@ -252,10 +254,10 @@
     pendingCategoryItem = null
   }
 
-  function handleDetailSave(id: string, name: string, quantity: number | null, categoryId: string | null) {
+  function handleDetailSave(id: string, name: string, quantity: number | null, categoryId: string | null, brand: string | null) {
     const previousCategoryId = detailSheetItem?.category_id ?? null
 
-    updateItemMutation.mutate({ id, name, quantity })
+    updateItemMutation.mutate({ id, name, quantity, brand })
 
     if (categoryId !== previousCategoryId) {
       assignCategoryMutation.mutate({ itemId: id, categoryId })
