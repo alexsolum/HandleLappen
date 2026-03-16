@@ -6,6 +6,8 @@
     name: string
     quantity: number | null
     is_checked: boolean
+    category_id: string | null
+    product_image_url?: string | null
   }
 
   interface Props {

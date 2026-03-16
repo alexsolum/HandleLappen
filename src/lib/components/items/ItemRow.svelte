@@ -4,7 +4,13 @@
   import { onDestroy } from 'svelte'
 
   interface Props {
-    item: { id: string; name: string; quantity: number | null; is_checked: boolean }
+    item: {
+      id: string
+      name: string
+      quantity: number | null
+      is_checked: boolean
+      product_image_url?: string | null
+    }
     onToggle: () => void
     onDelete: () => void
     onIncrement: () => void
@@ -15,6 +21,16 @@
   let { item, onToggle, onDelete, onIncrement, onDecrement, onLongPress }: Props = $props()
   let isOnline = $derived(offlineStore.isOnline)
   const displayQuantity = $derived(item.quantity ?? 1)
+
+  let imgLoaded = $state(false)
+  let imgError = $state(false)
+
+  $effect(() => {
+    // Reset image state when item changes
+    void item.product_image_url
+    imgLoaded = false
+    imgError = false
+  })
 
   let longPressTimer: ReturnType<typeof setTimeout> | null = null
   let cleanupMove: (() => void) | null = null
@@ -154,6 +170,31 @@
           <svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
+        {/if}
+      </div>
+
+      <!-- Product thumbnail (40x40, circular) -->
+      <div class="relative h-10 w-10 flex-shrink-0">
+        {#if item.product_image_url && !imgError}
+          <!-- Shimmer skeleton shown while image is loading -->
+          {#if !imgLoaded}
+            <div class="absolute inset-0 animate-pulse rounded-full bg-gray-200"></div>
+          {/if}
+          <img
+            src={item.product_image_url}
+            alt=""
+            aria-hidden="true"
+            class="h-10 w-10 rounded-full object-cover {imgLoaded ? 'opacity-100' : 'opacity-0'}"
+            onload={() => { imgLoaded = true }}
+            onerror={() => { imgError = true }}
+          />
+        {:else}
+          <!-- Package icon fallback -->
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
+            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+          </div>
         {/if}
       </div>
 
