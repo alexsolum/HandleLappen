@@ -311,11 +311,13 @@
     closeBarcodeLookupFlow()
   }
 
-  function handleBarcodeConfirm(input: { name: string; quantity: number | null; categoryId: string | null }) {
+  function handleBarcodeConfirm(input: { name: string; quantity: number | null; categoryId: string | null; brand: string | null; imageUrl: string | null }) {
     addItemMutation.mutate(
       {
         name: input.name,
         quantity: input.quantity,
+        brand: input.brand ?? undefined,
+        imageUrl: input.imageUrl ?? undefined,
       },
       {
         onSuccess: (newItem) => {
