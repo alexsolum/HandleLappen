@@ -1,5 +1,5 @@
 ---
-status: investigating
+status: awaiting_human_verify
 trigger: "Investigate and fix 3 regression issues: (1) Product suggestions missing in Legg til vare field, (2) Adding products from recipes fails with error, (3) Can't select Velg ingen option when adding recipe products"
 created: 2026-03-16T00:00:00Z
 updated: 2026-03-16T00:00:00Z
@@ -7,10 +7,9 @@ goal: find_and_fix
 ---
 
 ## Current Focus
-hypothesis: ItemInput component's suggestions are not displaying because the `visibleSuggestions` derived property check at line 35 might be failing due to a data flow issue OR the `createRememberedItemsQuery` is not being called correctly OR the query is not returning data due to database changes in Phase 20 (added brand/imageUrl fields)
-test: Verify data flow through ItemInput -> rememberedItemsQuery -> searchRememberedItems -> RPC; check ListPickerSheet passing
-expecting: Find specific broken link in the data/query chain or missing prop passing
-next_action: Check test files to see what's breaking, verify Phase 20 RPC changes haven't broken query
+status: AWAITING HUMAN VERIFICATION
+last_action: Applied fix for Phase 20 RPC regression - updated frontend to match new RPC signature
+next_action: User to verify all three issues are resolved by testing in real app
 
 ## Symptoms
 expected:
