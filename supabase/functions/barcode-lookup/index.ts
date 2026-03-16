@@ -78,6 +78,17 @@ function extractBearerToken(request: Request) {
   return authorization.slice('Bearer '.length).trim()
 }
 
+function decodeJwtSub(jwt: string): string | null {
+  try {
+    const payload = jwt.split('.')[1]
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    const data = JSON.parse(json) as Record<string, unknown>
+    return typeof data.sub === 'string' && data.sub ? data.sub : null
+  } catch {
+    return null
+  }
+}
+
 function extractKassalProduct(payload: unknown): KassalProduct | null {
   if (!payload || typeof payload !== 'object') return null
 
@@ -221,13 +232,13 @@ function createRuntimeDependencies(): Dependencies {
     now: () => new Date(),
     validateAuth: async (request) => {
       const token = extractBearerToken(request)
-      const { data, error } = await admin.auth.getUser(token)
+      const userId = decodeJwtSub(token)
 
-      if (error || !data.user) {
+      if (!userId) {
         throw new HttpError(401, 'Unauthorized')
       }
 
-      return { userId: data.user.id }
+      return { userId }
     },
     readCache: async (ean) => {
       const nowIso = new Date().toISOString()

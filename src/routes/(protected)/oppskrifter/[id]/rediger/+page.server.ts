@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params, locals, parent }) => {
   const supabase = locals.supabase
   const { user } = await locals.safeGetSession()
 
@@ -16,7 +16,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   if (recipeError || !recipe) throw error(404, 'Oppskrift ikke funnet')
 
+  // Get householdId from parent layout
+  const { householdId } = await parent()
+
   return {
     recipeId: params.id,
+    householdId,
   }
 }

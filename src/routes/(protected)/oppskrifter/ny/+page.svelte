@@ -5,7 +5,7 @@
   import IngredientBuilder from '$lib/components/recipes/IngredientBuilder.svelte'
 
   let { data } = $props()
-  const { supabase } = data
+  const { supabase, householdId } = data
 
   let name = $state('')
   let description = $state('')
@@ -176,6 +176,7 @@
       <h2 class="text-lg font-semibold text-gray-900">Ingredienser</h2>
       <IngredientBuilder
         {supabase}
+        {householdId}
         bind:ingredients
         onUpdate={(newIngredients) => ingredients = newIngredients}
       />

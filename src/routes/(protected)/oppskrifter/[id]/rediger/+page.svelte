@@ -9,7 +9,7 @@
   import IngredientBuilder from '$lib/components/recipes/IngredientBuilder.svelte'
 
   let { data } = $props()
-  const { supabase, recipeId } = data
+  const { supabase, recipeId, householdId } = data
 
   const recipeQuery = createRecipeDetailQuery(supabase, recipeId)
   const updateMutation = createUpdateRecipeMutation(supabase)
@@ -223,6 +223,7 @@
         <h2 class="text-lg font-semibold text-gray-900">Ingredienser</h2>
         <IngredientBuilder
           {supabase}
+          {householdId}
           bind:ingredients
           onUpdate={(newIngredients) => (ingredients = newIngredients)}
         />

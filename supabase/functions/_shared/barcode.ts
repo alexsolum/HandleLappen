@@ -183,7 +183,12 @@ export function normalizeBarcode(input: string) {
     return `0${digitsOnly}`
   }
 
-  return [8, 13, 14].includes(digitsOnly.length) ? digitsOnly : null
+  // GTIN-14 zero-padded EAN-13: strip the leading 0 so Kassal can find it
+  if (digitsOnly.length === 14 && digitsOnly.startsWith('0')) {
+    return digitsOnly.slice(1)
+  }
+
+  return [8, 13].includes(digitsOnly.length) ? digitsOnly : null
 }
 
 export function isKassalProductUsable(product: KassalProduct | null) {

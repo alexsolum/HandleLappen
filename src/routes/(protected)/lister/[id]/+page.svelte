@@ -82,7 +82,8 @@
   const rememberedItemsQuery = createRememberedItemsQuery(
     data.supabase,
     data.listId,
-    () => rememberedQueryText
+    () => rememberedQueryText,
+    data.householdId
   )
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)
   const deleteItemMutation = createDeleteItemMutation(data.supabase, data.listId)

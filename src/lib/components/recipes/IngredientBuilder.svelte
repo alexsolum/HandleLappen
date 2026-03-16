@@ -5,11 +5,12 @@
 
   interface Props {
     supabase: SupabaseClient
+    householdId: string
     ingredients: string[]
     onUpdate: (ingredients: string[]) => void
   }
 
-  let { supabase, ingredients = $bindable([]), onUpdate }: Props = $props()
+  let { supabase, householdId, ingredients = $bindable([]), onUpdate }: Props = $props()
 
   let query = $state('')
   let suggestions = $state<RememberedItem[]>([])
@@ -25,7 +26,7 @@
     if (value.trim().length > 0 && isOnline) {
       isSearching = true
       try {
-        suggestions = await searchRememberedItems(supabase as any, value)
+        suggestions = await searchRememberedItems(supabase as any, value, householdId)
       } catch (err) {
         console.error('Failed to fetch suggestions:', err)
         suggestions = []

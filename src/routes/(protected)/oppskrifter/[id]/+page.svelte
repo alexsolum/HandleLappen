@@ -11,7 +11,7 @@
   import ListPickerSheet from '$lib/components/recipes/ListPickerSheet.svelte'
 
   let { data } = $props()
-  const { supabase, recipeId } = data
+  const { supabase, recipeId, householdId } = data
 
   const recipeQuery = createRecipeDetailQuery(supabase, recipeId)
   const listsQuery = createListsQuery(supabase)
@@ -77,7 +77,7 @@
 
     try {
       for (const ingredient of selected) {
-        const remembered = await searchRememberedItems(supabase, ingredient.name)
+        const remembered = await searchRememberedItems(supabase, ingredient.name, householdId)
         const categoryId = remembered.length > 0 ? remembered[0].lastCategoryId : null
         await addOrIncrementMutation.mutateAsync({ listId, name: ingredient.name, categoryId })
       }

@@ -3,8 +3,45 @@ import {
   isJunkBrand,
   getOFFImage,
   buildReducedProviderPayload,
+  normalizeBarcode,
   type OpenFoodFactsProduct,
 } from './barcode.ts'
+
+// ---------------------------------------------------------------------------
+// normalizeBarcode
+// ---------------------------------------------------------------------------
+
+Deno.test('normalizeBarcode — returns null for empty string', () => {
+  assertStrictEquals(normalizeBarcode(''), null)
+})
+
+Deno.test('normalizeBarcode — returns null for 7-digit input', () => {
+  assertStrictEquals(normalizeBarcode('1234567'), null)
+})
+
+Deno.test('normalizeBarcode — passes 8-digit EAN-8 through unchanged', () => {
+  assertStrictEquals(normalizeBarcode('12345678'), '12345678')
+})
+
+Deno.test('normalizeBarcode — pads 12-digit UPC-A to 13 digits', () => {
+  assertStrictEquals(normalizeBarcode('070444160131'), '0070444160131')
+})
+
+Deno.test('normalizeBarcode — passes 13-digit EAN-13 through unchanged', () => {
+  assertStrictEquals(normalizeBarcode('7044416013172'), '7044416013172')
+})
+
+Deno.test('normalizeBarcode — strips leading zero from 14-digit GTIN-14 (zero-padded EAN-13)', () => {
+  assertStrictEquals(normalizeBarcode('07044416013172'), '7044416013172')
+})
+
+Deno.test('normalizeBarcode — returns null for 14-digit input not starting with 0', () => {
+  assertStrictEquals(normalizeBarcode('17044416013172'), null)
+})
+
+Deno.test('normalizeBarcode — strips non-digit characters before checking length', () => {
+  assertStrictEquals(normalizeBarcode('70-444-16013172'), '7044416013172')
+})
 
 // ---------------------------------------------------------------------------
 // isJunkBrand

@@ -20,7 +20,8 @@ export { normalizeRememberedItemQuery, searchRememberedItems, type RememberedIte
 export function createRememberedItemsQuery(
   supabase: SupabaseClient<Database>,
   listId: string,
-  getQuery: () => string
+  getQuery: () => string,
+  householdId: string
 ) {
   return createQuery(() => {
     const query = normalizeRememberedItemQuery(getQuery())
@@ -29,7 +30,7 @@ export function createRememberedItemsQuery(
       queryKey: rememberedItemsQueryKey(listId, query),
       enabled: query.length > 0,
       staleTime: 15_000,
-      queryFn: async () => searchRememberedItems(supabase, query),
+      queryFn: async () => searchRememberedItems(supabase, query, householdId),
     }
   })
 }

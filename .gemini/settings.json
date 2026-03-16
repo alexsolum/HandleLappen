@@ -13,6 +13,14 @@
     "supabase": {
       "url": "https://mcp.supabase.com/mcp?project_ref=jnbmivrzlezanebcwgyj",
       "type": "http"
+    },
+    {
+      "mcpServers": {
+        "vercel": {
+          "command": "npx",
+          "args": ["mcp-remote", "https://mcp.vercel.com"]
+        }
+      }
     }
   }
 }
