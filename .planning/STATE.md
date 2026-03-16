@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
+last_updated: "2026-03-16T18:54:23.649Z"
+last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
+progress:
+  total_phases: 20
+  completed_phases: 10
+  total_plans: 48
+  completed_plans: 38
+  percent: 79
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: completed
 last_updated: "2026-03-15T17:55:00.000Z"
 last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database + household_item_memory
 progress:
-  total_phases: 20
+  [████████░░] 79%
   completed_phases: 10
   total_plans: 44
   completed_plans: 37
@@ -59,6 +74,7 @@ Progress: [████████░░] 84% (37/44 plans complete)
 | Phase 04 P04 | 2min | 2 tasks | 2 files |
 | Phase 18-ios-scanner-black-screen-fix P01 | 34 | 3 tasks | 4 files |
 | Phase 19 P01 | 4 | 3 tasks | 4 files |
+| Phase 20 P04 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -112,6 +128,8 @@ Progress: [████████░░] 84% (37/44 plans complete)
 - [Phase 19-01]: Activation Date Safeguard 2026-03-14: pre-activation cache entries missing brand or image_url discarded to force re-fetch, no DB migration needed
 - [Phase 19-01]: Gemini prompt receives stripped payload (no brand/imageUrl/image fields) to minimize tokens — consistent with v2.0-roadmap decision
 - [Phase 19-01]: Kassal API v1 returns data.products[0] not data[0] — extractKassalProduct updated with nested structure check first
+- [Phase 20-04]: Smart Dedup: brand subtitle hidden when brand text is a case-insensitive substring of the product name
+- [Phase 20-04]: onerror fallback uses inline HTML attribute (not Svelte event binding) for cross-origin image errors before hydration
 
 ### Pending Todos
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
