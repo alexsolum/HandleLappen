@@ -12,6 +12,12 @@
 - [x] **BARC-03**: Scanned product name and canonical category are normalized via Gemini and pre-filled in the confirmation sheet within 2 seconds for a recognized Norwegian product EAN
 - [x] **BARC-04**: Barcode scanning works in iOS Safari PWA standalone mode using the html5-qrcode WASM polyfill; no native BarcodeDetector API is required, and the Kassal.app Bearer token never appears in browser DevTools network requests
 
+### History and Recommendations (HIST/RECD)
+
+- [ ] **HIST-02**: User can browse household shopping history grouped by date/list and add items back to an active list
+- [ ] **RECD-01**: User sees frequency-based recommendations built from household history
+- [ ] **RECD-02**: User sees co-purchase recommendations derived from same-session history patterns
+
 ## v1.1 Requirements (Complete)
 
 ### Mobile Experience
@@ -137,6 +143,9 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | BARC-02 | Phase 4 | Complete |
 | BARC-03 | Phase 4 | Complete |
 | BARC-04 | Phase 4 | Complete |
+| HIST-02 | Phase 21 | Pending |
+| RECD-01 | Phase 21 | Pending |
+| RECD-02 | Phase 21 | Pending |
 | MOBL-01 | Phase 9 | Complete |
 | MOBL-02 | Phase 9 | Complete |
 | MOBL-03 | Phase 9 | Complete |
@@ -176,14 +185,14 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | DISP-04 | Phase 20 | Pending |
 
 **Coverage:**
-- v1.0 requirements: 4 total
+- v1.0 requirements: 7 total
 - v1.1 requirements: 8 total (part of v1.2 release)
 - v1.2 requirements: 18 total
-- Mapped to phases: 22
+- Mapped to phases: 25
 - v2.0 requirements: 11 total
 - Mapped to phases: 11 (traceability to be confirmed by roadmapper)
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-14 after adding BARC-01..04 v1.0 Barcode Scanning section (Plan 04-04)*
+*Last updated: 2026-03-27 after restoring HIST/RECD traceability and assigning Phase 21 audit-gap closure*

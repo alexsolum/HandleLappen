@@ -6,6 +6,8 @@ HandleAppen shipped its v1.0 foundation in eight phases covering auth, shared li
 
 Milestone v2.0 adds four phases (17–20) targeting barcode scanner reliability on iOS and product data enrichment with images and brand names. Phase 17 is pure infrastructure (schema migrations). Phase 18 fixes the iOS black screen independently. Phases 19 and 20 carry image/brand through the edge function pipeline and into the UI.
 
+Milestone v2.1 adds two audit-driven closure phases (21-22) to resolve critical offline replay correctness and restore missing verification artifacts required by milestone audit gates.
+
 ## Phases
 
 **Phase Numbering:**
@@ -33,7 +35,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 17: Schema Migrations** - Nullable image and brand columns added to barcode_product_cache, household_item_memory, and list_items ahead of enrichment work
 - [x] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback (completed 2026-03-15)
 - [x] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated (completed 2026-03-15)
-- [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog (completed 2026-03-16)
+- [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog
+ (completed 2026-03-16)
+- [ ] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail
+- [ ] **Phase 22: Milestone Verification Artifact Closure** - Add missing Phase 07 and 08 verification artifacts and rerun milestone audit gate checks
 
 ## Phase Details
 
@@ -340,12 +345,36 @@ Plans:
   5. Admin Items and Varekatalog each show a product thumbnail and brand per row for items that have image data
 **Plans**: TBD
 
+### Phase 21: Offline Replay Integrity for History and Recommendations
+**Goal**: Offline mutation replay is deterministic and idempotent so successful check-off events are cleared even if later queue entries fail, preventing duplicate history writes and recommendation skew
+**Depends on**: Phase 20
+**Requirements**: none (audit gap closure for integration and flow correctness)
+**Gap Closure**: Closes critical v1.0 audit integration/flow gaps in `v1.0-v1.0-MILESTONE-AUDIT.md` for offline replay correctness
+**Success Criteria** (what must be TRUE):
+  1. Queue drain removes successfully replayed entries even when one or more later entries fail in the same batch
+  2. Reconnect replay does not duplicate already-successful `item_history` writes across retry cycles
+  3. Recommendation source queries are not skewed by duplicate history rows created by mixed replay success/failure paths
+  4. Regression tests cover mixed replay outcomes (success followed by failure and retry) and demonstrate stable results
+**Plans**: TBD
+
+### Phase 22: Milestone Verification Artifact Closure
+**Goal**: Milestone audit evidence chain is complete by adding verification artifacts for phases 07 and 08 and rerunning audit gates after Phase 21 fixes land
+**Depends on**: Phase 21
+**Requirements**: none (audit documentation closure)
+**Gap Closure**: Closes audit blockers for missing `07-VERIFICATION.md` and `08-VERIFICATION.md`
+**Success Criteria** (what must be TRUE):
+  1. `07-VERIFICATION.md` exists and records a clear status with requirement-to-evidence mapping for Phase 7 scope
+  2. `08-VERIFICATION.md` exists and records a clear status with reconciliation/audit evidence for Phase 8 scope
+  3. A rerun of `$gsd-audit-milestone` no longer flags missing verification artifacts for phases 07 and 08
+**Plans**: TBD
 ## Progress
 
 **Execution Order:**
 Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX review). Phase 13 must precede 14 and 15 (admin routes must exist before subpage content). Phase 14 depends on Phase 12 for the /oppskrifter route. Phase 15 depends on Phase 13 for the admin items route. Phase 16 depends only on Phase 13 (Brukerinnstillinger subpage) and is the most independent of the v1.2 phases.
 
 v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist before code writes to them). Phase 18 (iOS fix) is independent of 19 and 20 and can proceed in parallel. Phase 19 (edge function) must precede 20 (client must receive enriched DTO before rendering it). Phase 20 depends on both 17 and 19.
+
+v2.1 ordering: Phase 21 must precede 22 because artifact closure should reflect the corrected replay behavior and final audit state.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -369,3 +398,7 @@ v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist befo
 | 18. iOS Scanner Black Screen Fix | 1/2 | Complete    | 2026-03-15 |
 | 19. Edge Function and DTO Enrichment | 1/1 | Complete    | 2026-03-15 |
 | 20. Client Image Display | 4/4 | Complete    | 2026-03-16 |
+| 21. Offline Replay Integrity for History and Recommendations | 0/TBD | Not started | - |
+| 22. Milestone Verification Artifact Closure | 0/TBD | Not started | - |
+
+
