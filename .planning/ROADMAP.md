@@ -355,7 +355,10 @@ Plans:
   2. Reconnect replay does not duplicate already-successful `item_history` writes across retry cycles
   3. Recommendation source queries are not skewed by duplicate history rows created by mixed replay success/failure paths
   4. Regression tests cover mixed replay outcomes (success followed by failure and retry) and demonstrate stable results
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 21-01-PLAN.md - Deterministic partial-ack replay drain and mixed-outcome offline retry regression coverage
+- [ ] 21-02-PLAN.md - Recommendation stability regression proving replay retries do not inflate source history counts
 
 ### Phase 22: Milestone Verification Artifact Closure
 **Goal**: Milestone audit evidence chain is complete by adding verification artifacts for phases 07 and 08 and rerunning audit gates after Phase 21 fixes land
