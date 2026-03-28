@@ -1,8 +1,8 @@
 # Stack Research
 
 **Domain:** Family grocery shopping PWA with Supabase backend
-**Researched:** 2026-03-13 (updated for v1.2); updated 2026-03-14 for v2.0
-**Confidence:** HIGH (v1.2 sections); MEDIUM (v2.0 sections — iOS workarounds from community reports; Kassal API from official docs)
+**Researched:** 2026-03-13 (updated for v1.2); updated 2026-03-14 for v2.0; updated 2026-03-28 for v2.2
+**Confidence:** HIGH (v1.2 sections); MEDIUM (v2.0 sections — iOS workarounds from community reports; Kassal API from official docs); HIGH (v2.2 sections — browser APIs and PostGIS from official docs; Leaflet SSR pattern from multiple consistent community sources)
 
 ---
 
@@ -20,6 +20,323 @@
 | `@vite-pwa/sveltekit` | ^1.1.0 | Validated |
 | `svelte-dnd-action` | ^0.9.69 | Validated |
 | `html5-qrcode` | ^2.3.8 | Validated (barcode scanning) — **being replaced in v2.0** |
+
+---
+
+## v2.2 New Capabilities: Stack Analysis
+
+**Researched:** 2026-03-28
+
+This section covers only the four new technical surfaces in v2.2: continuous geolocation watching, geofence detection, map widget for admin store pin placement, and reverse geocoding for address-based store entry.
+
+---
+
+### Summary of New Packages
+
+| Package | Add/Remove | Reason |
+|---------|-----------|--------|
+| `leaflet` | **ADD** (prod dep) | Map widget for admin pin placement |
+| `@types/leaflet` | **ADD** (dev dep) | TypeScript types for Leaflet |
+| No other packages | — | Geolocation, geofencing, and reverse geocoding are handled by browser APIs, PostGIS (existing Supabase), and direct `fetch` calls |
+
+```bash
+npm install leaflet
+npm install -D @types/leaflet
+```
+
+---
+
+### 1. Continuous Geolocation: Browser API Only
+
+**Verdict: Zero new npm packages.**
+
+Use `navigator.geolocation.watchPosition` directly. This is a 15-line native implementation and is the correct level of abstraction for this use case.
+
+**Why not `svelte-geolocation` (metonym/svelte-geolocation v1.0.0):**
+- Last published July 2024; Svelte 5 rune compatibility is not confirmed in documentation or changelog
+- The API it wraps is simple enough that the wrapper saves no meaningful code
+- Avoiding it eliminates a low-maintenance dependency risk
+
+**Implementation pattern (Svelte 5 runes):**
+
+```typescript
+// src/lib/location.svelte.ts
+let coords = $state<GeolocationCoordinates | null>(null);
+let watchId: number | null = null;
+
+export const geolocation = {
+  get coords() { return coords; },
+
+  start() {
+    if (!navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => { coords = pos.coords; },
+      (err) => { console.warn('Geolocation error', err); },
+      {
+        enableHighAccuracy: true,   // GPS, not cell-tower; needed for 100m geofence
+        maximumAge: 10_000,         // Accept cached position up to 10s old
+        timeout: 15_000             // Give up after 15s if no fix
+      }
+    );
+  },
+
+  stop() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+  }
+};
+```
+
+**Battery drain mitigation:** `enableHighAccuracy: true` is required for reliable 100m geofence detection but does activate GPS hardware. Mitigate by calling `geolocation.stop()` when the app is backgrounded (use `visibilitychange` event) and `geolocation.start()` on foreground return. Do not watch continuously while at home.
+
+**PWA / mobile browser support:** `watchPosition` works in PWA standalone mode on both iOS Safari (14+) and Android Chrome. Permission must be granted once by the user. iOS Safari does not persist permission across PWA sessions (WebKit limitation, no workaround). The UI must handle re-prompting gracefully.
+
+---
+
+### 2. Geofence Detection: Supabase PostGIS
+
+**Verdict: Enable the PostGIS extension in the Supabase dashboard. Zero new npm packages.**
+
+PostGIS is already included in every Supabase project — it only needs to be enabled. Using it keeps all spatial logic server-side, avoids client-side math, and leverages Supabase's existing spatial index capability.
+
+**Why not client-side Haversine formula:**
+- Works, but runs JS on every GPS position update
+- Requires fetching all household store coordinates to the client on every session
+- Harder to test; easier to get the coordinate-order (lat/lng vs lng/lat) wrong
+- PostGIS `ST_DWithin` with a geography column is purpose-built for this and is trivially correct
+
+**Enabling PostGIS:** Dashboard → Database → Extensions → search "postgis" → enable. Choose the `extensions` schema (default).
+
+**Migration steps:**
+
+```sql
+-- 1. Add geography column to stores table
+ALTER TABLE stores
+  ADD COLUMN location geography(POINT, 4326);
+
+-- 2. Spatial index for proximity queries
+CREATE INDEX stores_location_gist_idx ON stores USING GIST (location);
+
+-- 3. RPC function for geofence check
+CREATE OR REPLACE FUNCTION stores_near_point(
+  lat double precision,
+  lng double precision,
+  radius_m double precision DEFAULT 100
+)
+RETURNS SETOF stores
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT *
+  FROM stores
+  WHERE ST_DWithin(
+    location,
+    ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography,
+    radius_m
+  );
+$$;
+```
+
+**Client call pattern:**
+
+```typescript
+// In the geolocation $effect — called when coords change
+const { data: nearbyStores } = await supabase.rpc('stores_near_point', {
+  lat: coords.latitude,
+  lng: coords.longitude,
+  radius_m: 100
+});
+```
+
+**Integration with TanStack Query:** The geofence check is a side effect of position change, not a user-initiated query. Use a Svelte 5 `$effect` that watches `geolocation.coords` and calls the RPC directly. Do not wrap in `useQuery` — this is a reactive event loop, not a cache-keyed request.
+
+---
+
+### 3. Map Widget for Admin Store Pin Placement: Leaflet 1.9.4
+
+**Recommendation: `leaflet@^1.9.4` with raw dynamic import inside `onMount`. No Svelte wrapper.**
+
+**Version:** 1.9.4 is the current stable release (confirmed on npm). Leaflet 2.0.0-alpha.1 was released August 2025 but is not production-ready — it removes the `L` global and requires a module system rewrite, breaking existing 1.x patterns.
+
+**Why Leaflet over alternatives:**
+- No API key required (tiles served from `tile.openstreetmap.org`)
+- ~42 KB gzipped — smallest viable interactive map for this use case
+- Mature SSR workaround for SvelteKit is well-documented and consistent across community sources
+- The admin map is low-complexity: display a tile map, allow a single marker drag/place, emit coordinates
+
+**Why not a Svelte wrapper library (`sveaflet`, `svelte-leafletjs`):**
+- `sveaflet` is at v0.1.4, last published ~May 2025; Svelte 5 compatibility is stated but the package has minimal adoption and activity
+- The SSR problem (Leaflet needs `window`) is solved by the same `onMount + dynamic import` pattern regardless of wrapper
+- A wrapper adds abstraction that makes it harder to control marker lifecycle precisely
+- Raw Leaflet is 30 lines of component code — the wrapper saves nothing meaningful
+
+**SvelteKit SSR integration pattern:**
+
+```typescript
+// src/lib/components/StoreMapPicker.svelte
+<script lang="ts">
+  import { browser } from '$app/environment';
+  import { onMount, onDestroy } from 'svelte';
+
+  let { lat = 59.91, lng = 10.75, onPinMoved } = $props<{
+    lat?: number;
+    lng?: number;
+    onPinMoved: (lat: number, lng: number) => void;
+  }>();
+
+  let container: HTMLDivElement;
+  let map: any; // Leaflet types via @types/leaflet but loaded dynamically
+
+  onMount(async () => {
+    if (!browser) return;
+    const L = (await import('leaflet')).default;
+    await import('leaflet/dist/leaflet.css');
+
+    map = L.map(container).setView([lat, lng], 15);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      onPinMoved(pos.lat, pos.lng);
+    });
+
+    map.on('click', (e: any) => {
+      marker.setLatLng(e.latlng);
+      onPinMoved(e.latlng.lat, e.latlng.lng);
+    });
+  });
+
+  onDestroy(() => {
+    map?.remove();
+  });
+</script>
+
+<div bind:this={container} class="h-64 w-full rounded-lg" />
+```
+
+**OSM tile usage policy:** The tile policy at `tile.openstreetmap.org` permits normal interactive viewing by humans. It prohibits bulk prefetching for offline use. The admin map widget is online-only (admin flow) — no service worker tile caching needed. Exclude `tile.openstreetmap.org` from the existing service worker precache config.
+
+**Default map center:** Oslo (59.91°N, 10.75°E) is a reasonable default for Norway. The component accepts `lat`/`lng` props to center on an existing store location when editing.
+
+---
+
+### 4. Reverse Geocoding: Nominatim (OpenStreetMap) via Direct Fetch
+
+**Verdict: Zero new npm packages. Call Nominatim directly via `fetch`.**
+
+Nominatim is the geocoding engine behind openstreetmap.org. Norwegian address coverage in Nominatim is thorough for city and town addresses (confirmed by OSM Norway community data quality). The example in Nominatim's own reverse API docs includes a Norwegian address (`Løvenbergvegen, Ullensaker, Akershus, Norway`).
+
+**Use case scope:** Reverse geocoding is called only when an admin user places a pin on the map and wants to see a human-readable address for confirmation — one call per pin placement. The 1 req/sec rate limit is never approached.
+
+**API call pattern:**
+
+```typescript
+async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+    {
+      headers: {
+        // Required by Nominatim usage policy — identifies the application
+        'User-Agent': 'HandleAppen/2.2 (family grocery PWA; contact@example.com)'
+      }
+    }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.display_name ?? null;
+}
+```
+
+**Rate limit:** Maximum 1 request per second across all users of the application. The admin flow is single-user triggered and very low frequency — this is never a concern in practice.
+
+**Nominatim usage policy compliance requirements:**
+- Include a valid `User-Agent` header identifying the application (shown above)
+- Do not implement autocomplete using Nominatim (not applicable here)
+- Cache results where possible (the coordinates are saved to Supabase immediately; no repeat lookups)
+
+**Fallback if Nominatim quality is insufficient for rural Norwegian addresses:**
+Use Kartverket's free Norwegian geocoding API: `https://ws.geonorge.no/adresser/v1/punktsok?lat={lat}&lon={lng}&radius=100&utkoordsys=4326`. This is Norwegian government data with no rate limit and superior rural coverage. Switch to Kartverket if users report bad address results.
+
+**Why not Google Geocoding API:** Requires API key, has usage billing, adds credential management overhead. Not justified for a low-frequency admin UI action.
+
+---
+
+### v2.2 Package Changes
+
+```bash
+# Add map widget dependencies only
+npm install leaflet
+npm install -D @types/leaflet
+
+# No other additions. Geolocation uses browser API directly.
+# Geofencing uses PostGIS via existing supabase.rpc().
+# Reverse geocoding uses fetch() directly against Nominatim.
+```
+
+**PostGIS:** Enable in Supabase dashboard (no npm change). Add migration for `location` column and `stores_near_point` RPC function.
+
+---
+
+### v2.2 Alternatives Considered
+
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| Raw Leaflet 1.9.4 + `onMount` dynamic import | Google Maps JS API | If the project already has a Google Cloud billing account and needs Street View, routing, or high-volume geocoding — adds API key management and cost |
+| Raw Leaflet 1.9.4 + `onMount` dynamic import | Mapbox GL JS | If vector tiles or custom branded map styles are needed — overkill for a single-marker admin widget |
+| Raw Leaflet 1.9.4 + `onMount` dynamic import | Leaflet 2.0 (when stable) | Upgrade when 2.0 reaches a stable release — removes the `L` global, improves tree-shaking; not ready as of March 2026 |
+| Nominatim (OSM) via `fetch` | Kartverket `ws.geonorge.no` | If Nominatim quality proves insufficient for Norwegian rural addresses — Kartverket has no rate limit and government-grade precision |
+| Nominatim (OSM) via `fetch` | Google Geocoding API | Only if Kartverket also fails and volume is still trivial — last resort; adds billing |
+| PostGIS `ST_DWithin` via Supabase RPC | Client-side Haversine formula | If PostGIS cannot be enabled (e.g., Supabase project plan restriction) — functional fallback, adds ~15 lines of TS math |
+| Browser `navigator.geolocation.watchPosition` (raw) | `svelte-geolocation` wrapper | If Svelte 5 compatibility is confirmed and the team prefers declarative component syntax |
+
+---
+
+### What NOT to Add for v2.2
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `svelte-geolocation` | v1.0.0 last published July 2024; Svelte 5 rune compatibility unconfirmed; wraps 15 lines of native API | `navigator.geolocation.watchPosition` directly in a `$effect` |
+| `sveaflet` or `svelte-leafletjs` wrapper | Low activity; thin abstraction that does not solve the SSR problem; raw Leaflet inside `onMount` is the same code volume with no wrapper risk | Raw `leaflet` + dynamic import inside `onMount` |
+| Google Maps JS API | API key required, billing, ~250 KB SDK for a feature used only in admin | `leaflet@^1.9.4` with OSM tiles |
+| Leaflet 2.0-alpha | Not production-stable; breaking changes to module system and `L` global; no stable release as of March 2026 | `leaflet@^1.9.4` stable |
+| Mapbox GL JS | Requires API token, commercial licensing thresholds above free tier, higher bundle cost | Leaflet for simple single-marker admin use |
+| Client-side Haversine geofence loop | Runs JS math on every GPS update; requires all store coords to be loaded client-side; harder to test | PostGIS `ST_DWithin` via `supabase.rpc()` |
+| Prefetching OSM tiles into the service worker | Violates OSM tile usage policy (bulk prefetch prohibited at `tile.openstreetmap.org`) | Exclude tile CDN from SW precache; map widget is online-only in admin |
+| Any paid geocoding API for initial launch | Rate is 1 call per admin action; Nominatim is free, no key required, and sufficient for Norway | Nominatim via direct `fetch`; Kartverket as fallback |
+
+---
+
+### v2.2 Version Compatibility
+
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| `leaflet@^1.9.4` | `@types/leaflet@^1.9.21` | Types cover the full 1.x stable API; do not install `@types/leaflet` 2.x types against Leaflet 1.x |
+| `leaflet@^1.9.4` | `svelte@^5.51.0` + `@sveltejs/kit@^2.50.2` | No native compatibility issue; SSR isolation handled by `onMount` + dynamic import pattern |
+| `leaflet@^1.9.4` | `vite@^7.3.1` | Vite handles the CSS import (`leaflet/dist/leaflet.css`) via dynamic import without additional config |
+| PostGIS extension | `@supabase/supabase-js@^2.98.0` | `supabase.rpc('stores_near_point', {...})` works with the existing client; no client-side changes beyond the RPC call |
+
+---
+
+### v2.2 Sources
+
+- [Supabase PostGIS docs](https://supabase.com/docs/guides/database/extensions/postgis) — ST_DWithin, geography column, spatial index, rpc() pattern (HIGH confidence)
+- [MDN Geolocation API — watchPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition) — options, PWA compatibility, clearWatch (HIGH confidence)
+- [Nominatim Reverse API docs](https://nominatim.org/release-docs/latest/api/Reverse/) — endpoint, params, response, Norwegian address example (HIGH confidence)
+- [OSM Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/) — 1 req/sec max, User-Agent requirement (HIGH confidence)
+- [OSM Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) — bulk prefetch prohibition, normal interactive viewing permitted (HIGH confidence)
+- [leaflet npm](https://www.npmjs.com/package/leaflet) — v1.9.4 current stable confirmed (HIGH confidence)
+- [Leaflet 2.0 Alpha announcement](https://leafletjs.com/2025/05/18/leaflet-2.0.0-alpha.html) — alpha status, breaking changes to module system (MEDIUM confidence — post-cutoff)
+- [Khromov: Using Leaflet with SvelteKit](https://khromov.se/using-leaflet-with-sveltekit/) — dynamic import + onMount SSR pattern (MEDIUM confidence — consistent with multiple community sources)
+- [svelte-geolocation GitHub](https://github.com/metonym/svelte-geolocation) — v1.0.0 July 2024, Svelte 5 compatibility unconfirmed (LOW confidence on Svelte 5 support)
+- [sveaflet npm](https://www.npmjs.com/package/sveaflet) — v0.1.4 last published ~May 2025 (MEDIUM confidence on stability)
 
 ---
 
@@ -131,7 +448,7 @@ This replaces the interval-based approach in `html5-qrcode` and gives finer cont
         "vendor": "Vendor Name",
         "image": "https://bilder.ngdata.no/7039010019828/meny/large.jpg",
         "description": "...",
-        "current_price": { ... },
+        "current_price": { },
         "weight": 500,
         "weight_unit": "g"
       }
@@ -141,7 +458,7 @@ This replaces the interval-based approach in `html5-qrcode` and gives finer cont
 ```
 
 Key fields:
-- `image`: Full absolute URL. Hosted on `bilder.ngdata.no` (NGData CDN). No Kassal transform endpoint. Can be null.
+- `image`: Full absolute URL. Hosted on `bilder.ngdata.no` (NGData CDN). Can be null.
 - `brand`: Brand name (e.g., "Grandiosa"). Can be null. Different from `vendor` (manufacturer/distributor).
 - Both `image` and `brand` are already typed in the existing `KassalProduct` type in `_shared/barcode.ts`.
 
@@ -416,20 +733,20 @@ Call `theme.init()` in `onMount` inside the protected layout to sync the store w
 ```
 src/routes/(protected)/
   admin/
-    +layout.svelte          ← Admin shell: secondary nav tabs + {@render children()}
-    +page.svelte            ← Redirect to first tab or empty state
+    +layout.svelte          <- Admin shell: secondary nav tabs + {@render children()}
+    +page.svelte            <- Redirect to first tab or empty state
     butikker/
-      +page.svelte          ← Moved from (protected)/butikker/
+      +page.svelte          <- Moved from (protected)/butikker/
     husstand/
-      +page.svelte          ← Moved from (protected)/husstand/
+      +page.svelte          <- Moved from (protected)/husstand/
     items/
-      +page.svelte          ← New: item management (edit name, category, picture)
+      +page.svelte          <- New: item management (edit name, category, picture)
       [id]/
-        +page.svelte        ← Optional: single item edit page
+        +page.svelte        <- Optional: single item edit page
     historikk/
-      +page.svelte          ← Moved if currently exists separately
+      +page.svelte          <- Moved if currently exists separately
     innstillinger/
-      +page.svelte          ← New: user settings (dark mode toggle)
+      +page.svelte          <- New: user settings (dark mode toggle)
 ```
 
 The four-tab bottom nav (already in `BottomNav.svelte`) gets updated to point to `/admin` as the fourth tab. The `admin/+layout.svelte` renders a secondary horizontal tab strip for the subpages, then `{@render children()}`.
@@ -533,5 +850,5 @@ All four feature areas are covered by dependencies already present or browser-na
 - Can I Use — `loading="lazy"` iOS Safari 15.4+ support: https://caniuse.com/loading-lazy-attr (HIGH confidence)
 
 ---
-*Stack research for: HandleAppen — v1.2 (recipes, image upload, dark mode, admin hub) + v2.0 (barcode scanner, product images, brand)*
-*Researched: 2026-03-13 (v1.2), 2026-03-14 (v2.0)*
+*Stack research for: HandleAppen — v1.2 (recipes, image upload, dark mode, admin hub) + v2.0 (barcode scanner, product images, brand) + v2.2 (geolocation, geofencing, map widget, reverse geocoding)*
+*Researched: 2026-03-13 (v1.2), 2026-03-14 (v2.0), 2026-03-28 (v2.2)*

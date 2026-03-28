@@ -1,132 +1,176 @@
 # Pitfalls Research
 
-**Domain:** SvelteKit + Supabase PWA — adding barcode scanner improvement and product image/brand lookup to existing v2.0 family grocery app
-**Researched:** 2026-03-14
-**Confidence:** HIGH (iOS camera issues confirmed against WebKit bug tracker, STRICH KB, and multiple html5-qrcode GitHub issues; Kassal image URL format confirmed via kassal.app/api documentation; PostgreSQL ADD COLUMN lock behavior confirmed against Supabase official troubleshooting docs; Svelte 5 onerror timing confirmed against sveltejs/svelte#10352; layout shift prevention confirmed against web.dev CLS documentation)
+**Domain:** Location-aware features in an existing PWA grocery app (geolocation, geofencing, home-location privacy)
+**Researched:** 2026-03-28
+**Confidence:** HIGH (iOS Safari standalone geolocation prompt bug confirmed via Apple Developer Forums thread/694999 and WebKit bug tracker; navigator.permissions inconsistency confirmed via multiple Apple Developer Forums threads; battery drain patterns from MDN and Metova engineering; geofence accuracy from Radar.com engineering blog; GDPR location data requirements from GDPR Local 2025 and web.dev permissions guidance)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: iOS PWA Camera Black Screen — `playsinline` Applied Too Late
+### Pitfall 1: iOS Safari Standalone Mode Swallows the Geolocation Permission Prompt
 
 **What goes wrong:**
-The existing `scanner.ts` sets `playsinline` on the `<video>` element *after* `startScanner` resolves — it queries the DOM for the video element and patches attributes after html5-qrcode has already started the stream. On iOS Safari in standalone PWA mode (home screen installed), the video stream starts playing without `playsinline`, Safari interprets the non-inline video as requiring fullscreen, fails to promote it to fullscreen automatically (PWA policy), and renders a black frame instead. The camera stream is running — the OS camera indicator light is on — but the preview is invisible.
+When HandleAppen is installed to the iOS home screen (standalone PWA, display mode: standalone) and calls `navigator.geolocation.getCurrentPosition()`, the system location permission dialog either does not appear at all, or appears in the Safari browser process — not in the standalone shell. The user never sees the prompt. The request silently fails with a `PERMISSION_DENIED` error. Shopping mode never activates. The feature looks completely broken on the most important target device.
 
 **Why it happens:**
-html5-qrcode inserts the `<video>` tag itself during `start()`. The `playsinline` patch in `startScanner` happens in the `.then()` continuation after `start()` resolves, but the first video frame may have already been rendered without the attribute. iOS requires `playsinline` on the element *before* the stream is bound to the video source. Developers testing in Safari on desktop or in Chrome on Android never reproduce this because those platforms don't enforce the same playsinline requirement in PWA mode.
+WebKit's standalone PWA context runs in a separate process from Safari. The system location permission alert is directed at the Safari process, not the standalone shell. This is a documented WebKit issue (Apple Developer Forums thread/694999: "Location Alert does not open in PWA") that affects standalone display mode specifically. Browser mode and minimal-ui do not have this problem. Developers who only test in Safari's URL bar never reproduce it.
 
 **How to avoid:**
-Use a `MutationObserver` on the scanner container element to intercept the `<video>` element the moment html5-qrcode inserts it — before the stream is attached. Set `playsinline`, `muted`, and `autoplay` attributes synchronously in the observer callback before `start()` even resolves. Alternatively, pre-populate the container with a dummy video element that already has these attributes before calling html5-qrcode's start; html5-qrcode will reuse an existing video element if one is already in the container in some configurations, though this is undocumented behavior.
-
-A tested pattern:
-```typescript
-const observer = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    for (const node of mutation.addedNodes) {
-      if (node instanceof HTMLVideoElement) {
-        node.setAttribute('playsinline', 'true')
-        node.setAttribute('muted', 'true')
-        node.muted = true
-        observer.disconnect()
-      }
-    }
-  }
-})
-observer.observe(document.getElementById(elementId)!, { childList: true, subtree: true })
-// then call html5Qrcode.start(...)
-```
+- Always test geolocation on a physical iPhone with the app installed to the home screen — not just accessed via Safari URL bar.
+- Trigger the native request only from a user gesture (button tap), never on page load. Show a pre-permission explainer card first: "HandleAppen needs your location to detect which store you are in. Tap below to enable." The gesture context gives the dialog the best chance of surfacing in the correct process.
+- Implement a complete fallback for `PERMISSION_DENIED` (error code 1): show a "Select store manually" store picker. The feature must be fully usable without GPS.
+- After permission is granted or denied, do not rely on `navigator.permissions.query({name: 'geolocation'})` to verify the state on iOS — it returns incorrect values (see warning signs below). Use try/catch around `getCurrentPosition` instead.
 
 **Warning signs:**
-- Camera light on device turns on (OS confirms stream is active) but scanner preview shows black
-- Issue reproduces only on installed PWA (home screen), not when accessed via Safari URL bar
-- `video.readyState` is 4 (HAVE_ENOUGH_DATA) but `video.videoWidth` is 0 in the browser console
-- Issue affects iPhone but not Android Chrome
+- Geolocation works in Safari browser mode but fails immediately when the app is opened from the home screen.
+- Error code is `PERMISSION_DENIED` (code 1) even though no dialog was shown.
+- `navigator.permissions.query({name: 'geolocation'})` returns `"prompt"` even after the user has previously granted or denied in iOS Settings — this is the documented iOS Safari bug where the Permissions API does not reflect the actual system setting.
+- Testing only in the iOS Simulator (which does not replicate standalone PWA permission behavior accurately).
 
-**Phase to address:** iOS scanner fix phase — this fix must be in the same phase as the black screen fix; it is the root cause, not a symptom.
+**Phase to address:**
+Location detection foundation — the geolocation acquisition and fallback must be verified on a physical iPhone before any dependent features (shopping mode activation, history recording) are built on top of it.
 
 ---
 
-### Pitfall 2: iOS PWA Camera Permission Re-Prompts Every Session
+### Pitfall 2: Continuous `watchPosition` Drains Battery During Every Shopping Trip
 
 **What goes wrong:**
-On iOS, camera permissions granted to a PWA (home screen app) do not persist across app launches the way they do in Safari tabs. WebKit bug 215884 (recurring permissions prompts in standalone mode) and bug 185448 (getUserMedia not working in home screen apps) remain open as of 2026. Users who install the app, grant camera permission once, and close and reopen the app will be prompted again on the next scan attempt. On some iOS versions (16.x), the permission prompt appears *multiple times within the same session* when the component unmounts and remounts (e.g., closing the scan sheet and reopening it).
+Using `navigator.geolocation.watchPosition()` with `enableHighAccuracy: true` and no update-rate control runs the GPS chip continuously. On a modern iPhone this drains approximately 15–25% battery per hour. A family member with the app open during a 45-minute shopping session loses noticeable battery. Users associate the drain with "that grocery app" and either stop using the feature or stop keeping the app open — both defeat the purpose of location-aware shopping mode.
 
 **Why it happens:**
-WebKit's PWA permission model treats standalone mode differently from browser mode. The origin-permission mapping used in Safari tabs is not shared with the home screen app context in the same way. Apple has not provided a guaranteed fix timeline. The current scanner implementation calls `startScanner` on every sheet open, which internally calls `getUserMedia` — this re-triggers the permission prompt on affected iOS versions.
+`watchPosition` is the obvious tool for proximity detection. Developers add `enableHighAccuracy: true` because the geofence is 100–200m and precision seems important. The result is a continuous GPS radio wake even when the user has not moved 10 meters in the last minute. The grocery use case does not need sub-second updates — it only needs to confirm entry and exit of a store zone once per trip.
 
 **How to avoid:**
-- Cache the `MediaStream` from the first successful `getUserMedia` call and reuse it across scanner sessions within the same app launch. Only call `getUserMedia` again if the cached stream has ended (`stream.active === false`).
-- Keep the scanner container element alive in the DOM (hidden, not destroyed) between scans to avoid full teardown. Show/hide with CSS visibility rather than conditional rendering.
-- Display explicit UI text warning users that iOS may ask for camera permission again and that this is expected behavior, not a bug in the app — reduces support confusion.
-- Do not treat a new permission prompt as an error state. The current `onError` path showing "Kameratilgang er avslått" fires even when the user sees and dismisses (not denied, just dismissed) the prompt.
+Use interval polling with `getCurrentPosition` rather than a persistent `watchPosition` watcher:
+- Poll every 30–60 seconds while the page is visible using `setInterval` + `getCurrentPosition`.
+- Use `enableHighAccuracy: false` for background polling. Wi-Fi/cell triangulation accuracy (15–50m) is sufficient to detect proximity to a 200m geofence.
+- Only switch to `enableHighAccuracy: true` for a single confirmation call when the polling result suggests the user may be within 250m of a known store (two-phase detection: coarse polling → precise confirmation).
+- Stop all location work when `document.visibilityState === 'hidden'` (user switched apps or locked screen). Resume on `visibilitychange` to `'visible'` with an immediate single-shot `getCurrentPosition` to re-establish state.
+- Always clean up: call `clearWatch()` if any watcher is used, and `clearInterval()` on component unmount or route change. A leaked watcher or interval continues running silently.
 
 **Warning signs:**
-- Camera permission prompt appears more than once during a shopping session
-- `ScannerError` with `reason: 'permission-denied'` fires without the user ever explicitly denying access
-- The issue affects users who report "scanner worked yesterday" — they are experiencing the per-launch re-prompt
+- A persistent `watchPosition` ID is assigned to a module-level variable with no corresponding `clearWatch`.
+- `enableHighAccuracy: true` is applied unconditionally at initialization rather than conditionally for close-range confirmation.
+- No `visibilitychange` listener pausing location work when the page is hidden.
+- No battery test step in the phase verification checklist.
 
-**Phase to address:** iOS scanner fix phase — add stream caching and permission error UX distinction (dismissed vs. denied) in the same phase.
+**Phase to address:**
+Location detection foundation — establish the two-phase polling pattern (coarse + precise confirmation) before any UI reacts to location state. Include a 30-minute battery benchmark on a real device in the phase acceptance criteria.
 
 ---
 
-### Pitfall 3: Kassal CDN Image URLs Are Not Guaranteed to Be Stable
+### Pitfall 3: 100m Geofence Is Too Small for Urban GPS Accuracy
 
 **What goes wrong:**
-Kassal.app serves product images via Cloudinary CDN (`res.cloudinary.com/norgesgruppen/...`) and via `bilder.ngdata.no`. If the `image` field from the Kassal API response is stored directly in the `barcode_product_cache` table's `provider_payload` jsonb column (as it currently is), then displayed directly in the UI, users will see broken images when:
-- Kassal rotates the Cloudinary version token in the URL (`v[timestamp]` segment changes)
-- A product is reformulated and the supplier changes the product image
-- Kassal changes CDN providers (they have done this at least once — `bilder.kassal.app` became `bilder.ngdata.no`)
-- The image is copyright-restricted and Kassal removes it from the CDN
-
-The app would then display broken image icons throughout the shopping list, scan result sheet, and Admin → Items — with no fallback and no mechanism to refresh.
+The PROJECT.md specifies a 100m geofence radius for store detection. In urban Norway (Oslo, suburban high-rise clusters), GPS accuracy on a phone degrades to 15–50m under good outdoor conditions and 50–150m inside or near covered buildings, parking structures, and dense blocks. With a 100m geofence and 50–100m GPS error, shopping mode either triggers 100m before the store entrance (false early activation) or fails to trigger at all when the user is already inside (missed detection). Both experiences destroy trust in the feature.
 
 **Why it happens:**
-The `barcode_product_cache` has a 30-day TTL for found products. A URL that was valid on day 1 can be dead by day 30 without any cache invalidation. The current schema stores `provider_payload` as a jsonb blob — image URLs are buried inside it, not in a dedicated column — making it difficult to query and refresh them. Developers assume CDN URLs for commercial products are permanent, but Kassal's documentation explicitly states they do not own image rights and provides no stability guarantees.
+100m was chosen conceptually. Urban GPS multipath interference — signal bouncing off building facades before reaching the antenna — is a well-documented accuracy degrader. The effective reliable detection radius is `geofence_radius - GPS_error_margin`. With a 100m fence and up to 100m error, the reliable detection band collapses to near zero.
 
 **How to avoid:**
-- Extract the `image_url` into a **dedicated nullable text column** in `barcode_product_cache` — do not rely on extracting it from `provider_payload` at runtime. This makes it queryable and independently refreshable.
-- Do not store external Kassal image URLs directly in `household_item_memory` if you add an image column there. The memory table has no TTL — a URL stored 6 months ago is likely stale.
-- Implement a background refresh edge function (or scheduled job) that queries `barcode_product_cache` rows where `expires_at` is approaching and re-fetches the Kassal product to refresh the image URL.
-- In the UI, always render images with an `onerror` fallback to a local placeholder (see Pitfall 6 for the Svelte 5 `onerror` timing issue). Never show a broken `<img>` element.
-- If long-term image stability is required, proxy and store images in Supabase Storage (private bucket, path: `product-images/{ean}.jpg`). This adds storage cost but eliminates CDN dependency.
+- Use a 150–200m geofence radius for automatic detection. Norwegian supermarkets in a retail cluster (e.g., a Rema 1000 next to a Kiwi) are typically 200–400m apart, so a 200m fence does not create ambiguity between adjacent stores.
+- Implement a dwell timer: only confirm shopping mode if the device has been inside the geofence for 90+ consecutive seconds. This eliminates drive-by and walk-past false triggers.
+- Check `GeolocationPosition.coords.accuracy` on every position reading. If `accuracy > 100`, treat the reading as too imprecise to make a geofence decision — display a "Locating..." state and retry the next poll cycle. Do not trigger mode changes on low-quality readings.
+- Cache the last high-quality position (accuracy < 80m) for up to 90 seconds and use it to supplement low-accuracy readings from the next poll.
 
 **Warning signs:**
-- Images display correctly immediately after scanning but break a few days later
-- `provider_payload` jsonb contains `image` field URLs with version tokens like `v1234567890`
-- No dedicated `image_url` column in the migration plan for `barcode_product_cache`
+- Geofence radius is set to exactly 100m with no accuracy guard.
+- Testing was only done in open parking lots or clear outdoor spaces where GPS accuracy is clean.
+- Shopping mode activates/deactivates erratically (flickering) during a normal trip.
+- No dwell timer logic exists — mode switches on the first position reading inside the fence.
 
-**Phase to address:** Product image storage phase — design the schema with a dedicated `image_url` column before writing any UI that reads images.
+**Phase to address:**
+Geofence logic and mode transition — dwell timer and accuracy guard must be part of the core proximity algorithm, not patched on afterward. Test specifically inside and near (but outside) the target store.
 
 ---
 
-### Pitfall 4: Migration Adding Columns to `household_item_memory` With Live Data
+### Pitfall 4: Storing Home Coordinates as Plain Data Violates Privacy and GDPR
 
 **What goes wrong:**
-`household_item_memory` is populated by a trigger on every `INSERT` and `UPDATE` to `list_items`. This table will have live rows for every active household at the time of the migration. When adding columns like `image_url` or `brand_name`:
-
-1. **Adding `NOT NULL` without a default on a populated table** — PostgreSQL must rewrite the entire table (or add a constraint check on read for newer PG versions). On Supabase Free tier, this can hit the statement timeout limit and leave the migration in an inconsistent state.
-
-2. **The trigger continues firing during migration** — if the migration is not transactional (e.g., if you add the column and separately update existing rows), the trigger can insert new rows between those steps with `NULL` for the new column while other rows have been backfilled. This creates a mixed state that breaks any `NOT NULL` constraint added afterward.
-
-3. **Column backfill is not instant** — if you add `image_url` and then want to populate it from `barcode_product_cache` with an `UPDATE ... FROM ...`, that join can be slow on tables with thousands of rows and temporarily blocks reads on Supabase's Free tier due to lock escalation.
+A `{lat, lng}` pair in a Supabase column is effectively a home address. Under GDPR (applicable in Norway), home location is sensitive personal data requiring explicit purpose disclosure — it cannot be collected without informing the user exactly what it is used for and cannot be repurposed. If RLS is misconfigured, if a shared household query accidentally JOINs the user settings table, or if the coordinates appear in a Supabase Realtime broadcast, it becomes a data exposure incident. Even without a breach, an app that collects home coordinates without a visible deletion path fails the GDPR right to erasure requirement.
 
 **Why it happens:**
-Developers run migrations in development against an empty database (or a small seed dataset) where all of these operations are instantaneous. Production has real data, real concurrency, and tighter timeout limits. The trigger-driven population means the table is "always being written to" while the migration runs.
+Developers treat coordinates as numbers, not addresses. The "set home location once in settings" requirement looks like a simple settings row. Privacy review does not happen until after the schema and queries are already built.
 
 **How to avoid:**
-- Add all new columns as `NULL` with no default in the migration. Never add `NOT NULL` to a new column on a populated live table in a single migration step.
-- If a `NOT NULL` constraint is eventually needed, use the deferred approach: add `NULL`, backfill, then add the constraint in a separate migration after backfill is confirmed complete.
-- For `image_url` and `brand_name` on `household_item_memory`: add them as `NULL`-able text columns. Accept that existing rows will have `NULL` until the next scan or item interaction naturally updates them via the trigger or a user-initiated scan.
-- Do not attempt to backfill `household_item_memory` from `barcode_product_cache` in the same migration transaction. Run backfill as a separate, explicitly batched UPDATE if needed.
-- Test migration against a production-sized local dataset before applying to production. Use `supabase db dump` to get a row count estimate.
+- Apply strict RLS on the `user_settings` (or equivalent) table: `USING (auth.uid() = user_id)`. Users may only read and write their own row. This must be tested explicitly with a second test account.
+- Do not expose home coordinates through household-scoped queries. Home location is individual — it must never appear in any query that returns rows for multiple users or the entire household.
+- Do not broadcast home coordinates through Supabase Realtime channels. Location is a private setting; it has no reason to propagate to other family members' clients.
+- Store coordinates with reduced precision: 4 decimal places (approximately 11m resolution) rather than the full 7-decimal GPS output. This is more than sufficient for a 200m geofence decision but meaningfully reduces the ability to map coordinates back to a street address.
+- Add explicit in-app copy: "Your home location is used only to distinguish between shopping and at-home list changes. It is stored only on your account and is never shared with other household members."
+- Provide a "Remove home location" control on the same screen as "Set home location." GDPR right to erasure applies. Verify the deletion removes the database row, not just clears a UI field.
+- Do not log coordinates in application error tracking (Sentry, etc.) — scrub lat/lng fields from error payloads before they leave the client.
 
 **Warning signs:**
-- Migration script adds `NOT NULL` to any column on `household_item_memory`, `list_items`, or `barcode_product_cache`
-- Migration includes an `UPDATE ... SET image_url = ...` affecting the entire `household_item_memory` table
-- Migration uses `ALTER TABLE ... ADD COLUMN image_url text NOT NULL DEFAULT ''` — a non-NULL default forces a full table rewrite in older PostgreSQL versions
+- No RLS policy exists on the table storing home coordinates (Supabase defaults to denying all access without a policy, but policy gaps in complex multi-table queries are easy to introduce).
+- Home coordinates are returned by a JOIN in any query that selects household members or shared list data.
+- `supabase.channel().on(...)` anywhere in the app includes location fields in its payload.
+- There is no UI control to delete home location.
+- Privacy copy on the home location setting screen does not explain the specific purpose.
 
-**Phase to address:** Schema migration phase — must be designed with NULL-safe columns before any feature code references the new fields.
+**Phase to address:**
+Home location settings — RLS and the deletion control must be in the initial implementation. This is not retrofittable without a data audit; treat it as a foundation requirement.
+
+---
+
+### Pitfall 5: No Offline / No-GPS Fallback Breaks the App During the Exact Moment It Matters
+
+**What goes wrong:**
+The app depends on geolocation to determine context (shopping mode vs. at-home mode). When GPS is unavailable — which happens in underground parking structures, covered markets, inside large concrete stores, or when the user has denied permission — the app either shows a blank state, silently defaults to "at home" mode, or worse: treats every check-off as a deletion because the context is unknown. The user loses shopping history for items checked off during the GPS outage.
+
+**Why it happens:**
+Geolocation is implemented as a happy-path feature. The `POSITION_UNAVAILABLE` (code 2) and `TIMEOUT` (code 3) error cases from the Geolocation API are handled with a generic catch that does nothing visible, leaving the app in an indeterminate context state.
+
+**How to avoid:**
+Define a location state machine with four explicit states:
+- `unknown` — initial state, no reading yet
+- `near-store` — inside a store geofence for the required dwell period
+- `at-home` — near home location
+- `unavailable` — GPS unavailable or permission denied
+
+In `unavailable` state: show a manual store picker. The user selects which store they are in. This explicit selection must be sufficient to activate shopping mode.
+
+Handle each Geolocation error code separately:
+- Code 1 (`PERMISSION_DENIED`): enter `unavailable`, show store picker with an explanation and a link to iOS Settings → HandleAppen → Location.
+- Code 2 (`POSITION_UNAVAILABLE`): enter `unavailable`, show store picker with "Can't get location right now — select your store."
+- Code 3 (`TIMEOUT`): retry once, then enter `unavailable`.
+
+Once shopping mode is confirmed (either by GPS or manual selection), lock the session context: GPS loss mid-session must not flip the context back to `at-home`. The user's explicit start of a shopping trip (entering a store) is stronger signal than a momentary GPS dropout.
+
+Cache the active store context in `sessionStorage` so a brief signal loss or page navigation within the PWA does not reset it.
+
+**Warning signs:**
+- The geolocation error handler is `(err) => console.error(err)` with no UI update.
+- No manual store selection UI exists anywhere in the app.
+- Check-off behavior differs between "GPS available" and "GPS unavailable" in a way the user cannot control.
+- Testing only in environments with reliable outdoor GPS — no in-store or parking structure tests.
+
+**Phase to address:**
+Location detection foundation AND shopping mode UI — the state machine must be designed before the UI is built. Manual fallback must ship in the same phase as auto-detection, not deferred.
+
+---
+
+### Pitfall 6: iOS Stops Location Updates When the Screen Locks or the App Is Backgrounded
+
+**What goes wrong:**
+iOS suspends PWA processes when the user locks the screen or switches to another app. On resumption, a `watchPosition` subscription silently stops delivering updates (confirmed in iOS 14+ Cordova geolocation bug reports; behavior persists in iOS 17+). The app resumes showing the last known location state, which may be 10+ minutes stale — displaying "Shopping at Rema 1000" when the user has long since returned home, causing items checked off at home to be misclassified as shopping history.
+
+**Why it happens:**
+iOS does not grant PWAs the background location entitlement available to native apps. When the PWA is suspended, the `watchPosition` subscription is frozen and does not recover automatically on resume. Developers test in the foreground and never notice the issue.
+
+**How to avoid:**
+- Register a `visibilitychange` listener. On `hidden`: clear all watchers and intervals. On `visible`: restart location polling from scratch and immediately call `getCurrentPosition` (single shot) to get a fresh fix.
+- During the re-acquisition period after becoming visible, display a "Checking location..." indicator rather than showing a potentially stale mode state.
+- Apply a maximum staleness threshold: if the last confirmed location fix is older than 3 minutes when the app becomes visible, force the state to `unknown` and re-evaluate — do not continue displaying a stale "shopping mode" from before the screen lock.
+
+**Warning signs:**
+- No `visibilitychange` listener in the location service module.
+- The shopping mode banner shows a store name after returning from a 10-minute background period without any re-check.
+- Testing only covers the foreground use case with no lock/unlock or app-switch test cases.
+
+**Phase to address:**
+Location detection foundation — the visibility lifecycle must be part of the initial location service design. Add a test case: lock phone for 5 minutes, unlock, verify state is re-evaluated rather than carried forward stale.
 
 ---
 
@@ -134,12 +178,13 @@ Developers run migrations in development against an empty database (or a small s
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Store Kassal image URL directly in `provider_payload` jsonb, parse at display time | No schema change needed | Image URL becomes a string-in-blob, impossible to query/refresh independently; every UI component must know the jsonb structure | Never — add a dedicated column |
-| Use Kassal `image` URL directly in `<img src>` without fallback | Simple, no extra code | Broken images throughout the app when CDN URL rotates; no way to recover without a forced re-scan | Never in list views; acceptable in a temporary debug view |
-| Skip stream caching, call `getUserMedia` on every sheet open | Simpler code | iOS re-permission prompt on every scan; users stop using scanner and enter EAN manually | Never — kills the feature's usefulness on iOS |
-| Make `barcode_product_cache` accessible to authenticated users directly (drop `service_role` only restriction) | Simpler client queries | Users can query competitor product data, modify cache entries, or enumerate all scanned barcodes from other households | Never — keep cache restricted to `service_role` |
-| Add `image_url` as `NOT NULL` with a default `''` in migration | Avoids NULL checks in Svelte | Full table rewrite on PostgreSQL; migration timeout on larger tables | Never for populated tables |
-| Show Kassal image for all items in list view without size constraint | Easier layout | Layout shift on every list load; large images slow list scroll performance | Never — always fix dimensions |
+| `enableHighAccuracy: true` always on | Simpler code, single code path | 15–25% extra battery drain per hour of use; users notice and blame the app | Never for persistent polling; acceptable only for a single one-shot confirmation when already within 250m of a store |
+| Storing full 7-decimal GPS coordinates for home location | No precision loss | Home address is effectively recoverable; higher GDPR risk; unnecessary precision for a 200m geofence | Never — truncate to 4 decimal places |
+| Single persistent `watchPosition` watcher for all location needs | Simple mental model | Stops delivering updates on iOS screen lock; no control over update rate; cannot be paused during background | Never — use interval-based `getCurrentPosition` polling with visibility gating |
+| Skipping manual store selection fallback | Faster initial implementation | App is completely non-functional for users who deny location, have poor GPS signal, or shop in covered stores | Never — manual fallback must ship alongside auto-detection |
+| Requesting location permission on app load | One fewer interaction step | 40% lower permission grant rate (documented); may not surface the dialog on iOS standalone mode (confirmed bug) | Never — always gate behind a user gesture and an explainer |
+| Using `navigator.permissions.query` to detect iOS location state | Works correctly on Android Chrome | Returns incorrect state on iOS Safari — always "prompt" regardless of actual system setting | Never rely on it for iOS logic; use try/catch around `getCurrentPosition` as the authoritative check |
+| Recording GPS coordinates in application error tracking | Easier debugging of location issues | Home or current coordinates leak into external log retention (Sentry, etc.) | Never — scrub coordinates from all error payloads |
 
 ---
 
@@ -147,13 +192,12 @@ Developers run migrations in development against an empty database (or a small s
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Kassal API | Calling `https://kassal.app/api/v1/products/ean/{ean}` directly from client-side code | Always proxy through the `barcode-lookup` edge function — the API token must stay server-side; the edge function already handles this |
-| Kassal API | Not handling HTTP 429 (rate limit) in the edge function | Add exponential backoff retry (max 2 retries) and return the cache hit if a 429 occurs mid-lookup; the 60 req/min limit can be hit during concurrent family scanning |
-| Kassal API | Treating the `image` field as always present and always a valid URL | Field is nullable; some products have no image; some image URLs are CDN paths that return 403; validate and null-check before storing |
-| html5-qrcode | Calling `scanner.stop()` and then `scanner.clear()` without checking `isScanning` | `stop()` throws if the scanner was never successfully started; the existing `stopScanner` guards with `isScanning ?? true` but this can still throw on iOS if the stream was never acquired; wrap in try/catch always |
-| html5-qrcode | Initializing the `Html5Qrcode` instance with a container element ID that doesn't yet exist in the DOM | The element must be in the DOM before `new Html5Qrcode(elementId)` is called; if the dialog uses `display:none` instead of `visibility:hidden`, the element may not be measurable |
-| Supabase edge function secrets | Hardcoding the `KASSAL_API_TOKEN` value directly in `index.ts` for testing | Token rotation requires redeployment; always use `Deno.env.get('KASSAL_API_TOKEN')` — it already does this, but do not introduce hardcoded fallbacks |
-| Supabase `barcode_product_cache` | Querying this table from the client with an `authenticated` role | The table grants `select/insert/update/delete` to `service_role` only; authenticated clients will get an empty result (no error) due to RLS blocking — misleading behavior that looks like a cache miss |
+| Geolocation API on iOS Safari standalone | Calling `getCurrentPosition` on page load or component mount | Gate behind a button tap after showing an explainer; show manual store selection as the primary option for users who deny |
+| Geolocation error codes | Single generic error handler for all failures | Handle code 1 (permission denied), code 2 (position unavailable), and code 3 (timeout) separately — each requires a different UX response |
+| Supabase RLS on home location table | Creating `user_settings` without an explicit policy (Supabase new tables default to no access — but gaps in multi-table JOIN queries are easy to create) | Explicitly write and test `USING (auth.uid() = user_id)` — verify it blocks cross-user reads with a second test account |
+| Supabase Realtime with location data | Including `home_lat`/`home_lng` fields in realtime broadcast payloads | Never broadcast location data through realtime channels; location is a private per-user setting, not a household-shared value |
+| `visibilitychange` and watcher restart on iOS | Calling `watchPosition` again on `visibilitychange` without clearing the previous watcher | Always call `clearWatch()` on the previous ID before starting a new watcher; stacking watchers multiplies battery drain and callback frequency |
+| Geofence check on position update | Running proximity check for all saved stores on every GPS reading | Debounce: only re-run proximity checks if the user moved more than 20m since the last check; cache store distances between significant movements |
 
 ---
 
@@ -161,10 +205,10 @@ Developers run migrations in development against an empty database (or a small s
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Displaying Kassal images in list rows without fixed dimensions | List rows resize as images load; scroll position jumps; CLS score fails Core Web Vitals | Reserve exact space with fixed `width` and `height` attributes on `<img>` (or equivalent CSS `aspect-ratio`); use a gray placeholder background | Immediately on first load — even with 1 item in the list |
-| Loading all product images in a long shopping list eagerly | Slow initial render; unnecessary bandwidth on mobile data (grocery store WiFi is often poor) | Add `loading="lazy"` to all `<img>` tags in list rows; only the visible viewport loads images | Shopping lists over ~10 items |
-| Running image fetch (Kassal) AND Gemini enrichment serially on every cache miss | Scan-to-result latency can exceed 4-5 seconds on slow connections | Kassal fetch and Gemini call are already sequential in the edge function by design; if adding image storage to Supabase Storage (upload step), this adds more latency — consider making upload async, returning the lookup result immediately and uploading in background | Every cache miss scan |
-| Storing brand name in `household_item_memory` and joining to it on every list query | Extra join on the hot shopping list read path | Keep `household_item_memory` additions additive and nullable; evaluate if brand is worth the join cost — it may be better to fetch from `barcode_product_cache` only on item detail view | Lists over 50 items, or families with many concurrent list subscriptions |
+| Continuous `watchPosition` with high accuracy | Noticeable battery drain during a 30-minute trip; device gets warm | Interval-based polling at 30–60s, `enableHighAccuracy: false` for polling, high accuracy only for the close-range confirmation | Immediately — any user who keeps the app open while shopping |
+| Re-requesting position on every Supabase Realtime event or list re-render | Excessive GPS requests; OS may throttle after repeated rapid calls | Memoize last position; request only on timer tick or explicit user navigation — never on data events | As soon as list has reactive Realtime updates |
+| Writing location state changes to Supabase on every GPS tick | Rapid write volume; Supabase billing impact; write contention | Only write on state transitions (entered store, left store, session ended) — not on every position update | At family scale, billing risk is low but correctness of state transitions is a real concern |
+| Running proximity check against all stores on every position update | CPU overhead, battery drain from repeated comparisons | Cache store positions; only re-evaluate stores within a 2km bounding box of current position | Not critical with 3–5 stores; becomes measurable with 15+ stores |
 
 ---
 
@@ -172,10 +216,11 @@ Developers run migrations in development against an empty database (or a small s
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Exposing `barcode_product_cache` to `authenticated` role | Authenticated users could read product lookup history for all EANs (competitor price intelligence, purchase pattern inference) | Keep the table restricted to `service_role` only — the edge function handles all access |
-| Storing Kassal API token in client-side code or environment variables accessible to the browser | Token is leaked in the bundle; can be used to exhaust the API quota | Always access via edge function secret (`KASSAL_API_TOKEN` in Supabase edge function environment) |
-| Using a public Supabase Storage bucket for Kassal-proxied product images without path scoping | Any URL enumeration attack can list all product images | If storing to Supabase Storage, use a private bucket with RLS policies that do not require authentication for reads (since images are shown in list views) — or accept the small risk of a public bucket for non-sensitive product photos |
-| Blindly storing any URL returned by Kassal as an `image_url` without validation | A compromised Kassal response could inject a URL pointing to an attacker-controlled server, tracking page loads | Validate that `image_url` starts with a known CDN prefix (`res.cloudinary.com/norgesgruppen`, `bilder.ngdata.no`, `bilder.kassal.app`) before storing; reject otherwise |
+| No RLS on home location column/table | Any authenticated user in the household can read any other user's home address via a query | Scope RLS strictly to `auth.uid() = user_id`; home location is individual, never household-shared |
+| Returning home coordinates in household or shared list queries | A JOIN that touches user settings accidentally exposes home coordinates to all household members | Keep home location in a table separate from household-scoped data; never JOIN it into household queries |
+| Logging GPS coordinates in error tracking | Home or current location leaks into Sentry/external log retention with long data lifetimes | Scrub lat/lng fields from all error payloads before sending to external services |
+| Trusting client-provided location context for history classification | Client reports `context: "near_store"` and server records shopping history without verifying | Location context classification must be computed server-side from coordinates or the server must verify the claimed context matches stored store coordinates — do not trust raw client-asserted proximity |
+| Broadcasting location in Supabase Realtime events | Home or current location propagates to all household members' connected clients | Never include location fields in Realtime channel payloads; they are personal data |
 
 ---
 
@@ -183,25 +228,29 @@ Developers run migrations in development against an empty database (or a small s
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Showing "Kameratilgang er avslått" when the iOS permission prompt was merely dismissed (not denied) | User thinks they explicitly denied access; does not understand they can try again | Distinguish between `NotAllowedError` where the user previously denied (show settings link) vs. a new prompt that was closed (show "Try again" with no alarm tone) |
-| Spinning indefinitely during scan sheet open if camera permission is pending (iOS shows prompt above the sheet) | User sees a frozen loading state with no feedback for 10-15 seconds while interacting with the system prompt | Set a 10-second timeout on the `loading` state; if `startScanner` hasn't resolved by then, transition to `camera-failure` with a "Try again" option |
-| Showing product image thumbnail immediately in the scan result before the image has loaded | Empty box flashes into image; layout shifts | Show a fixed-size placeholder (gray square with an icon) until the image `onload` fires; keep the same dimensions during transition |
-| Displaying a broken image icon in shopping list rows | Broken images feel like app bugs, erode trust | Every `<img>` rendering a Kassal image must have an `onerror` handler that hides the image and shows the item's category icon instead |
-| Not showing brand name alongside product name in the scan result | Users scan to confirm a product; brand is often the identifying information ("Q Meieriene" vs. generic) | Show brand name prominently in the scan result sheet even before the image loads; brand is available immediately from the lookup DTO |
+| Permission prompt with no context ("Allow HandleAppen to use your location?") | 40% lower grant rate; users confused why a grocery list app needs location | Show an explainer card first: "We use your location to detect which store you're in and sort your list by the store layout. We never track your movements." |
+| Immediate mode switch with no transition feedback | Shopping mode banner appears/disappears unexpectedly while browsing items | Show a brief "Detected: Rema 1000 — entering shopping mode" toast before switching; include a "Wrong store?" tap target |
+| No manual store override in shopping mode | User is at Meny but GPS places them in the adjacent Rema 1000 — list sorts for wrong store | Always show a "Wrong store?" / "Change store" tap target in the shopping mode banner |
+| Home location setting buried in settings with no onboarding prompt | Users never find it; the at-home vs. shopping distinction never works | Add a contextual prompt after the user first checks off an item: "Set your home location so we know when you're managing your list at home vs. actually shopping" |
+| No feedback when location is unavailable | User doesn't know why shopping mode never activated | Show an explicit "Location unavailable" state with a manual store selection option and a link to iOS Settings |
+| Check-off context resetting on GPS dropout mid-session | User loses shopping history for items checked off during brief GPS loss | Lock session context once shopping mode activates; GPS dropout mid-session must not flip context back to "at home" |
+| Asking for location permission before the user has seen any value from the app | User denies; once denied on iOS it requires going to Settings to re-grant | Show the location prompt only after the user opens a shopping list, so they can see the benefit it would provide |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **iOS scanner fix:** Black screen appears fixed in Safari URL bar — verify it is also fixed in the *installed* home screen PWA; they are different code paths in WebKit
-- [ ] **iOS scanner fix:** Permission error handling distinguishes "dismissed" from "denied" — verify by: dismissing the permission prompt on iOS and confirming the app shows "Prøv igjen" not "Kameraet er blokkert"
-- [ ] **Image display:** Images display on the day of implementation — verify images also display 7 days later (check CDN URL stability) or that the fallback triggers correctly when they do not
-- [ ] **Image display:** Images display in Safari mobile — verify with `crossorigin` attribute if Kassal CDN returns CORS headers; without it, `onerror` may not fire as expected on cross-origin failures in some Safari versions
-- [ ] **Migration:** `ADD COLUMN` migration runs locally against an empty DB — verify it runs against a DB with at least 1000 rows in `household_item_memory` without timeout
-- [ ] **Migration:** `household_item_memory` still populates correctly (trigger still fires) after schema change — verify by adding an item to a list and checking that memory is updated with the new nullable columns as `NULL` (not as an error)
-- [ ] **Kassal cache:** `barcode_product_cache` stores `image_url` in the dedicated column — verify by querying the column directly after a scan; do not assume it is being populated because the scan result shows an image (it might be reading from `provider_payload`)
-- [ ] **Rate limits:** Edge function handles Kassal 429 responses — verify by mocking a 429 response in the edge function test suite; the current test suite does not appear to cover this case
-- [ ] **Fallback:** Open Food Facts fallback does not return an image — verify that the UI does not break (shows placeholder) when `image_url` is `NULL` because the lookup came from Open Food Facts or Gemini only
+- [ ] **Geolocation on iOS standalone:** Tested on a physical iPhone with the app installed to the home screen — the permission prompt must visibly appear on device (not just in Safari browser mode).
+- [ ] **Permission denied path:** Tested by disabling location for HandleAppen in iOS Settings → Privacy → Location Services — the app must show a manual store picker with instructions, not a broken or blank state.
+- [ ] **Battery benchmark:** App open and polling for 30 minutes on a real device — battery consumption must be less than 8% (comparable to passive navigation apps at low-frequency polling).
+- [ ] **Visibility lifecycle:** App backgrounded for 5 minutes then foregrounded — location state must re-check and update rather than display the pre-background state.
+- [ ] **Dwell timer:** A drive-by simulation (approach geofence, then leave within 60 seconds) must not trigger shopping mode.
+- [ ] **GPS accuracy guard:** When `coords.accuracy > 100`, no geofence decision is made — verify by mocking a low-accuracy position response.
+- [ ] **Home location RLS:** A second test account in the same household must receive no rows (not masked rows — zero rows) when querying the first account's home location via any Supabase client query.
+- [ ] **Home location deletion:** "Remove home location" must delete the database row — verify in Supabase dashboard, not just that the UI field clears.
+- [ ] **Coordinates precision:** Home coordinates stored in the database are truncated to 4 decimal places — verify the stored value directly in Supabase.
+- [ ] **Check-off context in GPS-unavailable state:** Check-offs made after manually selecting a store (no GPS) must record as shopping history, not deletions.
+- [ ] **Mid-session GPS dropout:** Disable airplane mode mid-shopping session — active shopping mode must remain active for at least 3 minutes before entering an unavailable state, and must not immediately reclassify subsequent check-offs as deletions.
 
 ---
 
@@ -209,11 +258,12 @@ Developers run migrations in development against an empty database (or a small s
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| CDN image URLs in cache are stale/broken | MEDIUM | Deploy a migration that nulls out `image_url` in `barcode_product_cache` for rows older than N days; trigger re-fetch on next scan (cache miss due to NULL image_url logic, or expire those rows) |
-| Migration added `NOT NULL` column and timed out, leaving table locked | HIGH | Connect via Supabase SQL editor; check `pg_stat_activity` for blocking queries; `pg_terminate_backend` the migration process; restore from backup if table is in broken state; re-run migration with nullable column |
-| Kassal API token expired and edge function returns 401 for all lookups | LOW | Update `KASSAL_API_TOKEN` secret in Supabase Dashboard → Edge Functions → Secrets; redeploy the function (or rely on Supabase hot-reloading secrets); cache will serve existing lookups during the gap |
-| iOS users consistently get black screen after fix attempt | MEDIUM | Collect device/iOS version data; check if html5-qrcode has a newer release addressing the issue; consider replacing html5-qrcode with the native BarcodeDetector API (supported in iOS 17+ in Safari) as a progressive enhancement |
-| Svelte 5 `onerror` doesn't fire on SSR-rendered img elements | LOW | Replace with inline `onerror` HTML attribute (non-Svelte event handler) for cross-origin image elements; this runs before Svelte hydrates and covers the SSR timing gap |
+| iOS permission prompt silently fails — users report feature doesn't work | MEDIUM | Ship a "Select store manually" path as the primary interaction, with auto-detection as an enhancement; add in-app instructions linking to iOS Settings → HandleAppen → Location; this is a UX fix, not an architecture change |
+| Battery drain complaints after release | MEDIUM | Switch from `watchPosition` to interval-based polling via a configuration flag; deploy as a PWA update (no reinstall required); immediately reduces battery impact |
+| Home location data exposed in a query bug | HIGH | Audit all Supabase queries that touch the settings table; remove any cross-user exposure; rotate or anonymize exposed coordinates; notify affected users per GDPR requirements; add encryption via Supabase Vault going forward |
+| Geofence triggering wrong store in an urban cluster | LOW | Increase geofence radius to 200–250m and increase dwell time to 120s — both are configuration values, no structural rework needed; deploy without user-visible change |
+| Shopping history incorrectly recorded as deletions due to GPS dropout mid-session | MEDIUM | Backfill is not possible without the shopping event data; fix session context locking in next release; document the affected timeframe for users who notice missing history |
+| `navigator.permissions` returning wrong state causes permission re-request loops | LOW | Replace all `navigator.permissions.query` checks for geolocation with try/catch around `getCurrentPosition`; this is a localized code change |
 
 ---
 
@@ -221,32 +271,34 @@ Developers run migrations in development against an empty database (or a small s
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| iOS black screen — playsinline applied too late | iOS scanner fix (Phase 1 of milestone) | Test on a real iPhone in installed PWA mode; cannot verify in simulator |
-| iOS permission re-prompt every session | iOS scanner fix (Phase 1 of milestone) | Close and reopen the PWA on iOS; confirm the camera opens without a new system prompt |
-| Kassal CDN image URL instability | Product image storage design (Phase 2 of milestone) | Confirm `image_url` is in a dedicated column; confirm fallback renders when URL is NULL |
-| Migration risks on live `household_item_memory` | Schema migration phase (before any feature code) | Run migration against a seeded DB with 1000+ rows; confirm no timeout; confirm trigger still fires |
-| Layout shift from images in list view | Product image display phase (Phase 3 of milestone) | Measure CLS in Chrome Lighthouse; target 0; confirm fixed-size placeholders render before images |
-| Kassal 429 rate limit during concurrent family scanning | Edge function improvement phase | Test with a mock returning 429; confirm the function returns cached data or degrades gracefully |
-| Svelte 5 `onerror` timing on SSR-rendered images | Product image display phase (Phase 3 of milestone) | Load the shopping list page cold (hard refresh); confirm broken images show placeholder, not broken icon |
-| Exposing `barcode_product_cache` to authenticated role | Schema migration phase | Verify via `supabase db diff` that no `GRANT SELECT ... TO authenticated` appears on that table |
+| iOS standalone permission prompt failure | Location detection foundation | Manual test on physical iPhone: install to home screen, open app, tap "Enable location" — confirm dialog appears in the PWA window |
+| Battery drain from continuous watching | Location detection foundation | 30-minute battery benchmark on real device; drain must be < 8% |
+| Geofence too small / no accuracy guard | Geofence logic and dwell timer | Field test: stand at store entrance, measure activation distance; drive-by simulation must not trigger mode |
+| Home location privacy / GDPR | Home location settings | RLS cross-user test with second account; confirm deletion removes DB row; confirm coordinates are 4-decimal precision |
+| No offline/GPS fallback | Location detection foundation + Shopping mode UI | Disable GPS mid-session; verify manual store picker appears; verify check-offs record as history when a store is manually selected |
+| iOS watchPosition stops after screen lock | Location detection foundation | Lock phone for 5 minutes, unlock, verify location state is re-evaluated and mode updates correctly |
+| Permission UX — explain before asking | Location settings / onboarding | New-install test with no prior permission: confirm explainer card appears before native dialog; confirm manual alternative is offered if permission is denied |
+| Mid-session GPS dropout reclassifying check-offs | Geofence logic / session context | Airplane mode mid-session: confirm shopping mode persists for grace period; confirm check-offs remain classified as history |
 
 ---
 
 ## Sources
 
-- [STRICH Knowledge Base — Camera Access Issues in iOS PWA/Home Screen Apps](https://kb.strich.io/article/29-camera-access-issues-in-ios-pwa)
-- [WebKit Bug 185448 — getUserMedia not working in apps added to home screen](https://bugs.webkit.org/show_bug.cgi?id=185448)
-- [WebKit Bug 215884 — getUserMedia recurring permissions prompts in standalone mode when hash changes](https://bugs.webkit.org/show_bug.cgi?id=215884)
-- [WebKit Bug 252465 — In PWA, HTML Video Element may be unable to play stream from getUserMedia()](https://bugs.webkit.org/show_bug.cgi?id=252465)
-- [html5-qrcode Issue #713 — Camera won't launch on iOS PWA](https://github.com/mebjas/html5-qrcode/issues/713)
-- [html5-qrcode Issue #890 — iOS 17 Safari black screen after camera permission](https://github.com/mebjas/html5-qrcode/issues/890)
-- [Kassal.app API Documentation](https://kassal.app/api) — rate limit (60 req/min), image URL format (Cloudinary CDN), copyright disclaimer
-- [Svelte Issue #10352 — Svelte 5 onerror event not called on img element](https://github.com/sveltejs/svelte/issues/10352)
-- [web.dev — Optimize Cumulative Layout Shift](https://web.dev/optimize-cls/)
-- [Supabase Troubleshooting — Slow ALTER TABLE on Large Tables](https://supabase.com/docs/guides/troubleshooting/slow-execution-of-alter-table-on-large-table-when-changing-column-type-qmZRpZ)
-- [Supabase GitHub Discussion — prisma db push timeout on Free Tier when altering larger table](https://github.com/orgs/supabase/discussions/39712)
-- [SQLServerCentral — Nullable vs Non-Nullable and Adding Not Null Without Downtime in PostgreSQL](https://www.sqlservercentral.com/articles/nullable-vs-non-nullable-columns-and-adding-not-null-without-downtime-in-postgresql)
+- Apple Developer Forums thread/694999 — "Location Alert does not open in PWA": documented WebKit bug where geolocation prompt targets Safari process in standalone mode
+- Apple Developer Forums thread/751189 — "HTML Geolocation API does not work": `navigator.permissions` returns incorrect state on iOS Safari
+- [MagicBell — PWA iOS Limitations 2026](https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide): geolocation partially works, needs permission each session, less reliable than Android
+- [MDN — Geolocation.watchPosition()](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition): battery implications of continuous watching, `clearWatch` requirement
+- [Metova — Geolocation without battery drain](https://metova.com/how-to-implement-geolocation-without-draining-your-users-battery/): interval-based `getCurrentPosition` pattern vs. continuous watching
+- [Radar.com — How accurate is geofencing?](https://radar.com/blog/how-accurate-is-geofencing): urban GPS accuracy 5–50m, multipath interference, dwell time recommendations for reducing false triggers
+- [web.dev — Permissions best practices](https://web.dev/articles/permissions-best-practices): explain-before-asking pattern, user gesture requirement
+- [Chrome for Developers / Lighthouse](https://developer.chrome.com/docs/lighthouse/best-practices/geolocation-on-start): geolocation on page load is a Lighthouse best-practices violation
+- [GDPR Local — GDPR compliance for apps 2025](https://gdprlocal.com/gdpr-compliance-for-apps/): location data as personal data, explicit purpose disclosure, right to erasure
+- [Supabase Docs — Securing your data](https://supabase.com/docs/guides/database/secure-data): RLS patterns for sensitive data
+- [Supabase Vault](https://supabase.com/docs/guides/database/vault): application-level encryption for sensitive fields
+- WebKit Bug 268643: iOS 17.4 EU PWA regression (standalone PWAs forced to open in Safari in EU)
+- Cordova geolocation plugin issue #224: iOS 14+ `watchPosition` stops after app suspend/resume cycle
+- Ionic Forum — "PWA Geolocation watchPosition pauses": confirms watchPosition unreliability in backgrounded PWA on iOS
 
 ---
-*Pitfalls research for: SvelteKit + Supabase PWA — barcode scanner improvement and product image/brand lookup (Milestone v2.0)*
-*Researched: 2026-03-14*
+*Pitfalls research for: Location-aware shopping mode — HandleAppen PWA (Milestone v2.2)*
+*Researched: 2026-03-28*
