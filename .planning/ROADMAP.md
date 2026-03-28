@@ -369,11 +369,12 @@ Plans:
   1. `07-VERIFICATION.md` exists and records a clear status with requirement-to-evidence mapping for Phase 7 scope
   2. `08-VERIFICATION.md` exists and records a clear status with reconciliation/audit evidence for Phase 8 scope
   3. A rerun of `$gsd-audit-milestone` no longer flags missing verification artifacts for phases 07 and 08
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
 - [ ] 22-01-PLAN.md - Create strict requirement-mapped Phase 07 verification artifact with explicit verdict and evidence links
 - [ ] 22-02-PLAN.md - Create reconciliation-focused Phase 08 verification artifact grounded in roadmap/requirements/state/audit evidence
 - [ ] 22-03-PLAN.md - Preserve pre-rerun audit history, rerun milestone audit gates, and finalize Phase 22 validation status
+- [ ] 22-04-PLAN.md - Add deterministic audit rerun evidence artifact and close the remaining Phase 22 verification gap
 ## Progress
 
 **Execution Order:**
