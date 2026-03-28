@@ -1,6 +1,7 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page, type Route } from '@playwright/test'
 import { createHouseholdUser, deleteTestUser } from './helpers/auth'
 import { createTestItem, createTestList, deleteTestList } from './helpers/lists'
+import { countHistoryRowsForItem } from './helpers/history'
 
 type OfflineFixture = {
 	email: string
@@ -115,5 +116,61 @@ test.describe('Offline behavior', () => {
 		await expect(syncToast).toContainText('Endringer synkronisert')
 		await expect(syncToast).not.toBeVisible({ timeout: 3500 })
 		await expectPendingQueueCount(page, 0)
+	})
+
+	test('mixed replay outcome keeps successful entries cleared and avoids duplicate history on retry', async ({
+		page,
+		context
+	}) => {
+		await createTestItem(fixture!.listId, 'Brød', 1)
+		await page.reload({ waitUntil: 'networkidle' })
+
+		const checkboxes = page.getByTestId('item-checkbox')
+		await expect(checkboxes).toHaveCount(2)
+
+		await context.setOffline(true)
+		await expect(page.getByTestId('offline-indicator')).toBeVisible()
+
+		await checkboxes.nth(0).click()
+		await checkboxes.nth(1).click()
+		await expectPendingQueueCount(page, 2)
+
+		let failedBrodPost = false
+		const historyRouteHandler = async (route: Route) => {
+			const request = route.request()
+			if (request.method() !== 'POST') {
+				await route.continue()
+				return
+			}
+
+			const body = request.postDataJSON() as Record<string, unknown> | Array<Record<string, unknown>> | null
+			const payload = Array.isArray(body) ? body[0] : body
+			const itemName = typeof payload?.item_name === 'string' ? payload.item_name : null
+
+			if (!failedBrodPost && itemName === 'Brød') {
+				failedBrodPost = true
+				await route.fulfill({ status: 500, body: '{"message":"forced failure"}' })
+				return
+			}
+
+			await route.continue()
+		}
+
+		await page.route('**/rest/v1/item_history*', historyRouteHandler)
+
+		await context.setOffline(false)
+		await expectPendingQueueCount(page, 1)
+		await expect(await countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
+		await expect(await countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(0)
+
+		await page.unroute('**/rest/v1/item_history*', historyRouteHandler)
+
+		await context.setOffline(true)
+		await expect(page.getByTestId('offline-indicator')).toBeVisible()
+		await context.setOffline(false)
+
+		await expectPendingQueueCount(page, 0)
+		await expect(await countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
+		await expect(await countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(1)
 	})
 })
