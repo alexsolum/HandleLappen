@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-28T06:25:23.589Z"
+last_updated: "2026-03-28T06:46:10.582Z"
 progress:
   total_phases: 22
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 50
-  completed_plans: 42
+  completed_plans: 43
   percent: 79
 ---
 
@@ -75,6 +75,7 @@ Plan: 2 of 2
 | Phase 20 P02 | 2min | 2 tasks | 2 files |
 | Phase 20 P01 | 5 | 2 tasks | 2 files |
 | Phase 21-offline-replay-integrity-for-history-and-recommendations P01 | 16min | 3 tasks | 4 files |
+| Phase 21 P02 | 13min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,8 @@ Plan: 2 of 2
 - [Phase 20-01]: COALESCE upsert: brand = coalesce(excluded.brand, memory.brand) — new value wins only when non-null, preserving existing enrichment
 - [Phase 21-offline-replay-integrity-for-history-and-recommendations]: Queue replay now returns survivors and persisted survivor set is the only retry source.
 - [Phase 21-offline-replay-integrity-for-history-and-recommendations]: Reconnect success toast remains gated to full-batch success only (failed === 0).
+- [Phase 21]: countHistoryRowsForItem remains backward compatible by delegating to countHistoryRowsByListAndItem.
+- [Phase 21]: Replay integrity regression validates source-count idempotency and recommendation-page usability in one flow.
 
 ### Pending Todos
 

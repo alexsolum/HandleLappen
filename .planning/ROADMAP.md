@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated (completed 2026-03-15)
 - [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog
  (completed 2026-03-16)
-- [ ] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail
+- [x] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail (completed 2026-03-28)
 - [ ] **Phase 22: Milestone Verification Artifact Closure** - Add missing Phase 07 and 08 verification artifacts and rerun milestone audit gate checks
 
 ## Phase Details
@@ -401,7 +401,7 @@ v2.1 ordering: Phase 21 must precede 22 because artifact closure should reflect 
 | 18. iOS Scanner Black Screen Fix | 1/2 | Complete    | 2026-03-15 |
 | 19. Edge Function and DTO Enrichment | 1/1 | Complete    | 2026-03-15 |
 | 20. Client Image Display | 4/4 | Complete    | 2026-03-16 |
-| 21. Offline Replay Integrity for History and Recommendations | 1/2 | In Progress|  |
+| 21. Offline Replay Integrity for History and Recommendations | 2/2 | Complete   | 2026-03-28 |
 | 22. Milestone Verification Artifact Closure | 0/TBD | Not started | - |
 
 

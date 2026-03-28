@@ -13,5 +13,6 @@
 
 - Playwright runs for this phase are unstable due local webserver state:
 - `Port 4173 is already in use` during startup
+- `ENOENT: .../src/service-worker.js` from Vite PWA plugin causes error overlay interception in login flow
 - Vite error overlay intercepting clicks in login flow
 - `ERR_CONNECTION_REFUSED` and command timeouts on reruns
