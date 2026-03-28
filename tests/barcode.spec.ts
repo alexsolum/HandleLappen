@@ -294,7 +294,7 @@ test.describe('barcode lookup flow', () => {
 
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.getByRole('heading', { name: 'Bekreft vare' })).toBeVisible()
-      await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max 1,5 L')
+      await expect(dialog.getByRole('textbox', { name: 'Varenavn' })).toHaveValue('Pepsi Max 1,5 L')
       await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
       await expect(dialog.locator('select')).toHaveValue(/.+/)
 
@@ -339,7 +339,7 @@ test.describe('barcode lookup flow', () => {
 
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.getByRole('heading', { name: 'Bekreft vare' })).toBeVisible()
-      await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max')
+      await expect(dialog.getByRole('textbox', { name: 'Varenavn' })).toHaveValue('Pepsi Max')
       await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
       await expect(dialog.getByText(/Open Food Facts/i)).toHaveCount(0)
       await expect(dialog.getByText(/Kassal/i)).toHaveCount(0)
@@ -388,7 +388,7 @@ test.describe('barcode lookup flow', () => {
       await emitScannerDetection(page, '7044610878304')
 
       const dialog = page.getByTestId('barcode-lookup-sheet')
-      await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max uten sukker 1,5 L')
+      await expect(dialog.getByRole('textbox', { name: 'Varenavn' })).toHaveValue('Pepsi Max uten sukker 1,5 L')
       await expect(dialog.getByTestId('barcode-quantity-input')).toHaveValue('1')
 
       await dialog.getByRole('button', { name: 'Legg til vare' }).click()
@@ -434,7 +434,7 @@ test.describe('barcode lookup flow', () => {
       await expect(dialog.getByText(/Open Food Facts/i)).toHaveCount(0)
       await expect(dialog.getByText(/Kassal/i)).toHaveCount(0)
 
-      await dialog.locator('input[type="text"]').fill('Mystery Soda')
+      await dialog.getByRole('textbox', { name: 'Varenavn' }).fill('Mystery Soda')
       await dialog.getByRole('button', { name: 'Legg til manuelt' }).click()
 
       await expect(page.locator('text=Mystery Soda')).toBeVisible()
@@ -511,7 +511,7 @@ test.describe('barcode lookup flow', () => {
 
       const dialog = page.getByTestId('barcode-lookup-sheet')
       await expect(dialog.getByRole('heading', { name: 'Bekreft vare' })).toBeVisible()
-      await expect(dialog.locator('input[type="text"]')).toHaveValue('Pepsi Max 1,5 L')
+      await expect(dialog.getByRole('textbox', { name: 'Varenavn' })).toHaveValue('Pepsi Max 1,5 L')
     } finally {
       await deleteTestUser(user.id)
     }

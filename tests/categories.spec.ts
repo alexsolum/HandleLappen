@@ -400,7 +400,7 @@ test.describe('assign category', () => {
       const dialog = page.locator('dialog[open]')
       await expect(dialog).toBeVisible()
       await expect(dialog.getByText('Rediger vare')).toBeVisible()
-      await expect(dialog.locator('input[type=\"text\"]')).toHaveValue('Agurk')
+      await expect(dialog.getByRole('textbox', { name: 'Navn' })).toHaveValue('Agurk')
       await expect(dialog.locator('input[type=\"number\"]')).toHaveValue('2')
       await expect(dialog.getByText('Frukt og grønt')).toBeVisible()
     } finally {

@@ -105,7 +105,7 @@ test.describe('history', () => {
       await expect(page.getByTestId('add-back-toast')).toContainText('Melk lagt til')
 
       await page.goto(`/lister/${extraList.id}`, { waitUntil: 'networkidle' })
-      await expect(page.getByText('Melk · 1')).toBeVisible()
+      await expect(page.getByRole('checkbox', { name: /Melk/ })).toHaveCount(2)
       await expect(page.getByText('Handlet (1)')).toBeVisible()
     } finally {
       await clearHistoryForList(extraList.id)
