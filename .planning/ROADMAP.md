@@ -8,6 +8,8 @@ Milestone v2.0 adds four phases (17–20) targeting barcode scanner reliability 
 
 Milestone v2.1 adds two audit-driven closure phases (21-22) to resolve critical offline replay correctness and restore missing verification artifacts required by milestone audit gates.
 
+Milestone v2.2 adds four phases (23–26) making the app location-aware: store coordinates in admin (Phase 23), geolocation detection with iOS fallbacks (Phase 24), shopping mode activation with branded banner and layout auto-selection (Phase 25), and home location settings with GDPR-safe check-off behavior branching (Phase 26).
+
 ## Phases
 
 **Phase Numbering:**
@@ -29,16 +31,19 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Household Item Memory and Suggestions** - Reuse past household items as typeahead suggestions with remembered categories during item entry (completed 2026-03-12)
 - [x] **Phase 12: Navigation Restructure** - Four-tab bottom nav with prefix-based active detection and safe redirects from removed top-level routes (completed 2026-03-13)
 - [ ] **Phase 13: Admin Hub and Subpage Routing** - Admin hub page linking to all admin areas; Butikker, Husstand, and Historikk accessible as subpages; householdId-from-locals pattern established
-- [x] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow (completed 2026-03-16)
+- [x] **Phase 14: Recipes** - Household-shared recipe list and detail with ingredient selection from household items and add-to-list flow (completed 2026-03-16)
 - [ ] **Phase 15: Item Management** - Admin items overview with name/category editing and picture upload via Supabase Storage
 - [ ] **Phase 16: Dark Mode and User Settings** - Brukerinnstillinger page with dark mode toggle, FOUC prevention, and system-preference fallback
 - [ ] **Phase 17: Schema Migrations** - Nullable image and brand columns added to barcode_product_cache, household_item_memory, and list_items ahead of enrichment work
-- [x] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback (completed 2026-03-15)
-- [x] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated (completed 2026-03-15)
-- [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog
- (completed 2026-03-16)
-- [x] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail (completed 2026-03-28)
+- [x] **Phase 18: iOS Scanner Black Screen Fix** - Barcode scanner opens reliably on iOS Safari PWA standalone mode with correct permission error UX and haptic feedback (completed 2026-03-15)
+- [x] **Phase 19: Edge Function and DTO Enrichment** - Brand and image URL flow from Kassal.app through the edge function pipeline and into the client DTO; Kassal token updated (completed 2026-03-15)
+- [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog (completed 2026-03-16)
+- [x] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail (completed 2026-03-28)
 - [x] **Phase 22: Milestone Verification Artifact Closure** - Add missing Phase 07 and 08 verification artifacts and rerun milestone audit gate checks (completed 2026-03-28)
+- [ ] **Phase 23: Store Location Foundation** - Store coordinates saved via map pin in admin; Leaflet widget integrated; gates all proximity detection work
+- [ ] **Phase 24: Location Detection Foundation** - Battery-safe geolocation polling, iOS permission handling, and manual store-picker fallback all validated on physical device
+- [ ] **Phase 25: Shopping Mode** - Geofence engine, branded banner, store layout auto-selection, in-store check-off history recording, and dismiss control
+- [ ] **Phase 26: Home Location and Check-off Behavior** - GDPR-safe home location setting in user settings; check-offs near home treated as deletions, not history
 
 ## Phase Details
 
@@ -375,6 +380,52 @@ Plans:
 - [ ] 22-02-PLAN.md - Create reconciliation-focused Phase 08 verification artifact grounded in roadmap/requirements/state/audit evidence
 - [x] 22-03-PLAN.md - Preserve pre-rerun audit history, rerun milestone audit gates, and finalize Phase 22 validation status (completed 2026-03-28)
 - [x] 22-04-PLAN.md - Add deterministic audit rerun evidence artifact and close the remaining Phase 22 verification gap (completed 2026-03-28)
+
+### Phase 23: Store Location Foundation
+**Goal**: Any admin can save precise coordinates for a store by placing a map pin, giving the proximity engine real data to compare against before any location detection work begins
+**Depends on**: Phase 22
+**Requirements**: STORELOC-01, STORELOC-02
+**Success Criteria** (what must be TRUE):
+  1. User can open a store's admin edit page and place a pin on an interactive map to save that store's geographic coordinates
+  2. After saving, revisiting the store's edit page shows the previously saved pin in the correct position on the map
+  3. Saving or updating a store's location does not require any API key — the map widget loads from OpenStreetMap tiles without authentication
+  4. Store coordinates are persisted as `lat` and `lng` float columns on the `stores` table and are readable by the geofence engine via the existing stores query
+**Plans**: TBD
+
+### Phase 24: Location Detection Foundation
+**Goal**: The app can reliably determine the user's position in the foreground — including on iPhones installed as PWAs — with a validated fallback path for when permission is denied or location is unavailable
+**Depends on**: Phase 23
+**Requirements**: LOCATE-01, LOCATE-02, LOCATE-03
+**Success Criteria** (what must be TRUE):
+  1. With permission granted, the app polls device location at battery-safe intervals (30–60 seconds) and pauses polling when the app goes to background, resuming immediately when it returns to foreground
+  2. Before requesting geolocation permission, the app shows a clear explanation of why location is needed — the permission prompt does not appear on page load without user interaction
+  3. On an iPhone installed as a PWA, the location permission prompt appears correctly behind a user gesture; the app does not silently fail to request permission
+  4. When geolocation permission is denied or unavailable, the user can manually select a store from a picker to enter shopping mode — this path is always available, not only as an error state
+**Plans**: TBD
+
+### Phase 25: Shopping Mode
+**Goal**: Users are automatically placed in store-aware shopping mode when they arrive at a store, with a branded banner, layout auto-selection, and accurate history recording — and can exit at any time
+**Depends on**: Phase 24
+**Requirements**: SHOP-01, SHOP-02, SHOP-03, SHOP-04, CHKOFF-01
+**Success Criteria** (what must be TRUE):
+  1. After standing within 150m of a store for 90 seconds, the app enters shopping mode automatically without any user action required
+  2. Shopping mode shows a banner at the top of the list view with the store's name and the chain's brand color (Rema 1000 blue, Kiwi green, Meny red, Coop Extra yellow/red)
+  3. When shopping mode activates, the list automatically switches to that store's category layout order without the user having to select the store manually
+  4. Items checked off while shopping mode is active are recorded in `item_history` with the detected store's ID as context
+  5. User can dismiss shopping mode by tapping a close control on the banner; the app returns to default layout mode and check-offs are no longer attributed to the store
+**Plans**: TBD
+
+### Phase 26: Home Location and Check-off Behavior
+**Goal**: Users can mark their home location once so check-offs done at home are treated as list cleanup rather than shopping history — keeping recommendations clean and accurate
+**Depends on**: Phase 24
+**Requirements**: CHKOFF-02, CHKOFF-03
+**Success Criteria** (what must be TRUE):
+  1. User can open their user settings page and place a map pin to save their home location; a "remove home location" control is available in the same view
+  2. Home location coordinates are stored with 4-decimal-place precision and are only readable by the owning user — no household member or query path exposes another user's home location
+  3. Items checked off while the device is near the user's saved home location (and not in active shopping mode) are deleted from the list without creating a row in `item_history`
+  4. Deleting home location from settings immediately disables the at-home suppression behavior — subsequent check-offs at that location are treated normally
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
@@ -383,6 +434,8 @@ Phases execute in numeric order. Phase 12 must precede 13 (nav gates all UX revi
 v2.0 ordering: Phase 17 (schema) must precede 19 and 20 (columns must exist before code writes to them). Phase 18 (iOS fix) is independent of 19 and 20 and can proceed in parallel. Phase 19 (edge function) must precede 20 (client must receive enriched DTO before rendering it). Phase 20 depends on both 17 and 19.
 
 v2.1 ordering: Phase 21 must precede 22 because artifact closure should reflect the corrected replay behavior and final audit state.
+
+v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs data to compare against). Phase 24 (location service) must precede 25 (geofence engine needs a validated location foundation). Phase 26 (home location) depends on Phase 24 (location service) but is independent of Phase 25 (shopping mode) and can be built after 24 completes.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -408,5 +461,7 @@ v2.1 ordering: Phase 21 must precede 22 because artifact closure should reflect 
 | 20. Client Image Display | 4/4 | Complete    | 2026-03-16 |
 | 21. Offline Replay Integrity for History and Recommendations | 2/2 | Complete    | 2026-03-28 |
 | 22. Milestone Verification Artifact Closure | 4/4 | Complete    | 2026-03-28 |
-
-
+| 23. Store Location Foundation | 0/TBD | Not started | - |
+| 24. Location Detection Foundation | 0/TBD | Not started | - |
+| 25. Shopping Mode | 0/TBD | Not started | - |
+| 26. Home Location and Check-off Behavior | 0/TBD | Not started | - |

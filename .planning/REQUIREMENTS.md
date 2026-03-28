@@ -217,16 +217,27 @@ Requirements for milestone v2.2: Location Smartness.
 | DISP-02 | Phase 20 | Pending |
 | DISP-03 | Phase 20 | Pending |
 | DISP-04 | Phase 20 | Pending |
+| STORELOC-01 | Phase 23 | Pending |
+| STORELOC-02 | Phase 23 | Pending |
+| LOCATE-01 | Phase 24 | Pending |
+| LOCATE-02 | Phase 24 | Pending |
+| LOCATE-03 | Phase 24 | Pending |
+| SHOP-01 | Phase 25 | Pending |
+| SHOP-02 | Phase 25 | Pending |
+| SHOP-03 | Phase 25 | Pending |
+| SHOP-04 | Phase 25 | Pending |
+| CHKOFF-01 | Phase 25 | Pending |
+| CHKOFF-02 | Phase 26 | Pending |
+| CHKOFF-03 | Phase 26 | Pending |
 
 **Coverage:**
 - v1.0 requirements: 7 total
 - v1.1 requirements: 8 total (part of v1.2 release)
 - v1.2 requirements: 18 total
 - v2.0 requirements: 11 total
-- v2.2 requirements: 12 total
-- Mapped to phases: TBD (roadmapper will assign)
-- Unmapped: 12 ⚠️
+- v2.2 requirements: 12 total — all mapped to phases 23-26 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-28 after defining v2.2 Location Smartness requirements*
+*Last updated: 2026-03-28 after v2.2 roadmap created — all 12 v2.2 requirements mapped to phases 23-26*
