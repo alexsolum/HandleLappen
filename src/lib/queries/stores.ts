@@ -4,7 +4,10 @@ import { categoriesQueryKey, storeLayoutQueryKey } from '$lib/queries/categories
 
 type StoreRow = {
   id: string
-  name: string
+  chain: string | null
+  location_name: string
+  lat: number | null
+  lng: number | null
   created_at: string
 }
 
@@ -15,8 +18,15 @@ type CategoryRow = {
   household_id: string
 }
 
-type CreateStoreVariables = { name: string }
+type CreateStoreVariables = { chain: string | null; location_name: string }
 type DeleteStoreVariables = { id: string }
+type UpdateStoreVariables = {
+  id: string
+  chain: string | null
+  location_name: string
+  lat: number | null
+  lng: number | null
+}
 type CreateCategoryVariables = { name: string }
 type UpdateCategoryVariables = { id: string; name: string }
 type DeleteCategoryVariables = { id: string }
@@ -33,7 +43,7 @@ export function createStoresQuery(supabase: SupabaseClient, householdId: string)
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stores')
-        .select('id, name, created_at')
+        .select('id, chain, location_name, lat, lng, created_at')
         .order('created_at', { ascending: true })
 
       if (error) throw error
@@ -47,11 +57,11 @@ export function createStoreMutation(supabase: SupabaseClient, householdId: strin
   const storeQueryKey = storesQueryKey(householdId)
 
   return createMutation<StoreRow, Error, CreateStoreVariables>(() => ({
-    mutationFn: async ({ name }) => {
+    mutationFn: async ({ chain, location_name }) => {
       const { data: store, error } = await supabase
         .from('stores')
-        .insert({ household_id: householdId, name: name.trim() })
-        .select('id, name, created_at')
+        .insert({ household_id: householdId, chain, location_name: location_name.trim() })
+        .select('id, chain, location_name, lat, lng, created_at')
         .single()
 
       if (error) throw error
@@ -95,6 +105,22 @@ export function deleteStoreMutation(supabase: SupabaseClient, householdId: strin
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: storeQueryKey })
       queryClient.removeQueries({ queryKey: storeLayoutQueryKey(variables.id) })
+    },
+  }))
+}
+
+export function updateStoreMutation(supabase: SupabaseClient, householdId: string) {
+  const queryClient = useQueryClient()
+  return createMutation<void, Error, UpdateStoreVariables>(() => ({
+    mutationFn: async ({ id, chain, location_name, lat, lng }) => {
+      const { error } = await supabase
+        .from('stores')
+        .update({ chain, location_name: location_name.trim(), lat, lng })
+        .eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storesQueryKey(householdId) })
     },
   }))
 }
