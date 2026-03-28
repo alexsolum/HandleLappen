@@ -3,13 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-16T19:55:42.239Z"
-last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
+last_updated: "2026-03-28T06:25:23.589Z"
 progress:
-  total_phases: 20
+  total_phases: 22
   completed_phases: 11
-  total_plans: 48
-  completed_plans: 41
+  total_plans: 50
+  completed_plans: 42
   percent: 79
 ---
 
@@ -35,20 +34,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** v2.0 Phase 19 — Edge Function and DTO Enrichment (01 complete)
+**Current focus:** Phase 21 — offline-replay-integrity-for-history-and-recommendations
 
 ## Current Position
 
-Phase: 19 of 20 (Edge Function and DTO Enrichment — in progress)
-Plan: 19-01 — complete (brand/imageUrl enrichment, Kassal v1 fix, Activation Date Safeguard, Gemini prompt stripping, unit tests)
-Status: Phase 19 Plan 01 complete — ready for Phase 20 (ProductThumbnail UI) or 17 (DB migrations) or 18-02 (validation)
-Last activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database
-
-Progress: [████████░░] 84% (37/44 plans complete)
+Phase: 21 (offline-replay-integrity-for-history-and-recommendations) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 31
 - Average duration: -
 - Total execution time: -
@@ -78,10 +74,12 @@ Progress: [████████░░] 84% (37/44 plans complete)
 | Phase 20 P03 | 4min | 2 tasks | 5 files |
 | Phase 20 P02 | 2min | 2 tasks | 2 files |
 | Phase 20 P01 | 5 | 2 tasks | 2 files |
+| Phase 21-offline-replay-integrity-for-history-and-recommendations P01 | 16min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
 ### Decisions
+
 - [Phase 04-03-barcode-scan-to-add]: BarcodeLookupSheet is a dumb props-driven component; all state (loading/found/not_found/error) is owned by the list page so it composes cleanly with scanner and manual-EAN resume flows already in ItemInput.
 - [Phase 04-03-barcode-scan-to-add]: Category ID resolution has two opportunities — at mutation settle time and via a reactive $effect — to handle the case where categories load after the mutation resolves.
 - [Phase 04-03-barcode-scan-to-add]: Confirmed barcode-add goes through the standard addItemMutation + assignCategoryMutation path so inserted items are indistinguishable from typed items and trigger the household item-memory pipeline.
@@ -139,14 +137,18 @@ Progress: [████████░░] 84% (37/44 plans complete)
 - [Phase 20-02]: Smart Dedup: brand subtitle hidden when brand.toLowerCase() is a substring of draftName.toLowerCase() — consistent with 20-03 and 20-04 pattern
 - [Phase 20-02]: onConfirm extended with brand and imageUrl so scanned products are stored enriched at insert time — consistent with write-at-insert-time v2.0-roadmap decision
 - [Phase 20-01]: COALESCE upsert: brand = coalesce(excluded.brand, memory.brand) — new value wins only when non-null, preserving existing enrichment
+- [Phase 21-offline-replay-integrity-for-history-and-recommendations]: Queue replay now returns survivors and persisted survivor set is the only retry source.
+- [Phase 21-offline-replay-integrity-for-history-and-recommendations]: Reconnect success toast remains gated to full-batch success only (failed === 0).
 
 ### Pending Todos
+
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback. (Phase 14 used DOM canvas as safe default.)
 - Plan 14-04 may have reduced scope — edit/delete functionality is already implemented (edit link in detail header links to /oppskrifter/[id]/rediger; delete confirmed working via detail page).
 - Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
 - Phase 20 Svelte 5 onerror event timing with SSR hydration (sveltejs/svelte#10352) — verify early whether Svelte event binding works or inline HTML onerror attribute is required for cross-origin images.
 
 ### Blockers/Concerns
+
 - None.
 
 ### Quick Tasks Completed
