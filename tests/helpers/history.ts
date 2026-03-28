@@ -76,12 +76,19 @@ export async function clearHistoryForList(listId: string) {
 }
 
 export async function countHistoryRowsForItem(listId: string, itemName: string): Promise<number> {
+  return countHistoryRowsByListAndItem(listId, itemName)
+}
+
+export async function countHistoryRowsByListAndItem(
+  listId: string,
+  itemName: string
+): Promise<number> {
   const admin = getAdminClient()
   const { count, error } = await admin
     .from('item_history')
     .select('id', { count: 'exact', head: true })
     .eq('list_id', listId)
-    .eq('item_name', itemName)
+    .ilike('item_name', itemName)
 
   if (error) throw error
   return count ?? 0
