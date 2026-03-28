@@ -1,7 +1,10 @@
 <script lang="ts">
+  import { storeDisplayName } from '$lib/utils/stores'
+
   type Store = {
     id: string
-    name: string
+    chain: string | null
+    location_name: string
   }
 
   interface Props {
@@ -14,9 +17,10 @@
 
   let dialogEl = $state<HTMLDialogElement | null>(null)
 
-  const selectedStoreName = $derived(
-    stores.find((store) => store.id === selectedStoreId)?.name ?? 'Ingen'
-  )
+  const selectedStoreName = $derived(() => {
+    const found = stores.find((store) => store.id === selectedStoreId)
+    return found ? storeDisplayName(found.chain, found.location_name) : 'Ingen'
+  })
 
   function openSheet() {
     dialogEl?.showModal()
@@ -75,7 +79,7 @@
           class="flex w-full items-center justify-between px-4 py-4 text-left text-sm text-gray-700"
           onclick={() => handleSelect(store.id)}
         >
-          <span>{store.name}</span>
+          <span>{storeDisplayName(store.chain, store.location_name)}</span>
           {#if selectedStoreId === store.id}
             <span class="font-medium text-green-600">Valgt</span>
           {/if}
