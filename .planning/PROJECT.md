@@ -1,13 +1,16 @@
 # HandleAppen
 
-## Current Milestone: v2.1 Audit Closure and Verification Artifacts
+## Current Milestone: v2.2 Location Smartness
 
-**Goal:** Close audit-driven correctness and documentation gaps after v2.0 by hardening offline replay integrity and finishing missing verification artifacts.
+**Goal:** Make the app location-aware so it auto-detects nearby stores, enters shopping mode with store-specific layout, and distinguishes real shopping trips from at-home list management.
 
 **Target features:**
-- Ensure mixed offline replay outcomes are idempotent and do not duplicate `item_history`
-- Protect recommendation source counts from replay-retry skew
-- Restore missing verification artifacts for milestone audit closure (Phase 22)
+- Auto-detect proximity to saved stores (100m geofence) and enter shopping mode
+- Shopping mode banner with store branding (Rema 1000 blue, Kiwi green, Meny red, Coop Extra yellow/red)
+- Auto-select store layout for category sorting when in shopping mode
+- Location-aware check-offs: near store → shopping history; at home → treated as item deletion
+- Home location setting (set once in user settings)
+- Store location management in admin (map pin placement or address entry)
 
 ## What This Is
 
@@ -31,12 +34,13 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 
 ### Active
 
-- [ ] Bottom navigation has four tabs: Handleliste, Oppskrifter, Anbefalinger, Admin
-- [ ] Household-shared recipes with cover images and ingredient lists linked to household items
-- [ ] Recipe ingredients can be added individually or all at once to a chosen shopping list
-- [ ] Admin hub consolidates Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
-- [ ] All household items are editable (name, category, picture) from Admin → Items
-- [ ] User can toggle dark mode from Brukerinnstillinger
+- [ ] App auto-detects proximity to saved stores and enters shopping mode
+- [ ] Shopping mode shows a branded banner with store logo and color
+- [ ] Store layout is auto-selected when shopping mode activates
+- [ ] Check-offs near a store are recorded as shopping history
+- [ ] Check-offs at home are treated as deletions (not shopping history)
+- [ ] User can set home location once in settings
+- [ ] Store locations can be saved via map pin or address in admin
 
 ### Out of Scope
 
@@ -75,6 +79,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | v1.2 restructures nav and adds recipes | Weekly dinner planning drives shopping — recipes as first-class objects reduces manual item entry | — Pending |
 | v2.0 focuses on barcode scanner improvement and product lookup | Barcode is a key differentiator — iOS reliability and richer product data (image, brand) increase daily usage | Implemented |
 | v2.1 prioritizes audit closure and replay integrity | Reliable recommendations depend on idempotent replay and complete verification evidence | Complete |
+| v2.2 adds location-aware shopping mode | Store layout auto-selection and history accuracy depend on knowing where the user is shopping | — Pending |
 
 ---
-*Last updated: 2026-03-28 after Phase 22 completion*
+*Last updated: 2026-03-28 after milestone v2.2 started*

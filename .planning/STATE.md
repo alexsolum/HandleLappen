@@ -1,51 +1,38 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 22-04-PLAN.md
-last_updated: "2026-03-28T11:36:20.116Z"
+milestone: v2.2
+milestone_name: Location Smartness
+status: active
+last_updated: "2026-03-28T12:00:00.000Z"
+last_activity: 2026-03-28 — Milestone v2.2 started
 progress:
-  total_phases: 22
-  completed_phases: 13
-  total_plans: 54
-  completed_plans: 47
-  percent: 79
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-last_updated: "2026-03-15T17:55:00.000Z"
-last_activity: 2026-03-15 — Quick Task 5 complete; 67 curated family items with Unsplash images in database + household_item_memory
-progress:
-  [████████░░] 79%
-  completed_phases: 10
-  total_plans: 44
-  completed_plans: 37
-  percent: 84
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-14)
+See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 22 — milestone-verification-artifact-closure
+**Current focus:** Defining requirements for v2.2 Location Smartness
 
 ## Current Position
 
-Phase: 22 (milestone-verification-artifact-closure) — COMPLETE
-Plan: 4 of 4
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-28 — Milestone v2.2 started
 
 ## Session
 
-**Last session:** 2026-03-28T11:26:05.942Z
-**Stopped At:** Completed 22-04-PLAN.md
+**Last session:** 2026-03-28
+**Stopped At:** —
 **Resume File:** None
 
 ## Performance Metrics
