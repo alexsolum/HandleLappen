@@ -54,19 +54,21 @@ Exceptions:
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 14px (text-sm) | 400 (normal) | 1.5 |
+| Body | 14px (text-sm) | 500 (font-medium) | 1.5 |
 | Label | 14px (text-sm) | 500 (font-medium) | 1.4 |
 | Heading (page) | 24px (text-2xl) | 600 (font-semibold) | 1.2 |
 | Heading (section) | 20px (text-xl) | 600 (font-semibold) | 1.2 |
 
+Two weights only: 500 (font-medium) for body and label text; 600 (font-semibold) for all headings. Weight 400 (normal) is not used.
+
 **Applies to this phase:**
 - Page heading "Rediger butikk / {store display name}": 20px semibold (text-xl font-semibold) — matches existing store edit page pattern
 - Form field labels ("Kjede", "Butikknavn", "Vises som"): 14px medium
-- "Vises som: Rema 1000 Teie" preview text: 14px normal, `text-gray-600`
-- Map attribution text (Leaflet-generated): 11px normal — rendered by Leaflet, not project CSS
+- "Vises som: Rema 1000 Teie" preview text: 14px medium, `text-gray-600`
+- Map attribution text (Leaflet-generated): 11px — rendered by Leaflet, not project CSS
 - Category section heading (unchanged, below map): inherits existing DraggableCategoryRow styles
 
-**Source:** Scanned `butikker/+page.svelte` (`text-2xl font-semibold`, `text-sm font-medium`), `butikker/[id]/+page.svelte` (`text-xl font-semibold`, `text-sm text-gray-500`), `button.svelte` (`text-sm font-medium`).
+**Source:** Scanned `butikker/+page.svelte` (`text-2xl font-semibold`, `text-sm font-medium`), `butikker/[id]/+page.svelte` (`text-xl font-semibold`, `text-sm text-gray-500`), `button.svelte` (`text-sm font-medium`). Weight reduced from 3 to 2 per typography contract (checker revision 2026-03-28).
 
 ---
 
@@ -76,11 +78,11 @@ Exceptions:
 |------|-------|-------|
 | Dominant (60%) | white (`#ffffff`) | Page background, card surfaces, map container background |
 | Secondary (30%) | gray-100/200 (`#f3f4f6` / `#e5e7eb`) | Card borders, dividers, input borders, empty-state borders |
-| Accent (10%) | green-700 (`#15803d`) | Primary "Lagre" button, back-link text, active chain selection indicator |
+| Accent (10%) | green-700 (`#15803d`) | Primary "Lagre endringer" button, back-link text, active chain selection indicator |
 | Destructive | red-500/red-700 (`#ef4444` / `#b91c1c`) | Delete store button hover, error state text and background |
 
 Accent reserved for:
-1. Primary CTA button ("Lagre") — `bg-green-700 text-white hover:bg-green-800`
+1. Primary CTA button ("Lagre endringer") — `bg-green-700 text-white hover:bg-green-800`
 2. Back navigation links — `text-green-700 hover:text-green-800`
 3. "Legg til butikk" add row plus icon — `text-green-700`
 4. Input focus ring — `focus:border-green-600` / `focus:ring-green-500`
@@ -158,7 +160,7 @@ Inline text below location name field:
 ```
 Vises som: {composed name}
 ```
-- 14px normal, `text-gray-600`
+- 14px medium, `text-gray-600`
 - Updates reactively as chain and location name change
 - Hidden if `location_name` is empty
 
@@ -170,11 +172,11 @@ Vises som: {composed name}
 | Loaded, no pin | Map tiles visible, no marker. Instructional text below map: "Trykk på kartet for å plassere pin." (14px, `text-gray-500`) |
 | Loaded, pin placed | Blue default Leaflet marker at tap position. Instructional text changes to: "Trykk for å flytte pinnen." |
 | Loaded, existing pin | Map centered on saved coordinates at zoom 14, marker at saved position |
-| Error (tiles fail) | Map container shows dashed border `border-dashed border-gray-300`, text "Kartet kunne ikke lastes." (`text-gray-500`) |
+| Error (tiles fail) | Map container shows dashed border `border-dashed border-gray-300`, text "Kartet kunne ikke lastes. Sjekk internettforbindelsen og last siden på nytt." (`text-gray-500`) |
 
 Map container: `rounded-xl overflow-hidden border border-gray-200` wrapping the Leaflet div.
 
-### Lagre Button States
+### Lagre endringer Button States
 
 | State | Visual |
 |-------|--------|
@@ -204,7 +206,7 @@ Section order (locked decision from CONTEXT.md):
 6. [Map widget — 250px height]
    [Instructional text below map]
 
-7. [Button: Lagre]
+7. [Button: Lagre endringer]
 
 8. [Divider or spacing]
 
@@ -214,6 +216,8 @@ Section order (locked decision from CONTEXT.md):
 
 Container: `mx-auto max-w-lg px-4 py-6 pb-24` (existing pattern)
 Card wrapping form fields: `rounded-xl border border-gray-200 bg-white px-4 py-4 space-y-4 mb-4`
+
+**Primary visual anchor:** the map widget (250px, visually dominant element on the page) with the "Lagre endringer" button as the primary action focus. The map draws the eye as the largest single element; the save button anchors the form's completion intent directly below it.
 
 ---
 
@@ -228,7 +232,7 @@ Replace the single "Butikknavn" input with:
 2. [Label] Butikknavn
    [Input: location_name]
 
-3. [Row: Avbryt | Lagre buttons]
+3. [Row: Avbryt oppretting | Lagre butikk buttons]
 ```
 
 Inline create row: `rounded-xl border border-gray-200 bg-white px-4 py-3`
@@ -241,9 +245,10 @@ All copy is in Norwegian, consistent with the existing UI.
 
 | Element | Copy |
 |---------|------|
-| Primary CTA — save store | **"Lagre"** |
-| Primary CTA — add store | **"Legg til butikk"** |
-| Cancel action | **"Avbryt"** |
+| Primary CTA — save store edits | **"Lagre endringer"** |
+| Primary CTA — confirm store creation | **"Lagre butikk"** |
+| Primary CTA — open creation form | **"Legg til butikk"** |
+| Cancel creation action | **"Avbryt oppretting"** |
 | Chain field label | **"Kjede"** |
 | Location name field label | **"Butikknavn"** |
 | Location name placeholder | **"f.eks. Teie"** |
@@ -251,11 +256,11 @@ All copy is in Norwegian, consistent with the existing UI.
 | Map instructional text — no pin | **"Trykk på kartet for å plassere pinnen."** |
 | Map instructional text — pin placed | **"Trykk for å flytte pinnen."** |
 | Map loading state | **"Laster kart…"** |
-| Map error state | **"Kartet kunne ikke lastes."** |
+| Map error state | **"Kartet kunne ikke lastes. Sjekk internettforbindelsen og last siden på nytt."** |
 | Empty stores list | **"Ingen butikker ennå."** |
 | Stores list loading | **"Laster butikker…"** |
 | Store edit loading (categories) | **"Laster kategorier…"** |
-| Save error (create/update) | **"Noe gikk galt. Endringen ble ikke lagret."** |
+| Save error (create/update) | **"Noe gikk galt. Endringen ble ikke lagret — prøv igjen."** |
 | Save pending button text | **"Lagrer…"** |
 | Delete store aria-label | **"Slett {composed store name}"** |
 
@@ -267,7 +272,7 @@ Destructive actions in this phase:
 
 **No new destructive confirmation dialogs** — delete store was already in-place in Phase 3 without a confirmation step. Maintain consistency with existing behavior.
 
-**Source:** Existing page copy scanned from `butikker/+page.svelte` and `butikker/[id]/+page.svelte`. Norwegian language locked (CONTEXT.md established pattern). New copy extrapolated from existing patterns.
+**Source:** Existing page copy scanned from `butikker/+page.svelte` and `butikker/[id]/+page.svelte`. Norwegian language locked (CONTEXT.md established pattern). New copy extrapolated from existing patterns. CTA labels and error copy revised per checker review (2026-03-28).
 
 ---
 
@@ -311,4 +316,5 @@ No third-party component registries. No shadcn blocks from any registry. Registr
 
 *Phase: 23-store-location-foundation*
 *UI-SPEC created: 2026-03-28*
+*UI-SPEC revised: 2026-03-28 — checker fixes: CTA specificity, error solution paths, typography weight reduction, focal point declaration*
 *Sources: 23-CONTEXT.md (locked decisions), 23-RESEARCH.md (standard stack, architecture patterns), codebase scan (existing tokens, component patterns)*
