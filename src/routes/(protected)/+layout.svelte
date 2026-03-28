@@ -3,7 +3,7 @@
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
   import { onMount } from 'svelte'
   import BottomNav from '$lib/components/lists/BottomNav.svelte'
-  import { clear, getAll, replayMutation } from '$lib/offline/queue'
+  import { getAll, replayBatch, replaceQueue } from '$lib/offline/queue'
   import { refreshPendingCount } from '$lib/stores/offline.svelte'
 
   let { data, children } = $props()
@@ -35,23 +35,13 @@
 
     drainingQueue = true
 
-    let allSucceeded = true
-
     try {
-      for (const entry of queued) {
-        try {
-          await replayMutation(data.supabase, entry)
-        } catch {
-          allSucceeded = false
-        }
-      }
+      const result = await replayBatch(data.supabase, queued)
+      await replaceQueue(result.survivors)
+      await refreshPendingCount()
 
-      if (allSucceeded) {
-        await clear()
-        await refreshPendingCount()
+      if (result.succeeded > 0 && result.failed === 0) {
         showSyncToast()
-      } else {
-        await refreshPendingCount()
       }
     } finally {
       drainingQueue = false
