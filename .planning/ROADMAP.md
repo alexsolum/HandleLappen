@@ -257,7 +257,11 @@ Plans:
   3. Tapping Husstand from the Admin hub opens the household management page with a back-navigation affordance to return to the hub
   4. Tapping Historikk from the Admin hub opens the shopping history view with a back-navigation affordance to return to the hub
   5. All admin subpage load functions read householdId from locals directly and do not call await parent() before independent data fetches
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 14: Recipes
 **Goal**: Any household member can browse, create, and use household-shared recipes — selecting which ingredients to add to a shopping list so the store-layout ordering and category assignment carry through from recipe to list
@@ -287,7 +291,11 @@ Plans:
   2. User can rename an item from the items page and the new name is reflected immediately in the list and in future suggestions
   3. User can change an item's category from the items page and the item sorts into the correct category section on the shopping list
   4. User can upload a photo for an item from their device; the image is compressed client-side before upload and displayed as a thumbnail on the shopping list
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 16: Dark Mode and User Settings
 **Goal**: Users can switch the app to dark mode from their settings page, and the chosen theme persists across sessions and app reopen without any flash of unstyled content
@@ -299,7 +307,11 @@ Plans:
   3. The chosen theme persists across browser sessions and app reopen so the user's preference is never lost
   4. On first load with no stored preference, the app respects the device's system dark/light mode setting
   5. No flash of unstyled content (FOUC) occurs when the app loads in dark mode — the theme is applied before first paint
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 17: Schema Migrations
 **Goal**: The database columns required by image and brand enrichment exist in all three tables before any application code writes to or reads from them
@@ -336,7 +348,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After scanning a product that Kassal.app knows, the `barcode_product_cache` row contains a non-null `brand` and a non-null `image_url` (or null where Kassal does not provide one — the field is populated when available, not silently dropped)
   2. The client-side `BarcodeLookupDto` received after a scan includes `brand` and `imageUrl` fields that match what Kassal returned; neither field is routed through Gemini
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 20: Client Image Display
 **Goal**: Product images and brand names are visible to the user at every point in the shopping flow where scanned items appear — scan result, shopping list, Admin Items, and Varekatalog
@@ -348,7 +364,11 @@ Plans:
   3. When a barcode-scanned item is added to a list, `product_image_url` and `brand` are written to the `list_items` row at insert time — consistent with how `category_id` is already handled
   4. When a barcode-scanned item is confirmed, `product_image_url` and `brand` are written to the `household_item_memory` row so future scan suggestions carry the enriched data
   5. Admin Items and Varekatalog each show a product thumbnail and brand per row for items that have image data
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 21: Offline Replay Integrity for History and Recommendations
 **Goal**: Offline mutation replay is deterministic and idempotent so successful check-off events are cleared even if later queue entries fail, preventing duplicate history writes and recommendation skew
@@ -390,7 +410,11 @@ Plans:
   2. After saving, revisiting the store's edit page shows the previously saved pin in the correct position on the map
   3. Saving or updating a store's location does not require any API key — the map widget loads from OpenStreetMap tiles without authentication
   4. Store coordinates are persisted as `lat` and `lng` float columns on the `stores` table and are readable by the geofence engine via the existing stores query
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 24: Location Detection Foundation
 **Goal**: The app can reliably determine the user's position in the foreground — including on iPhones installed as PWAs — with a validated fallback path for when permission is denied or location is unavailable
@@ -401,7 +425,11 @@ Plans:
   2. Before requesting geolocation permission, the app shows a clear explanation of why location is needed — the permission prompt does not appear on page load without user interaction
   3. On an iPhone installed as a PWA, the location permission prompt appears correctly behind a user gesture; the app does not silently fail to request permission
   4. When geolocation permission is denied or unavailable, the user can manually select a store from a picker to enter shopping mode — this path is always available, not only as an error state
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 25: Shopping Mode
 **Goal**: Users are automatically placed in store-aware shopping mode when they arrive at a store, with a branded banner, layout auto-selection, and accurate history recording — and can exit at any time
@@ -413,7 +441,11 @@ Plans:
   3. When shopping mode activates, the list automatically switches to that store's category layout order without the user having to select the store manually
   4. Items checked off while shopping mode is active are recorded in `item_history` with the detected store's ID as context
   5. User can dismiss shopping mode by tapping a close control on the banner; the app returns to default layout mode and check-offs are no longer attributed to the store
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ### Phase 26: Home Location and Check-off Behavior
 **Goal**: Users can mark their home location once so check-offs done at home are treated as list cleanup rather than shopping history — keeping recommendations clean and accurate
@@ -424,7 +456,11 @@ Plans:
   2. Home location coordinates are stored with 4-decimal-place precision and are only readable by the owning user — no household member or query path exposes another user's home location
   3. Items checked off while the device is near the user's saved home location (and not in active shopping mode) are deleted from the list without creating a row in `item_history`
   4. Deleting home location from settings immediately disables the at-home suppression behavior — subsequent check-offs at that location are treated normally
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
+- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
 
 ## Progress
 
