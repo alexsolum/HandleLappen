@@ -15,6 +15,12 @@ export type QueuedMutation = {
 	enqueuedAt: string
 }
 
+export type ReplayBatchResult = {
+	succeeded: number
+	failed: number
+	survivors: QueuedMutation[]
+}
+
 const QUEUE_KEY = 'offline-mutation-queue'
 const FALLBACK_QUEUE_KEY = 'handleappen-offline-mutation-queue'
 
@@ -70,6 +76,10 @@ export async function clear(): Promise<void> {
 	await writeQueue([])
 }
 
+export async function replaceQueue(entries: QueuedMutation[]): Promise<void> {
+	await writeQueue(entries)
+}
+
 export async function replayMutation(
 	supabase: SupabaseClient,
 	entry: QueuedMutation
@@ -96,5 +106,28 @@ export async function replayMutation(
 		})
 
 		if (historyError) throw historyError
+	}
+}
+
+export async function replayBatch(
+	supabase: SupabaseClient,
+	queued: QueuedMutation[]
+): Promise<ReplayBatchResult> {
+	let succeeded = 0
+	const survivors: QueuedMutation[] = []
+
+	for (const entry of queued) {
+		try {
+			await replayMutation(supabase, entry)
+			succeeded += 1
+		} catch {
+			survivors.push(entry)
+		}
+	}
+
+	return {
+		succeeded,
+		failed: survivors.length,
+		survivors
 	}
 }
