@@ -6,6 +6,14 @@ status: gaps_found
 
 # Phase 08: Traceability Reconciliation and Milestone Re-Audit Verification
 
+## Evidence Sources
+
+- `.planning/ROADMAP.md`
+- `.planning/REQUIREMENTS.md`
+- `.planning/STATE.md`
+- `.planning/v1.0-v1.0-MILESTONE-AUDIT.md`
+- `.planning/phases/21-offline-replay-integrity-for-history-and-recommendations/21-VERIFICATION.md`
+
 ## Reconciliation Checks
 
 | Check | Status | Evidence |
