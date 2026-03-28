@@ -98,6 +98,34 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 - [ ] **DISP-03**: Admin → Items shows product image and brand per item
 - [ ] **DISP-04**: Varekatalog shows product image and brand per item
 
+## v2.2 Requirements
+
+Requirements for milestone v2.2: Location Smartness.
+
+### Store Location (STORELOC)
+
+- [ ] **STORELOC-01**: User can place a pin on a map in the store admin page to save the store's geographic coordinates
+- [ ] **STORELOC-02**: User can see a store's saved location displayed on a map when editing that store
+
+### Location Detection (LOCATE)
+
+- [ ] **LOCATE-01**: App detects the user's proximity to saved stores while the app is in the foreground using battery-safe geolocation polling
+- [ ] **LOCATE-02**: App requests geolocation permission with a clear explanation of why it's needed
+- [ ] **LOCATE-03**: When geolocation is unavailable or denied, the user can manually select a store to enter shopping mode
+
+### Shopping Mode (SHOP)
+
+- [ ] **SHOP-01**: App enters shopping mode automatically when the user is within 150m of a saved store for at least 90 seconds
+- [ ] **SHOP-02**: Shopping mode displays a branded banner showing the store name with chain-specific colors (Rema 1000 blue, Kiwi green, Meny red, Coop Extra yellow/red)
+- [ ] **SHOP-03**: Shopping mode auto-selects the detected store's category layout for list sorting
+- [ ] **SHOP-04**: User can dismiss shopping mode manually via a close control on the banner
+
+### Check-off Behavior (CHKOFF)
+
+- [ ] **CHKOFF-01**: Items checked off while in shopping mode are recorded in shopping history with the detected store context
+- [ ] **CHKOFF-02**: Items checked off while near the user's home location are treated as deletions and not recorded in shopping history
+- [ ] **CHKOFF-03**: User can set their home location once from user settings (map pin placement)
+
 ## Future Requirements
 
 ### Authentication & Onboarding
@@ -134,6 +162,12 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 | Recipe ingredient quantities/units in v1.2 | Adds parsing complexity; household picks items from memory which handles names and categories |
 | Community/shared recipes across households | Requires separate public storage model; private household-scoped is sufficient |
 | Supabase image transforms (CDN resize) | Requires Pro plan; client-side compression used instead |
+| Background geofencing (app closed) | PWAs have no reliable background geolocation on iOS; foreground-only is the correct scope |
+| Indoor aisle-level tracking | Requires BLE beacons or store infrastructure; category sorting already solves navigation |
+| Push notification on store arrival | Depends on background geofencing; push notifications already out of scope |
+| Continuous high-accuracy GPS | Drains battery in 30–40 min; Wi-Fi/cell accuracy sufficient for 150m geofence |
+| Raw location history server-side | GDPR risk; store only matched storeId and timestamp on check-off |
+| Auto-create stores from GPS | Creates garbage records; admin-managed stores ensure layout quality |
 
 ## Traceability
 
@@ -188,11 +222,11 @@ Requirements for milestone v2.0: Barcode Scanner Improvement and Product Lookup.
 - v1.0 requirements: 7 total
 - v1.1 requirements: 8 total (part of v1.2 release)
 - v1.2 requirements: 18 total
-- Mapped to phases: 25
 - v2.0 requirements: 11 total
-- Mapped to phases: 11 (traceability to be confirmed by roadmapper)
-- Unmapped: 0 ✓
+- v2.2 requirements: 12 total
+- Mapped to phases: TBD (roadmapper will assign)
+- Unmapped: 12 ⚠️
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-27 after restoring HIST/RECD traceability and assigning Phase 21 audit-gap closure*
+*Last updated: 2026-03-28 after defining v2.2 Location Smartness requirements*
