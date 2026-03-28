@@ -27,6 +27,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - ✓ Barcode scanning can auto-fill item name and category through Supabase edge-function lookups — v1.0
 - ✓ Shopping history and recommendation views are available from the app navigation — v1.0
 - ✓ Offline replay now uses survivor-only retry so mixed reconnect outcomes do not duplicate history rows or skew recommendations — validated in Phase 21 (2026-03-28)
+- ✓ Phase 22 closed milestone audit verification artifacts with deterministic rerun evidence and passed verification — validated in Phase 22 (2026-03-28)
 
 ### Active
 
@@ -36,7 +37,6 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - [ ] Admin hub consolidates Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
 - [ ] All household items are editable (name, category, picture) from Admin → Items
 - [ ] User can toggle dark mode from Brukerinnstillinger
-- [ ] Phase 22: add missing Phase 07 and 08 verification artifacts and rerun milestone audit gates
 
 ### Out of Scope
 
@@ -74,7 +74,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | v1.1 targets mobile UX before broad feature expansion | Current user pain is interaction friction on phones, not missing major workflows | — Pending |
 | v1.2 restructures nav and adds recipes | Weekly dinner planning drives shopping — recipes as first-class objects reduces manual item entry | — Pending |
 | v2.0 focuses on barcode scanner improvement and product lookup | Barcode is a key differentiator — iOS reliability and richer product data (image, brand) increase daily usage | Implemented |
-| v2.1 prioritizes audit closure and replay integrity | Reliable recommendations depend on idempotent replay and complete verification evidence | In progress |
+| v2.1 prioritizes audit closure and replay integrity | Reliable recommendations depend on idempotent replay and complete verification evidence | Complete |
 
 ---
-*Last updated: 2026-03-28 after Phase 21 completion*
+*Last updated: 2026-03-28 after Phase 22 completion*
