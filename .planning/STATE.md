@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 23 context gathered
-last_updated: "2026-03-28T19:53:22.088Z"
-last_activity: 2026-03-28 — Roadmap created for v2.2; 4 phases (23-26), 12 requirements mapped
+status: unknown
+stopped_at: Completed 23-store-location-foundation-01-PLAN.md
+last_updated: "2026-03-28T21:23:15.724Z"
 progress:
   total_phases: 26
   completed_phases: 13
-  total_plans: 54
-  completed_plans: 47
-  percent: 0
+  total_plans: 56
+  completed_plans: 48
 ---
 
 # Project State
@@ -21,22 +19,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** v2.2 Location Smartness — Phase 23 ready to plan
+**Current focus:** Phase 23 — store-location-foundation
 
 ## Current Position
 
-Phase: 23 of 26 (Store Location Foundation)
-Plan: — (not started)
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created for v2.2; 4 phases (23-26), 12 requirements mapped
-
-Progress: [░░░░░░░░░░] 0% (v2.2 milestone)
+Phase: 23 (store-location-foundation) — EXECUTING
+Plan: 2 of 2
 
 ## Session
 
-**Last session:** 2026-03-28T19:53:22.070Z
-**Stopped At:** Phase 23 context gathered
-**Resume File:** .planning/phases/23-store-location-foundation/23-CONTEXT.md
+**Last session:** 2026-03-28T21:23:15.705Z
+**Stopped At:** Completed 23-store-location-foundation-01-PLAN.md
+**Resume File:** None
 
 ## Performance Metrics
 
@@ -77,6 +71,7 @@ Progress: [░░░░░░░░░░] 0% (v2.2 milestone)
 | Phase 22 P01 | 2min | 2 tasks | 1 files |
 | Phase 22 P03 | 11min | 3 tasks | 3 files |
 | Phase 22 P04 | 4min | 2 tasks | 2 files |
+| Phase 23-store-location-foundation P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -95,6 +90,8 @@ Progress: [░░░░░░░░░░] 0% (v2.2 milestone)
 - [Phase 08-reaudit]: v1.0-FINAL-AUDIT.md passed. 100% requirement traceability achieved for v1 milestone.
 - [Phase 21]: Queue replay now returns survivors and persisted survivor set is the only retry source.
 - [Phase 22]: Deterministic rerun evidence artifact used to close Phase 22 verification gap.
+- [Phase 23-store-location-foundation]: Store display naming is centralized in storeDisplayName(chain, locationName) across store UI surfaces.
+- [Phase 23-store-location-foundation]: Store updates persist chain, location_name, lat, and lng together through updateStoreMutation.
 
 ### Pending Todos
 

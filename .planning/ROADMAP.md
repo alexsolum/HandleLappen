@@ -497,7 +497,7 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 20. Client Image Display | 4/4 | Complete    | 2026-03-16 |
 | 21. Offline Replay Integrity for History and Recommendations | 2/2 | Complete    | 2026-03-28 |
 | 22. Milestone Verification Artifact Closure | 4/4 | Complete    | 2026-03-28 |
-| 23. Store Location Foundation | 0/TBD | Not started | - |
+| 23. Store Location Foundation | 1/2 | In Progress|  |
 | 24. Location Detection Foundation | 0/TBD | Not started | - |
 | 25. Shopping Mode | 0/TBD | Not started | - |
 | 26. Home Location and Check-off Behavior | 0/TBD | Not started | - |

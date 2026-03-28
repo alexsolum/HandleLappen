@@ -104,8 +104,8 @@ Requirements for milestone v2.2: Location Smartness.
 
 ### Store Location (STORELOC)
 
-- [ ] **STORELOC-01**: User can place a pin on a map in the store admin page to save the store's geographic coordinates
-- [ ] **STORELOC-02**: User can see a store's saved location displayed on a map when editing that store
+- [x] **STORELOC-01**: User can place a pin on a map in the store admin page to save the store's geographic coordinates
+- [x] **STORELOC-02**: User can see a store's saved location displayed on a map when editing that store
 
 ### Location Detection (LOCATE)
 
@@ -217,8 +217,8 @@ Requirements for milestone v2.2: Location Smartness.
 | DISP-02 | Phase 20 | Pending |
 | DISP-03 | Phase 20 | Pending |
 | DISP-04 | Phase 20 | Pending |
-| STORELOC-01 | Phase 23 | Pending |
-| STORELOC-02 | Phase 23 | Pending |
+| STORELOC-01 | Phase 23 | Complete |
+| STORELOC-02 | Phase 23 | Complete |
 | LOCATE-01 | Phase 24 | Pending |
 | LOCATE-02 | Phase 24 | Pending |
 | LOCATE-03 | Phase 24 | Pending |
