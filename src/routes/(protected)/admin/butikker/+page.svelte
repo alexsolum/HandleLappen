@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createStoreMutation, createStoresQuery, deleteStoreMutation } from '$lib/queries/stores'
   import StoreRow from '$lib/components/stores/StoreRow.svelte'
+  import { storeDisplayName, CHAIN_OPTIONS } from '$lib/utils/stores'
 
   let { data } = $props()
 
@@ -9,7 +10,8 @@
   const deleteMutation = deleteStoreMutation(data.supabase, data.householdId)
 
   let isCreating = $state(false)
-  let newStoreName = $state('')
+  let newChain = $state<string | null>(null)
+  let newLocationName = $state('')
 
   function openCreateRow() {
     isCreating = true
@@ -17,18 +19,20 @@
 
   function cancelCreate() {
     isCreating = false
-    newStoreName = ''
+    newChain = null
+    newLocationName = ''
   }
 
   function submitCreate() {
-    const trimmed = newStoreName.trim()
+    const trimmed = newLocationName.trim()
     if (!trimmed) return
 
     createMutation.mutate(
-      { name: trimmed },
+      { chain: newChain, location_name: trimmed },
       {
         onSuccess: () => {
-          newStoreName = ''
+          newChain = null
+          newLocationName = ''
           isCreating = false
         },
       }
@@ -55,7 +59,7 @@
 
   {#if createMutation.isError || deleteMutation.isError}
     <div class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-      Noe gikk galt. Endringen ble ikke lagret.
+      Noe gikk galt. Endringen ble ikke lagret — prøv igjen.
     </div>
   {/if}
 
@@ -93,32 +97,57 @@
 
     {#if isCreating}
       <div class="rounded-xl border border-gray-200 bg-white px-4 py-3">
-        <label class="block text-sm font-medium text-gray-700" for="new-store-name">Butikknavn</label>
-        <input
-          id="new-store-name"
-          bind:value={newStoreName}
-          class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-green-600 focus:outline-none"
-          placeholder="Rema 1000 Majorstua"
-          maxlength="80"
-          onkeydown={(event) => {
-            if (event.key === 'Enter') submitCreate()
-            if (event.key === 'Escape') cancelCreate()
-          }}
-        />
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700" for="new-store-chain">Kjede</label>
+            <select
+              id="new-store-chain"
+              bind:value={newChain}
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value={null}>Velg kjede...</option>
+              {#each CHAIN_OPTIONS as chain}
+                <option value={chain}>{chain}</option>
+              {/each}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700" for="new-store-location">Butikknavn</label>
+            <input
+              id="new-store-location"
+              bind:value={newLocationName}
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-green-600 focus:outline-none"
+              placeholder="f.eks. Teie"
+              maxlength="80"
+              onkeydown={(event) => {
+                if (event.key === 'Enter') submitCreate()
+                if (event.key === 'Escape') cancelCreate()
+              }}
+            />
+          </div>
+        </div>
+
+        {#if newLocationName.trim()}
+          <p class="mt-3 text-sm font-medium text-gray-600">
+            Vises som: {storeDisplayName(newChain, newLocationName.trim())}
+          </p>
+        {/if}
+
         <div class="mt-3 flex justify-end gap-2">
           <button
             type="button"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100"
             onclick={cancelCreate}
           >
-            Avbryt
+            Avbryt oppretting
           </button>
           <button
             type="button"
             class="rounded-lg bg-green-700 px-3 py-2 text-sm font-medium text-white hover:bg-green-800"
             onclick={submitCreate}
           >
-            Lagre
+            Lagre butikk
           </button>
         </div>
       </div>
