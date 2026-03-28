@@ -1,18 +1,13 @@
 # HandleAppen
 
-## Current Milestone: v2.0 Barcode Scanner Improvement and Product Lookup
+## Current Milestone: v2.1 Audit Closure and Verification Artifacts
 
-**Goal:** Make barcode scanning reliable on all devices (especially iOS), improve product data quality from Kassal.app, and enrich household items with product images and brand names visible throughout the app.
+**Goal:** Close audit-driven correctness and documentation gaps after v2.0 by hardening offline replay integrity and finishing missing verification artifacts.
 
 **Target features:**
-- Fix iOS black screen / camera open failures in the barcode scanner
-- Improve scan UX: clearer feedback, fewer steps to confirm and add
-- Fetch and store product image URL and brand name from Kassal.app per scanned product
-- Show product image and brand in the scan result sheet, shopping list item rows, Admin → Items, and Varekatalog
-- Update Kassal.app API token (stored as edge function secret)
-- Improve product name and category accuracy (reduce Gemini over-normalization)
-- Item management: edit name/category and add pictures to any household item
-- User settings: dark mode toggle (placeholder for more preferences)
+- Ensure mixed offline replay outcomes are idempotent and do not duplicate `item_history`
+- Protect recommendation source counts from replay-retry skew
+- Restore missing verification artifacts for milestone audit closure (Phase 22)
 
 ## What This Is
 
@@ -31,6 +26,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - ✓ Items are grouped by grocery categories and can follow default or per-store layouts — v1.0
 - ✓ Barcode scanning can auto-fill item name and category through Supabase edge-function lookups — v1.0
 - ✓ Shopping history and recommendation views are available from the app navigation — v1.0
+- ✓ Offline replay now uses survivor-only retry so mixed reconnect outcomes do not duplicate history rows or skew recommendations — validated in Phase 21 (2026-03-28)
 
 ### Active
 
@@ -40,6 +36,7 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - [ ] Admin hub consolidates Butikker, Husstand, Historikk, Items, and Brukerinnstillinger
 - [ ] All household items are editable (name, category, picture) from Admin → Items
 - [ ] User can toggle dark mode from Brukerinnstillinger
+- [ ] Phase 22: add missing Phase 07 and 08 verification artifacts and rerun milestone audit gates
 
 ### Out of Scope
 
@@ -76,7 +73,8 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | Default layout + per-store overrides | Reduces setup burden while allowing store-specific precision | — Pending |
 | v1.1 targets mobile UX before broad feature expansion | Current user pain is interaction friction on phones, not missing major workflows | — Pending |
 | v1.2 restructures nav and adds recipes | Weekly dinner planning drives shopping — recipes as first-class objects reduces manual item entry | — Pending |
-| v2.0 focuses on barcode scanner improvement and product lookup | Barcode is a key differentiator — iOS reliability and richer product data (image, brand) increase daily usage | — Pending |
+| v2.0 focuses on barcode scanner improvement and product lookup | Barcode is a key differentiator — iOS reliability and richer product data (image, brand) increase daily usage | Implemented |
+| v2.1 prioritizes audit closure and replay integrity | Reliable recommendations depend on idempotent replay and complete verification evidence | In progress |
 
 ---
-*Last updated: 2026-03-14 after starting milestone v2.0*
+*Last updated: 2026-03-28 after Phase 21 completion*
