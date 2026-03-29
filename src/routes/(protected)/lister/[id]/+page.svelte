@@ -26,7 +26,18 @@
   import ItemInput from '$lib/components/items/ItemInput.svelte'
   import ItemDetailSheet from '$lib/components/items/ItemDetailSheet.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
+  import LocationPermissionCard from '$lib/components/stores/LocationPermissionCard.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
+  import {
+    beginLocationExplanation,
+    cancelLocationExplanation,
+    confirmAutomaticStore,
+    locationSession,
+    refreshLocationStores,
+    retryLocationDetection,
+    stopLocationSession,
+  } from '$lib/location/session.svelte'
+  import type { DetectableStore } from '$lib/location/proximity'
   import { setActiveList } from '$lib/stores/active-list.svelte'
   import { storeDisplayName } from '$lib/utils/stores'
   import { useQueryClient } from '@tanstack/svelte-query'
@@ -74,6 +85,7 @@
 
   onDestroy(() => {
     data.supabase.removeChannel(itemsChannel)
+    stopLocationSession()
   })
 
   const itemsQuery = createItemsQuery(data.supabase, data.listId)
@@ -137,9 +149,27 @@
     const found = storesQuery.data?.find((store) => store.id === selectedStoreId)
     return found ? storeDisplayName(found.chain, found.location_name) : null
   })
+  const detectableStores = $derived((storesQuery.data ?? []) as DetectableStore[])
+  const detectedStoreName = $derived.by(() => {
+    const found = storesQuery.data?.find((store) => store.id === locationSession.detectedStoreId)
+    return found ? storeDisplayName(found.chain, found.location_name) : null
+  })
 
   $effect(() => {
     setActiveList({ id: data.listId, name: data.listName })
+  })
+
+  $effect(() => {
+    refreshLocationStores(detectableStores)
+  })
+
+  $effect(() => {
+    if (
+      locationSession.detectedStoreId !== null &&
+      locationSession.detectedStoreId !== selectedStoreId
+    ) {
+      selectedStoreId = locationSession.detectedStoreId
+    }
   })
 
   $effect(() => {
@@ -367,6 +397,23 @@
     </div>
   {/if}
 
+  <div class="mb-4 space-y-3">
+    <LocationPermissionCard
+      state={locationSession.status}
+      {detectedStoreName}
+      showSettingsHint={locationSession.showSettingsHint}
+      onStart={beginLocationExplanation}
+      onConfirm={() => void confirmAutomaticStore(detectableStores)}
+      onCancel={cancelLocationExplanation}
+      onRetry={() => void retryLocationDetection(detectableStores)}
+    />
+    <StoreSelector
+      stores={storesQuery.data ?? []}
+      {selectedStoreId}
+      onSelect={(id) => (selectedStoreId = id)}
+    />
+  </div>
+
   <!-- Active items -->
   {#if itemsQuery.isPending}
     <p class="py-8 text-center text-sm text-gray-500">Laster varer…</p>
@@ -377,14 +424,6 @@
       Ingen varer. Legg til den første varen nedenfor.
     </p>
   {:else}
-    <div class="mb-4">
-      <StoreSelector
-        stores={storesQuery.data ?? []}
-        {selectedStoreId}
-        onSelect={(id) => (selectedStoreId = id)}
-      />
-    </div>
-
     <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
       {#if groupingPending}
         <div class="px-4 py-8 text-center text-sm text-gray-500">Laster kategorier…</div>

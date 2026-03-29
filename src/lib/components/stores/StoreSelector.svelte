@@ -17,9 +17,9 @@
 
   let dialogEl = $state<HTMLDialogElement | null>(null)
 
-  const selectedStoreName = $derived(() => {
+  const selectedStoreName = $derived.by(() => {
     const found = stores.find((store) => store.id === selectedStoreId)
-    return found ? storeDisplayName(found.chain, found.location_name) : 'Ingen'
+    return found ? storeDisplayName(found.chain, found.location_name) : 'Velg butikk manuelt'
   })
 
   function openSheet() {
@@ -67,7 +67,7 @@
         class="flex w-full items-center justify-between px-4 py-4 text-left text-sm text-gray-700"
         onclick={() => handleSelect(null)}
       >
-        <span>Ingen butikk</span>
+        <span>Velg butikk manuelt</span>
         {#if selectedStoreId == null}
           <span class="font-medium text-green-600">Valgt</span>
         {/if}
