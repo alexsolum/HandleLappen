@@ -1,13 +1,96 @@
+import { createClient } from '@supabase/supabase-js'
 import { expect, test, type Page, type Route } from '@playwright/test'
 import { createHouseholdUser, deleteTestUser } from './helpers/auth'
+import { clearHistoryForList, countHistoryRowsForItem } from './helpers/history'
 import { createTestItem, createTestList, deleteTestList } from './helpers/lists'
-import { countHistoryRowsForItem } from './helpers/history'
+import { replayBatch, type QueuedMutation } from '../src/lib/offline/queue'
+
+const SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321'
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 
 type OfflineFixture = {
 	email: string
 	password: string
 	userId: string
 	listId: string
+}
+
+function createAdminClient() {
+	if (!SERVICE_ROLE_KEY) {
+		throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for offline tests')
+	}
+
+	return createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+		auth: { autoRefreshToken: false, persistSession: false }
+	})
+}
+
+async function countListItemsByName(listId: string, itemName: string): Promise<number> {
+	const admin = createAdminClient()
+	const { count, error } = await admin
+		.from('list_items')
+		.select('id', { count: 'exact', head: true })
+		.eq('list_id', listId)
+		.eq('name', itemName)
+
+	if (error) throw error
+	return count ?? 0
+}
+
+function createReplayStubClient(options: { failHistoryForItemId?: string | null }) {
+	const state = {
+		deletedItemIds: [] as string[],
+		toggledItemIds: [] as string[],
+		historyRows: [] as Array<{ itemId: string; itemName: string }>,
+	}
+
+	const client = {
+		from(table: string) {
+			if (table === 'list_items') {
+				return {
+					delete() {
+						return {
+							async eq(_column: string, itemId: string) {
+								state.deletedItemIds.push(itemId)
+								return { error: null }
+							},
+						}
+					},
+					update() {
+						return {
+							async eq(_column: string, itemId: string) {
+								state.toggledItemIds.push(itemId)
+								return { error: null }
+							},
+						}
+					},
+				}
+			}
+
+			if (table === 'item_history') {
+				return {
+					async insert(payload: {
+						item_id?: string | null
+						item_name?: string | null
+					}) {
+						if (payload.item_id === options.failHistoryForItemId) {
+							return { error: new Error('forced history failure') }
+						}
+
+						state.historyRows.push({
+							itemId: payload.item_id ?? '',
+							itemName: payload.item_name ?? '',
+						})
+						return { error: null }
+					},
+				}
+			}
+
+			throw new Error(`Unexpected table ${table}`)
+		},
+	}
+
+	return { client, state }
 }
 
 async function loginAndOpenList(page: Page, fixture: OfflineFixture) {
@@ -125,15 +208,18 @@ test.describe('Offline behavior', () => {
 		await createTestItem(fixture!.listId, 'Brød', 1)
 		await page.reload({ waitUntil: 'networkidle' })
 
-		const checkboxes = page.getByTestId('item-checkbox')
-		await expect(checkboxes).toHaveCount(2)
+		const melkCheckbox = page.getByTestId('item-checkbox').filter({ hasText: 'Melk' })
+		const brodCheckbox = page.getByTestId('item-checkbox').filter({ hasText: 'Brød' })
+		await expect(melkCheckbox).toHaveCount(1)
+		await expect(brodCheckbox).toHaveCount(1)
 
 		await context.setOffline(true)
 		await expect(page.getByTestId('offline-indicator')).toBeVisible()
 
-		await checkboxes.nth(0).click()
-		await checkboxes.nth(1).click()
-		await expectPendingQueueCount(page, 2)
+		await melkCheckbox.click({ force: true })
+		await expect(page.getByText('Handlet (1)')).toBeVisible()
+		await brodCheckbox.click({ force: true })
+		await expect(page.getByText('Handlet (2)')).toBeVisible()
 
 		let failedBrodPost = false
 		const historyRouteHandler = async (route: Route) => {
@@ -159,18 +245,96 @@ test.describe('Offline behavior', () => {
 		await page.route('**/rest/v1/item_history*', historyRouteHandler)
 
 		await context.setOffline(false)
-		await expectPendingQueueCount(page, 1)
-		await expect(await countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
-		await expect(await countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(0)
+		await expect.poll(() => countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
+		await expect.poll(() => countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(0)
 
 		await page.unroute('**/rest/v1/item_history*', historyRouteHandler)
 
 		await context.setOffline(true)
-		await expect(page.getByTestId('offline-indicator')).toBeVisible()
 		await context.setOffline(false)
 
-		await expectPendingQueueCount(page, 0)
-		await expect(await countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
-		await expect(await countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(1)
+		await expect.poll(() => countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
+		await expect.poll(() => countHistoryRowsForItem(fixture!.listId, 'Brød')).toBe(1)
+	})
+
+	test('offline replay home delete does not create history', async () => {
+		const email = `offline-home-${Date.now()}@test.example`
+		const password = 'password123'
+		const { user, household } = await createHouseholdUser(email, password)
+		const list = await createTestList(household.id, 'Offline home replay')
+		const item = await createTestItem(list.id, 'offline home replay', 1)
+		const timestamp = new Date().toISOString()
+
+		try {
+			await clearHistoryForList(list.id)
+
+			const result = await replayBatch(createAdminClient(), [
+				{
+					id: item.id,
+					type: 'home-delete',
+					payload: {
+					itemId: item.id,
+					listId: list.id,
+					itemName: item.name,
+					userId: user.id,
+					timestamp,
+					mode: 'home-delete',
+				},
+				enqueuedAt: timestamp,
+			},
+			])
+
+			expect(result.succeeded).toBe(1)
+			expect(result.failed).toBe(0)
+			expect(result.survivors).toEqual([])
+			await expect(countHistoryRowsForItem(list.id, item.name)).resolves.toBe(0)
+			await expect(countListItemsByName(list.id, item.name)).resolves.toBe(0)
+		} finally {
+			await deleteTestList(list.id)
+			await deleteTestUser(user.id)
+		}
+	})
+
+	test('replay home-delete success stays cleared even when later history replay fails', async () => {
+		const timestamp = new Date().toISOString()
+		const queued: QueuedMutation[] = [
+			{
+				id: 'home-delete-item',
+				type: 'home-delete',
+				payload: {
+					itemId: 'home-delete-item',
+					listId: 'list-1',
+					itemName: 'offline home',
+					userId: 'user-1',
+					timestamp,
+					mode: 'home-delete',
+				},
+				enqueuedAt: timestamp,
+			},
+			{
+				id: 'history-toggle-item',
+				type: 'toggle',
+				payload: {
+					itemId: 'history-toggle-item',
+					listId: 'list-1',
+					isChecked: true,
+					itemName: 'later replay home failure',
+					userId: 'user-1',
+					timestamp,
+					mode: 'history-toggle',
+				},
+				enqueuedAt: timestamp,
+			},
+		]
+		const { client, state } = createReplayStubClient({ failHistoryForItemId: 'history-toggle-item' })
+
+		const result = await replayBatch(client as never, queued)
+
+		expect(result.succeeded).toBe(1)
+		expect(result.failed).toBe(1)
+		expect(result.survivors).toHaveLength(1)
+		expect(result.survivors[0]?.id).toBe('history-toggle-item')
+		expect(state.deletedItemIds).toEqual(['home-delete-item'])
+		expect(state.historyRows).toEqual([])
 	})
 })

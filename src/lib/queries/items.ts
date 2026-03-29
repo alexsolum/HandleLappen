@@ -280,22 +280,47 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
     return isWithinHomeDetectionRadius(locationSample, homeLocation)
   }
 
-  async function enqueueToggle(itemId: string, isChecked: boolean, itemName: string) {
+  async function enqueueMutation(
+    itemId: string,
+    isChecked: boolean,
+    itemName: string,
+    mode: ToggleItemResult['mode'],
+    historyContext?: ToggleItemVariables['historyContext']
+  ) {
     const timestamp = new Date().toISOString()
 
-    await enqueue({
-      id: itemId,
-      type: 'toggle',
-      payload: {
-        itemId,
-        listId,
-        isChecked,
-        itemName,
-        userId,
-        timestamp,
-      },
-      enqueuedAt: timestamp,
-    })
+    if (mode === 'home-delete') {
+      await enqueue({
+        id: itemId,
+        type: 'home-delete',
+        payload: {
+          itemId,
+          listId,
+          itemName,
+          userId,
+          timestamp,
+          mode: 'home-delete',
+        },
+        enqueuedAt: timestamp,
+      })
+    } else {
+      await enqueue({
+        id: itemId,
+        type: 'toggle',
+        payload: {
+          itemId,
+          listId,
+          isChecked,
+          itemName,
+          userId,
+          timestamp,
+          mode: 'history-toggle',
+          historyContext,
+        },
+        enqueuedAt: timestamp,
+      })
+    }
+
     await refreshPendingCount()
   }
 
@@ -356,10 +381,11 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
   return createMutation<ToggleItemResult, Error, ToggleItemVariables, MutationContext>(() => ({
     mutationFn: async ({ itemId, isChecked, itemName, historyContext, ...context }) => {
       const atHomeCleanup = shouldDeleteAsHomeCleanup({ itemId, isChecked, itemName, historyContext, ...context })
+      const mode = atHomeCleanup ? 'home-delete' : 'history-toggle'
 
       if (isOfflineMode()) {
-        await enqueueToggle(itemId, isChecked, itemName)
-        return { queued: true, mode: atHomeCleanup ? 'home-delete' : 'history-toggle' }
+        await enqueueMutation(itemId, isChecked, itemName, mode, historyContext)
+        return { queued: true, mode }
       }
 
       try {
@@ -372,8 +398,8 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
         return { queued: false, mode: 'history-toggle' }
       } catch (error) {
         void error
-        await enqueueToggle(itemId, isChecked, itemName)
-        return { queued: true, mode: atHomeCleanup ? 'home-delete' : 'history-toggle' }
+        await enqueueMutation(itemId, isChecked, itemName, mode, historyContext)
+        return { queued: true, mode }
       }
     },
     onMutate: async (variables) => {

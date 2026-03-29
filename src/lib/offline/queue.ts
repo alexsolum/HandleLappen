@@ -1,19 +1,37 @@
 import { get, set } from 'idb-keyval'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export type QueuedMutation = {
-	id: string
-	type: 'toggle'
-	payload: {
-		itemId: string
-		listId: string
-		isChecked: boolean
-		itemName: string
-		userId: string
-		timestamp: string
-	}
-	enqueuedAt: string
+type QueuedBasePayload = {
+	itemId: string
+	listId: string
+	itemName: string
+	userId: string
+	timestamp: string
 }
+
+export type QueuedMutation =
+	| {
+			id: string
+			type: 'toggle'
+			payload: QueuedBasePayload & {
+				isChecked: boolean
+				mode: 'history-toggle'
+				historyContext?: {
+					listName?: string | null
+					storeId?: string | null
+					storeName?: string | null
+				}
+			}
+			enqueuedAt: string
+	  }
+	| {
+			id: string
+			type: 'home-delete'
+			payload: QueuedBasePayload & {
+				mode: 'home-delete'
+			}
+			enqueuedAt: string
+	  }
 
 export type ReplayBatchResult = {
 	succeeded: number
@@ -84,7 +102,15 @@ export async function replayMutation(
 	supabase: SupabaseClient,
 	entry: QueuedMutation
 ): Promise<void> {
-	const { itemId, listId, isChecked, itemName, userId, timestamp } = entry.payload
+	const { itemId, listId, itemName, userId, timestamp } = entry.payload
+
+	if (entry.type === 'home-delete') {
+		const { error } = await supabase.from('list_items').delete().eq('id', itemId)
+		if (error) throw error
+		return
+	}
+
+	const { isChecked, historyContext } = entry.payload
 
 	const { error: itemError } = await supabase
 		.from('list_items')
@@ -102,7 +128,10 @@ export async function replayMutation(
 			item_id: itemId,
 			item_name: itemName,
 			checked_by: userId,
-			checked_at: timestamp
+			checked_at: timestamp,
+			list_name: historyContext?.listName ?? null,
+			store_id: historyContext?.storeId ?? null,
+			store_name: historyContext?.storeName ?? null
 		})
 
 		if (historyError) throw historyError
