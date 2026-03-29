@@ -23,6 +23,9 @@ export const locationSession = $state({
   lastFailure: null as LocationFailureKind | null,
   showSettingsHint: false,
   lastSample: null as LocationSample | null,
+  shoppingModeActive: false,
+  dwellStartedAt: null as number | null,
+  dwellLastInRangeAt: null as number | null,
 })
 
 let activeStores: DetectableStore[] = []
@@ -31,6 +34,7 @@ let visibilityListenerBound = false
 let pollingEnabled = false
 let inFlight = false
 let deniedCount = 0
+let dismissedForSession = false
 
 function clearPollTimer() {
   if (pollTimer) {
@@ -44,7 +48,70 @@ function applyDetectedStore(sample: LocationSample) {
   locationSession.lastFailure = null
 
   const nearestStore = findNearestDetectedStore(activeStores, sample)
-  locationSession.detectedStoreId = nearestStore?.store.id ?? null
+  const detectedId = nearestStore?.store.id ?? null
+
+  locationSession.detectedStoreId = detectedId
+
+  const now = Date.now()
+
+  if (detectedId === null) {
+    if (locationSession.shoppingModeActive) {
+      const outMs =
+        locationSession.dwellLastInRangeAt !== null ? now - locationSession.dwellLastInRangeAt : Infinity
+      if (outMs >= 120_000) {
+        exitShoppingMode()
+      }
+      return
+    }
+
+    if (locationSession.dwellLastInRangeAt !== null) {
+      const gapMs = now - locationSession.dwellLastInRangeAt
+      if (gapMs > 30_000) {
+        locationSession.dwellStartedAt = null
+        locationSession.dwellLastInRangeAt = null
+      }
+    }
+
+    return
+  }
+
+  if (locationSession.shoppingModeActive) {
+    locationSession.dwellLastInRangeAt = now
+    return
+  }
+
+  if (dismissedForSession) {
+    return
+  }
+
+  if (locationSession.dwellStartedAt === null) {
+    locationSession.dwellStartedAt = now
+  }
+
+  locationSession.dwellLastInRangeAt = now
+
+  const dwellMs = now - locationSession.dwellStartedAt
+  if (dwellMs >= 90_000) {
+    activateShoppingMode()
+  }
+}
+
+function activateShoppingMode() {
+  locationSession.shoppingModeActive = true
+  locationSession.dwellStartedAt = null
+  // List page reacts via $effect watching shoppingModeActive.
+}
+
+function exitShoppingMode() {
+  locationSession.shoppingModeActive = false
+  locationSession.dwellStartedAt = null
+  locationSession.dwellLastInRangeAt = null
+  // List page reacts via $effect -- resets selectedStoreId to null.
+}
+
+export function dismissShoppingMode(): void {
+  dismissedForSession = true
+  exitShoppingMode()
 }
 
 function ensureVisibilityListener() {
@@ -219,7 +286,11 @@ export function stopLocationSession(): void {
   inFlight = false
   deniedCount = 0
   activeStores = []
+  dismissedForSession = false
   locationSession.status = 'idle'
   locationSession.lastFailure = null
   locationSession.showSettingsHint = false
+  locationSession.shoppingModeActive = false
+  locationSession.dwellStartedAt = null
+  locationSession.dwellLastInRangeAt = null
 }
