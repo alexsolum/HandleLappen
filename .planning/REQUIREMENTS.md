@@ -124,7 +124,7 @@ Requirements for milestone v2.2: Location Smartness.
 
 - [ ] **CHKOFF-01**: Items checked off while in shopping mode are recorded in shopping history with the detected store context
 - [ ] **CHKOFF-02**: Items checked off while near the user's home location are treated as deletions and not recorded in shopping history
-- [ ] **CHKOFF-03**: User can set their home location once from user settings (map pin placement)
+- [x] **CHKOFF-03**: User can set their home location once from user settings (map pin placement)
 
 ## Future Requirements
 
@@ -228,7 +228,7 @@ Requirements for milestone v2.2: Location Smartness.
 | SHOP-04 | Phase 25 | Complete |
 | CHKOFF-01 | Phase 25 | Pending |
 | CHKOFF-02 | Phase 26 | Pending |
-| CHKOFF-03 | Phase 26 | Pending |
+| CHKOFF-03 | Phase 26 | Complete |
 
 **Coverage:**
 - v1.0 requirements: 7 total

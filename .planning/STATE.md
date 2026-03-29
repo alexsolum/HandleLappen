@@ -2,18 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 26
-current_phase_name: home location and check off behavior
-current_plan: Not started
-status: planning
-stopped_at: Phase 26 context gathered
-last_updated: "2026-03-29T18:00:09.281Z"
-last_activity: 2026-03-29
+status: in_progress
+stopped_at: Completed 26-home-location-and-check-off-behavior-01-PLAN.md
+last_updated: "2026-03-29T19:11:52.603Z"
 progress:
   total_phases: 26
   completed_phases: 16
-  total_plans: 61
-  completed_plans: 54
+  total_plans: 63
+  completed_plans: 55
 ---
 
 # Project State
@@ -23,23 +19,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 25 — shopping-mode
+**Current focus:** Phase 26 — home-location-and-check-off-behavior
 
 ## Current Position
 
-**Current Phase:** 26
-**Current Phase Name:** home location and check off behavior
-**Status:** Ready to plan
-**Current Plan:** Not started
-**Total Plans in Phase:** 2
-**Last Activity:** 2026-03-29
-**Last Activity Description:** Phase 25 complete, transitioned to Phase 26
+Phase: 26 (home-location-and-check-off-behavior) — EXECUTING
+Plan: 2 of 2
 
 ## Session
 
-**Last session:** 2026-03-29T18:00:09.259Z
-**Stopped At:** Phase 26 context gathered
-**Resume File:** .planning/phases/26-home-location-and-check-off-behavior/26-CONTEXT.md
+**Last session:** 2026-03-29T19:11:52.589Z
+**Stopped At:** Completed 26-home-location-and-check-off-behavior-01-PLAN.md
+**Resume File:** None
 
 ## Performance Metrics
 
@@ -85,6 +76,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 | Phase 24 P01 | 24min | 3 tasks | 4 files |
 | Phase 24 P02 | 38min | 2 tasks | 6 files |
 | Phase 25 P01 | 4min | 2 tasks | 2 files |
+| Phase 26-home-location-and-check-off-behavior P01 | 16min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -112,12 +104,13 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 - [Phase 25]: Render chain colors via inline style with explicit black text for Coop Extra and Joker.
 - [Phase 25]: Use wall-clock timestamps for dwell gaps and auto-exit so brief visibility/resume bursts do not trigger premature exit.
 - [Phase 25]: Keep dismiss state in a module-level flag instead of locationSession to avoid extra reactive churn.
+- [Phase 26-home-location-and-check-off-behavior]: Home coordinates stay in public.user_home_locations with auth.uid()-scoped RLS instead of profiles.
+- [Phase 26-home-location-and-check-off-behavior]: Home-location reads stay on /admin/brukerinnstillinger via page load and are not added to protected layout data.
 
 ### Pending Todos
 
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
 - Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
-- Phase 26 GDPR review: confirm existing `profiles` RLS policy (`profiles_update_own`) covers newly added `home_lat`/`home_lng` columns and that no household JOIN exposes home coordinates to other members.
 
 ### Blockers/Concerns
 
