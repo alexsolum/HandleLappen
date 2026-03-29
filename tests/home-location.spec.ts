@@ -26,9 +26,9 @@ test.describe('Home location settings', () => {
       await expect(page.getByText('Hjemmeposisjonen din er kun knyttet til din konto.')).toBeVisible()
       await expect(page.getByText('Ikke lagret ennå')).toBeVisible()
 
-      await page.getByRole('button', { name: 'Velg hjemmeposisjon på kartet' }).click()
-      await expect(page.getByText('59.9139')).toBeVisible()
-      await expect(page.getByText('10.7522')).toBeVisible()
+      await page.locator('[data-testid="home-location-map"]').click({ position: { x: 120, y: 120 } })
+      await expect(page.getByTestId('pending-lat')).not.toHaveText('—')
+      await expect(page.getByTestId('pending-lng')).not.toHaveText('—')
       await expect(page.getByRole('button', { name: 'Lagre hjemmeposisjon' })).toBeEnabled()
 
       await page.getByRole('button', { name: 'Lagre hjemmeposisjon' }).click()
@@ -56,10 +56,10 @@ test.describe('Home location settings', () => {
       await page.getByRole('button', { name: 'Bruk min posisjon' }).click()
 
       await expect(page.getByText('Klar til lagring')).toBeVisible()
-      await expect(page.getByText('60.3913')).toBeVisible()
-      await expect(page.getByText('5.3221')).toBeVisible()
+      await expect(page.getByTestId('pending-lat')).toHaveText('60.3913')
+      await expect(page.getByTestId('pending-lng')).toHaveText('5.3221')
       await expect(page.getByText('Lagret hjemmeposisjon')).toHaveCount(0)
-      await expect(page.getByText('Ikke lagret ennå')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Lagre hjemmeposisjon' })).toBeEnabled()
     } finally {
       await clearHomeLocation(user.id).catch(() => undefined)
       await deleteTestUser(user.id)

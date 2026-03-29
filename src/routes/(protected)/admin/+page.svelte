@@ -4,7 +4,7 @@
     { label: 'Husstand', href: '/admin/husstand' },
     { label: 'Historikk', href: '/admin/historikk' },
     { label: 'Varekatalog', href: '/admin/items' },
-    { label: 'Brukerinnstillinger' }
+    { label: 'Brukerinnstillinger', href: '/admin/brukerinnstillinger' }
   ]
 </script>
 
