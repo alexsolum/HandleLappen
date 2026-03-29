@@ -260,8 +260,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
-- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
+- [ ] 24-01-PLAN.md — Native geolocation/proximity/session foundation with foreground polling and list-page store-name bug fix
+- [ ] 24-02-PLAN.md — List-page permission/fallback UX, focused Playwright coverage, and installed-iPhone PWA checkpoint
 
 ### Phase 14: Recipes
 **Goal**: Any household member can browse, create, and use household-shared recipes — selecting which ingredients to add to a shopping list so the store-layout ordering and category assignment carry through from recipe to list
@@ -428,8 +428,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
-- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
+- [ ] 24-01-PLAN.md — Native geolocation/proximity/session foundation with foreground polling and list-page store-name bug fix
+- [ ] 24-02-PLAN.md — List-page permission/fallback UX, focused Playwright coverage, and installed-iPhone PWA checkpoint
 
 ### Phase 25: Shopping Mode
 **Goal**: Users are automatically placed in store-aware shopping mode when they arrive at a store, with a branded banner, layout auto-selection, and accurate history recording — and can exit at any time
