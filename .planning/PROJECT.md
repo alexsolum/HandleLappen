@@ -58,6 +58,12 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - PWA requirement: installable, fast on mobile, works well offline or with poor connectivity during shopping
 - v1.1 is driven by real mobile usage feedback: dialogs overflow on phones, horizontal drag/scroll breaks the app feel, tap targets are too small, and recurring-item entry is too repetitive
 
+## Current State
+
+- Phase 23 (`store-location-foundation`) is complete as of 2026-03-29.
+- `stores` now uses `chain`, `location_name`, `lat`, and `lng` with composed store-name rendering across admin/list surfaces.
+- Admin store flows now support map-based pin placement and coordinate persistence as the foundation for location-detection work in Phase 24.
+
 ## Constraints
 
 - **Tech stack**: Supabase (auth, database, edge functions, realtime) — already decided
@@ -82,4 +88,4 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | v2.2 adds location-aware shopping mode | Store layout auto-selection and history accuracy depend on knowing where the user is shopping | — Pending |
 
 ---
-*Last updated: 2026-03-28 after milestone v2.2 started*
+*Last updated: 2026-03-29 after Phase 23 completion*
