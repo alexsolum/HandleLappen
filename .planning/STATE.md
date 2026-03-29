@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 24 context gathered
-last_updated: "2026-03-29T11:12:16.510Z"
+stopped_at: Completed 24-01-PLAN.md
+last_updated: "2026-03-29T13:07:35.530Z"
 progress:
   total_phases: 26
   completed_phases: 14
-  total_plans: 56
-  completed_plans: 49
+  total_plans: 59
+  completed_plans: 51
 ---
 
 # Project State
@@ -19,18 +19,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 23 — store-location-foundation
+**Current focus:** Phase 24 — location-detection-foundation
 
 ## Current Position
 
-Phase: 23 (store-location-foundation) — EXECUTING
-Plan: 2 of 2
+Phase: 24 (location-detection-foundation) — EXECUTING
+Plan: 2 of 3
 
 ## Session
 
-**Last session:** 2026-03-29T11:12:16.486Z
-**Stopped At:** Phase 24 context gathered
-**Resume File:** .planning/phases/24-location-detection-foundation/24-CONTEXT.md
+**Last session:** 2026-03-29T13:06:55.959Z
+**Stopped At:** Completed 24-01-PLAN.md
+**Resume File:** None
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Plan: 2 of 2
 | Phase 22 P04 | 4min | 2 tasks | 2 files |
 | Phase 23-store-location-foundation P01 | 4min | 2 tasks | 5 files |
 | Phase 23-store-location-foundation P02 | 7min | 4 tasks | 5 files |
+| Phase 24 P01 | 24min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Plan: 2 of 2
 - [Phase 23-store-location-foundation]: Store updates persist chain, location_name, lat, and lng together through updateStoreMutation.
 - [Phase 23-store-location-foundation]: Leaflet map widget uses props-in/events-out so edit page owns coordinate persistence via updateStoreMutation.
 - [Phase 23-store-location-foundation]: Checkpoint Task 4 completed based on approved human verification of the full store location flow.
+- [Phase 24]: Location runtime is isolated in src/lib/location/* — +page.svelte stays free of direct geolocation access and only consumes session callbacks/state
 
 ### Pending Todos
 
