@@ -115,10 +115,10 @@ Requirements for milestone v2.2: Location Smartness.
 
 ### Shopping Mode (SHOP)
 
-- [ ] **SHOP-01**: App enters shopping mode automatically when the user is within 150m of a saved store for at least 90 seconds
-- [ ] **SHOP-02**: Shopping mode displays a branded banner showing the store name with chain-specific colors (Rema 1000 blue, Kiwi green, Meny red, Coop Extra yellow/red)
+- [x] **SHOP-01**: App enters shopping mode automatically when the user is within 150m of a saved store for at least 90 seconds
+- [x] **SHOP-02**: Shopping mode displays a branded banner showing the store name with chain-specific colors (Rema 1000 blue, Kiwi green, Meny red, Coop Extra yellow/red)
 - [ ] **SHOP-03**: Shopping mode auto-selects the detected store's category layout for list sorting
-- [ ] **SHOP-04**: User can dismiss shopping mode manually via a close control on the banner
+- [x] **SHOP-04**: User can dismiss shopping mode manually via a close control on the banner
 
 ### Check-off Behavior (CHKOFF)
 
@@ -222,10 +222,10 @@ Requirements for milestone v2.2: Location Smartness.
 | LOCATE-01 | Phase 24 | Complete |
 | LOCATE-02 | Phase 24 | Complete |
 | LOCATE-03 | Phase 24 | Complete |
-| SHOP-01 | Phase 25 | Pending |
-| SHOP-02 | Phase 25 | Pending |
+| SHOP-01 | Phase 25 | Complete |
+| SHOP-02 | Phase 25 | Complete |
 | SHOP-03 | Phase 25 | Pending |
-| SHOP-04 | Phase 25 | Pending |
+| SHOP-04 | Phase 25 | Complete |
 | CHKOFF-01 | Phase 25 | Pending |
 | CHKOFF-02 | Phase 26 | Pending |
 | CHKOFF-03 | Phase 26 | Pending |

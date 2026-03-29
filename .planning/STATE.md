@@ -2,14 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: Phase 25 context gathered
-last_updated: "2026-03-29T14:01:08.581Z"
+current_phase: 25
+current_phase_name: shopping-mode
+current_plan: 2
+status: executing
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-03-29T16:15:25.320Z"
+last_activity: 2026-03-29
 progress:
   total_phases: 26
   completed_phases: 15
-  total_plans: 59
-  completed_plans: 52
+  total_plans: 61
+  completed_plans: 53
 ---
 
 # Project State
@@ -23,14 +27,19 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 25 (shopping-mode) — NEXT
-Plan: not started
+**Current Phase:** 25
+**Current Phase Name:** shopping-mode
+**Status:** Ready to execute
+**Current Plan:** 2
+**Total Plans in Phase:** 2
+**Last Activity:** 2026-03-29
+**Last Activity Description:** Phase 25 execution started
 
 ## Session
 
-**Last session:** 2026-03-29T14:01:08.574Z
-**Stopped At:** Phase 25 context gathered
-**Resume File:** .planning/phases/25-shopping-mode/25-CONTEXT.md
+**Last session:** 2026-03-29T16:15:25.311Z
+**Stopped At:** Completed 25-01-PLAN.md
+**Resume File:** None
 
 ## Performance Metrics
 
@@ -75,6 +84,7 @@ Plan: not started
 | Phase 23-store-location-foundation P02 | 7min | 4 tasks | 5 files |
 | Phase 24 P01 | 24min | 3 tasks | 4 files |
 | Phase 24 P02 | 38min | 2 tasks | 6 files |
+| Phase 25 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -99,6 +109,9 @@ Plan: not started
 - [Phase 23-store-location-foundation]: Checkpoint Task 4 completed based on approved human verification of the full store location flow.
 - [Phase 24]: Location runtime is isolated in src/lib/location/* — +page.svelte stays free of direct geolocation access and only consumes session callbacks/state
 - [Phase 24]: Installed-iPhone PWA checkpoint approved — Prompt timing, manual fallback, unavailable handling, and background-resume refresh all passed on physical device
+- [Phase 25]: Render chain colors via inline style with explicit black text for Coop Extra and Joker.
+- [Phase 25]: Use wall-clock timestamps for dwell gaps and auto-exit so brief visibility/resume bursts do not trigger premature exit.
+- [Phase 25]: Keep dismiss state in a module-level flag instead of locationSession to avoid extra reactive churn.
 
 ### Pending Todos
 

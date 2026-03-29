@@ -500,5 +500,5 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 22. Milestone Verification Artifact Closure | 4/4 | Complete    | 2026-03-28 |
 | 23. Store Location Foundation | 2/2 | Complete    | 2026-03-29 |
 | 24. Location Detection Foundation | 3/3 | Complete    | 2026-03-29 |
-| 25. Shopping Mode | 0/TBD | Not started | - |
+| 25. Shopping Mode | 1/2 | In Progress|  |
 | 26. Home Location and Check-off Behavior | 0/TBD | Not started | - |
