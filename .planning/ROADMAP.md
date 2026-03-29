@@ -257,11 +257,12 @@ Plans:
   3. Tapping Husstand from the Admin hub opens the household management page with a back-navigation affordance to return to the hub
   4. Tapping Historikk from the Admin hub opens the shopping history view with a back-navigation affordance to return to the hub
   5. All admin subpage load functions read householdId from locals directly and do not call await parent() before independent data fetches
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
+- [ ] 24-00-PLAN.md — Wave 0 validation scaffolding: Phase 24 Playwright helpers/spec titles and installed-iPhone manual checklist
 - [ ] 24-01-PLAN.md — Native geolocation/proximity/session foundation with foreground polling and list-page store-name bug fix
-- [ ] 24-02-PLAN.md — List-page permission/fallback UX, focused Playwright coverage, and installed-iPhone PWA checkpoint
+- [ ] 24-02-PLAN.md — List-page permission/fallback UX and installed-iPhone PWA checkpoint using the Wave 0 validation artifacts
 
 ### Phase 14: Recipes
 **Goal**: Any household member can browse, create, and use household-shared recipes — selecting which ingredients to add to a shopping list so the store-layout ordering and category assignment carry through from recipe to list
