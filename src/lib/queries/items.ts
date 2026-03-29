@@ -1,6 +1,8 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { enqueue } from '$lib/offline/queue'
+import type { LocationSample } from '$lib/location/geolocation'
+import { isWithinHomeDetectionRadius } from '$lib/location/proximity'
 import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
 import { rememberedItemsBaseKey } from '$lib/queries/remembered-items'
 
@@ -43,12 +45,16 @@ type ToggleItemVariables = {
   itemId: string
   isChecked: boolean
   itemName: string
+  homeLocation?: { lat: number; lng: number } | null
+  locationSample?: LocationSample | null
+  shoppingModeActive?: boolean
   historyContext?: {
     listName?: string | null
     storeId?: string | null
     storeName?: string | null
   }
 }
+type ToggleItemResult = { queued: boolean; mode: 'history-toggle' | 'home-delete' }
 type AssignCategoryVariables = { itemId: string; categoryId: string | null }
 type UpdateItemVariables = { id: string; name: string; quantity: number | null; brand?: string | null }
 type MutationContext = { previous: Item[] | undefined }
@@ -261,6 +267,19 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
 
+  function shouldDeleteAsHomeCleanup({
+    isChecked,
+    homeLocation,
+    locationSample,
+    shoppingModeActive,
+  }: ToggleItemVariables): boolean {
+    if (!isChecked || shoppingModeActive || !homeLocation || !locationSample) {
+      return false
+    }
+
+    return isWithinHomeDetectionRadius(locationSample, homeLocation)
+  }
+
   async function enqueueToggle(itemId: string, isChecked: boolean, itemName: string) {
     const timestamp = new Date().toISOString()
 
@@ -278,6 +297,11 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
       enqueuedAt: timestamp,
     })
     await refreshPendingCount()
+  }
+
+  async function runOnlineHomeCleanup(itemId: string) {
+    const { error } = await supabase.from('list_items').delete().eq('id', itemId)
+    if (error) throw error
   }
 
   async function runOnlineToggle(
@@ -329,39 +353,53 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
     }
   }
 
-  return createMutation<boolean, Error, ToggleItemVariables, MutationContext>(() => ({
-    mutationFn: async ({ itemId, isChecked, itemName, historyContext }) => {
+  return createMutation<ToggleItemResult, Error, ToggleItemVariables, MutationContext>(() => ({
+    mutationFn: async ({ itemId, isChecked, itemName, historyContext, ...context }) => {
+      const atHomeCleanup = shouldDeleteAsHomeCleanup({ itemId, isChecked, itemName, historyContext, ...context })
+
       if (isOfflineMode()) {
         await enqueueToggle(itemId, isChecked, itemName)
-        return true
+        return { queued: true, mode: atHomeCleanup ? 'home-delete' : 'history-toggle' }
       }
 
       try {
+        if (atHomeCleanup) {
+          await runWithTimeout(runOnlineHomeCleanup(itemId), 5_000)
+          return { queued: false, mode: 'home-delete' }
+        }
+
         await runWithTimeout(runOnlineToggle(itemId, isChecked, itemName, historyContext), 5_000)
-        return false
+        return { queued: false, mode: 'history-toggle' }
       } catch (error) {
         void error
         await enqueueToggle(itemId, isChecked, itemName)
-        return true
+        return { queued: true, mode: atHomeCleanup ? 'home-delete' : 'history-toggle' }
       }
     },
-    onMutate: async ({ itemId, isChecked }) => {
+    onMutate: async (variables) => {
+      const { itemId, isChecked } = variables
+      const atHomeCleanup = shouldDeleteAsHomeCleanup(variables)
+
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<Item[]>(queryKey)
-      queryClient.setQueryData<Item[]>(queryKey, (old = []) =>
-        old.map((item) =>
+      queryClient.setQueryData<Item[]>(queryKey, (old = []) => {
+        if (atHomeCleanup) {
+          return old.filter((item) => item.id !== itemId)
+        }
+
+        return old.map((item) =>
           item.id === itemId
             ? { ...item, is_checked: isChecked, checked_at: isChecked ? new Date().toISOString() : null }
             : item
         )
-      )
+      })
       return { previous }
     },
     onError: (_err: unknown, _vars: unknown, context: any) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
     },
-    onSettled: (queued) => {
-      if (!queued && !isOfflineMode()) {
+    onSettled: (result) => {
+      if (!result?.queued && !isOfflineMode()) {
         queryClient.invalidateQueries({ queryKey })
       }
     },

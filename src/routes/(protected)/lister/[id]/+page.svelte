@@ -65,6 +65,7 @@
   let barcodeLookupEan = $state<string | null>(null)
   let rememberedQueryText = $state('')
   let isManuallySelected = $state(false)
+  let cleanupToastMessage = $state('')
 
   const queryClient = useQueryClient()
 
@@ -254,6 +255,9 @@
         itemId,
         isChecked: false,
         itemName: item.name,
+        homeLocation: data.homeLocation,
+        locationSample: locationSession.lastSample,
+        shoppingModeActive: locationSession.shoppingModeActive,
         historyContext: {
           listName: data.listName,
           storeId: shouldAttributeStore ? selectedStoreId : null,
@@ -291,10 +295,18 @@
         itemId,
         isChecked: checked,
         itemName: item.name,
+        homeLocation: data.homeLocation,
+        locationSample: locationSession.lastSample,
+        shoppingModeActive: locationSession.shoppingModeActive,
         historyContext: {
           listName: data.listName,
           storeId: shouldAttributeStore ? selectedStoreId : null,
           storeName: shouldAttributeStore ? selectedStoreName : null,
+        },
+      }, {
+        onSuccess: (result) => {
+          cleanupToastMessage =
+            result.mode === 'home-delete' ? 'Varen ble fjernet som rydde opp hjemme.' : ''
         },
       })
     }
@@ -442,6 +454,16 @@
       />
     {/if}
   </div>
+
+  {#if cleanupToastMessage}
+    <div
+      aria-live="polite"
+      data-testid="home-cleanup-toast"
+      class="mb-4 rounded-lg bg-gray-900/90 px-3 py-2 text-sm text-white"
+    >
+      {cleanupToastMessage}
+    </div>
+  {/if}
 
   <!-- Active items -->
   {#if itemsQuery.isPending}

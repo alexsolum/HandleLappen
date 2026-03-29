@@ -1,6 +1,7 @@
 import type { LocationSample } from './geolocation'
 
 export const STORE_DETECTION_RADIUS_METERS = 150
+export const HOME_DETECTION_RADIUS_METERS = 100
 
 export type DetectableStore = {
   id: string
@@ -26,6 +27,19 @@ export function haversineDistanceMeters(
     Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2
 
   return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+export function isWithinHomeDetectionRadius(
+  sample: { latitude: number; longitude: number },
+  homeLocation: { lat: number; lng: number },
+  maxDistanceMeters = HOME_DETECTION_RADIUS_METERS
+): boolean {
+  return (
+    haversineDistanceMeters(sample, {
+      latitude: homeLocation.lat,
+      longitude: homeLocation.lng,
+    }) <= maxDistanceMeters
+  )
 }
 
 export function findNearestDetectedStore(
