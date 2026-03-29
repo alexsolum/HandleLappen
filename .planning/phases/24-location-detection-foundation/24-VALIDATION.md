@@ -1,9 +1,9 @@
 ---
 phase: 24
 slug: location-detection-foundation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-29
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 24-W0-01 | W0 | 0 | LOCATE-01 | e2e | `npx playwright test tests/location-detection.spec.ts -g "foreground poller"` | ❌ W0 | ⬜ pending |
-| 24-W0-02 | W0 | 0 | LOCATE-02 | e2e | `npx playwright test tests/location-detection.spec.ts -g "permission flow"` | ❌ W0 | ⬜ pending |
-| 24-W0-03 | W0 | 0 | LOCATE-03 | e2e | `npx playwright test tests/location-detection.spec.ts -g "manual picker fallback"` | ❌ W0 | ⬜ pending |
-| 24-MAN-01 | manual | 0 | LOCATE-02 | physical device | `manual-only` | ❌ W0 | ⬜ pending |
+| 24-W0-01 | W0 | 0 | LOCATE-01 | e2e | `npx playwright test tests/location-detection.spec.ts -g "foreground poller"` | ✅ | ✅ green |
+| 24-W0-02 | W0 | 0 | LOCATE-02 | e2e | `npx playwright test tests/location-detection.spec.ts -g "permission flow"` | ✅ | ✅ green |
+| 24-W0-03 | W0 | 0 | LOCATE-03 | e2e | `npx playwright test tests/location-detection.spec.ts -g "manual picker fallback"` | ✅ | ✅ green |
+| 24-MAN-01 | manual | 0 | LOCATE-02 | physical device | `manual-only` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,9 +49,9 @@ created: 2026-03-29
 
 ## Wave 0 Requirements
 
-- [ ] `tests/location-detection.spec.ts` — primary Phase 24 browser coverage for LOCATE-01, LOCATE-02, and LOCATE-03
-- [ ] `tests/helpers/location.ts` — geolocation mocking, permission-state setup, seeded nearby-store helpers, and visibility helpers
-- [ ] Manual validation checklist artifact in `.planning/phases/24-location-detection-foundation/` — installed iPhone PWA steps for first prompt, deny, retry, unavailable, and background/resume behavior
+- [x] `tests/location-detection.spec.ts` — primary Phase 24 browser coverage for LOCATE-01, LOCATE-02, and LOCATE-03
+- [x] `tests/helpers/location.ts` — geolocation mocking, permission-state setup, seeded nearby-store helpers, and visibility helpers
+- [x] Manual validation checklist artifact in `.planning/phases/24-location-detection-foundation/` — installed iPhone PWA steps for first prompt, deny, retry, unavailable, and background/resume behavior
 
 ---
 
@@ -66,11 +66,11 @@ created: 2026-03-29
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 45s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 45s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved

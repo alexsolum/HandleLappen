@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 24-01-PLAN.md
-last_updated: "2026-03-29T13:07:35.530Z"
+stopped_at: Completed 24-02-PLAN.md
+last_updated: "2026-03-29T13:42:38.303Z"
 progress:
   total_phases: 26
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 59
-  completed_plans: 51
+  completed_plans: 52
 ---
 
 # Project State
@@ -19,18 +19,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** The list is sorted the way the store is laid out — so shopping is fast, never backtracking, always in sync with whoever else is shopping.
-**Current focus:** Phase 24 — location-detection-foundation
+**Current focus:** Phase 25 — shopping-mode
 
 ## Current Position
 
-Phase: 24 (location-detection-foundation) — EXECUTING
-Plan: 2 of 3
+Phase: 25 (shopping-mode) — NEXT
+Plan: not started
 
 ## Session
 
-**Last session:** 2026-03-29T13:06:55.959Z
-**Stopped At:** Completed 24-01-PLAN.md
-**Resume File:** None
+**Last session:** 2026-03-29T13:35:24.836Z
+**Stopped At:** Phase 24 complete
+**Resume File:** .planning/ROADMAP.md
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Plan: 2 of 3
 | Phase 23-store-location-foundation P01 | 4min | 2 tasks | 5 files |
 | Phase 23-store-location-foundation P02 | 7min | 4 tasks | 5 files |
 | Phase 24 P01 | 24min | 3 tasks | 4 files |
+| Phase 24 P02 | 38min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -97,12 +98,12 @@ Plan: 2 of 3
 - [Phase 23-store-location-foundation]: Leaflet map widget uses props-in/events-out so edit page owns coordinate persistence via updateStoreMutation.
 - [Phase 23-store-location-foundation]: Checkpoint Task 4 completed based on approved human verification of the full store location flow.
 - [Phase 24]: Location runtime is isolated in src/lib/location/* — +page.svelte stays free of direct geolocation access and only consumes session callbacks/state
+- [Phase 24]: Installed-iPhone PWA checkpoint approved — Prompt timing, manual fallback, unavailable handling, and background-resume refresh all passed on physical device
 
 ### Pending Todos
 
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
 - Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
-- Phase 24 iOS location permission must be tested on a physical iPhone installed to home screen, not in simulator or browser mode.
 - Phase 26 GDPR review: confirm existing `profiles` RLS policy (`profiles_update_own`) covers newly added `home_lat`/`home_lng` columns and that no household JOIN exposes home coordinates to other members.
 
 ### Blockers/Concerns

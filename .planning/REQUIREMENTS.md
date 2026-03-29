@@ -110,8 +110,8 @@ Requirements for milestone v2.2: Location Smartness.
 ### Location Detection (LOCATE)
 
 - [x] **LOCATE-01**: App detects the user's proximity to saved stores while the app is in the foreground using battery-safe geolocation polling
-- [ ] **LOCATE-02**: App requests geolocation permission with a clear explanation of why it's needed
-- [ ] **LOCATE-03**: When geolocation is unavailable or denied, the user can manually select a store to enter shopping mode
+- [x] **LOCATE-02**: App requests geolocation permission with a clear explanation of why it's needed
+- [x] **LOCATE-03**: When geolocation is unavailable or denied, the user can manually select a store to enter shopping mode
 
 ### Shopping Mode (SHOP)
 
@@ -220,8 +220,8 @@ Requirements for milestone v2.2: Location Smartness.
 | STORELOC-01 | Phase 23 | Complete |
 | STORELOC-02 | Phase 23 | Complete |
 | LOCATE-01 | Phase 24 | Complete |
-| LOCATE-02 | Phase 24 | Pending |
-| LOCATE-03 | Phase 24 | Pending |
+| LOCATE-02 | Phase 24 | Complete |
+| LOCATE-03 | Phase 24 | Complete |
 | SHOP-01 | Phase 25 | Pending |
 | SHOP-02 | Phase 25 | Pending |
 | SHOP-03 | Phase 25 | Pending |

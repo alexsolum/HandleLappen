@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail (completed 2026-03-28)
 - [x] **Phase 22: Milestone Verification Artifact Closure** - Add missing Phase 07 and 08 verification artifacts and rerun milestone audit gate checks (completed 2026-03-28)
 - [x] **Phase 23: Store Location Foundation** - Store coordinates saved via map pin in admin; Leaflet widget integrated; gates all proximity detection work (completed 2026-03-29)
-- [ ] **Phase 24: Location Detection Foundation** - Battery-safe geolocation polling, iOS permission handling, and manual store-picker fallback all validated on physical device
+- [x] **Phase 24: Location Detection Foundation** - Battery-safe geolocation polling, iOS permission handling, and manual store-picker fallback all validated on physical device (completed 2026-03-29)
 - [ ] **Phase 25: Shopping Mode** - Geofence engine, branded banner, store layout auto-selection, in-store check-off history recording, and dismiss control
 - [ ] **Phase 26: Home Location and Check-off Behavior** - GDPR-safe home location setting in user settings; check-offs near home treated as deletions, not history
 
@@ -260,7 +260,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 24-00-PLAN.md — Wave 0 validation scaffolding: Phase 24 Playwright helpers/spec titles and installed-iPhone manual checklist
+- [x] 24-00-PLAN.md — Wave 0 validation scaffolding: Phase 24 Playwright helpers/spec titles and installed-iPhone manual checklist (completed 2026-03-29)
 - [ ] 24-01-PLAN.md — Native geolocation/proximity/session foundation with foreground polling and list-page store-name bug fix
 - [ ] 24-02-PLAN.md — List-page permission/fallback UX and installed-iPhone PWA checkpoint using the Wave 0 validation artifacts
 
@@ -499,6 +499,6 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 21. Offline Replay Integrity for History and Recommendations | 2/2 | Complete    | 2026-03-28 |
 | 22. Milestone Verification Artifact Closure | 4/4 | Complete    | 2026-03-28 |
 | 23. Store Location Foundation | 2/2 | Complete    | 2026-03-29 |
-| 24. Location Detection Foundation | 2/3 | In Progress|  |
+| 24. Location Detection Foundation | 3/3 | Complete    | 2026-03-29 |
 | 25. Shopping Mode | 0/TBD | Not started | - |
 | 26. Home Location and Check-off Behavior | 0/TBD | Not started | - |
