@@ -460,8 +460,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
-- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
+- [ ] 26-01-PLAN.md — Private home-location schema, real brukerinnstillinger route, admin link activation, and privacy/settings test scaffolds
+- [ ] 26-02-PLAN.md — At-home check-off branching, offline queue semantics for home cleanup, subtle toast UX, and Phase 26 regression coverage
 
 ## Progress
 
