@@ -28,6 +28,7 @@
   import DoneSection from '$lib/components/items/DoneSection.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
   import { setActiveList } from '$lib/stores/active-list.svelte'
+  import { storeDisplayName } from '$lib/utils/stores'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { onDestroy } from 'svelte'
 
@@ -132,9 +133,10 @@
 
     return groups
   })
-  const selectedStoreName = $derived(
-    storesQuery.data?.find((store) => store.id === selectedStoreId)?.name ?? null
-  )
+  const selectedStoreName = $derived.by(() => {
+    const found = storesQuery.data?.find((store) => store.id === selectedStoreId)
+    return found ? storeDisplayName(found.chain, found.location_name) : null
+  })
 
   $effect(() => {
     setActiveList({ id: data.listId, name: data.listName })
