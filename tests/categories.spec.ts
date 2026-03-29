@@ -54,7 +54,7 @@ test.describe('category grouping', () => {
 
       await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
 
-      await expect(page.getByRole('button', { name: /Butikk:\s*Ingen/i })).toBeVisible()
+      await expect(page.getByRole('button', { name: /Butikk:\s*Velg butikk manuelt/i })).toBeVisible()
       await expect(
         page.locator('div.bg-gray-50.text-xs.font-semibold.uppercase.tracking-wider.text-gray-500', {
           hasText: 'Frukt og grønt',
@@ -112,7 +112,7 @@ test.describe('category grouping', () => {
 
       await page.goto(`/lister/${list.id}`, { waitUntil: 'networkidle' })
 
-      await page.getByRole('button', { name: /Butikk:\s*Ingen/i }).click()
+      await page.getByRole('button', { name: /Butikk:\s*Velg butikk manuelt/i }).click()
       await page.getByRole('button', { name: 'Meny Test' }).click()
 
       await expect(page.locator('text=Laster kategorier…')).toHaveCount(0)
@@ -194,8 +194,9 @@ test.describe('store layout', () => {
       await expect(page.locator('text=Legg til butikk')).toBeVisible()
 
       await page.getByRole('button', { name: /Legg til butikk/i }).click()
-      await page.fill('#new-store-name', 'Rema 1000 Test')
-      await page.getByRole('button', { name: 'Lagre' }).click()
+      await page.selectOption('#new-store-chain', 'Rema 1000')
+      await page.fill('#new-store-location', 'Test')
+      await page.getByRole('button', { name: 'Lagre butikk' }).click()
 
       const storeLink = page.locator('a[href^="/admin/butikker/"]:has-text("Rema 1000 Test")')
       await expect(storeLink).toBeVisible()

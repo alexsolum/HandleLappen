@@ -54,8 +54,8 @@ export async function createTestStore(householdId: string, name: string) {
   const admin = getAdminClient()
   const { data, error } = await admin
     .from('stores')
-    .insert({ household_id: householdId, name })
-    .select('id, name')
+    .insert({ household_id: householdId, chain: null, location_name: name })
+    .select('id, chain, location_name')
     .single()
 
   if (error) throw error
