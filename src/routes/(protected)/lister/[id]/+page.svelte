@@ -27,11 +27,13 @@
   import ItemDetailSheet from '$lib/components/items/ItemDetailSheet.svelte'
   import DoneSection from '$lib/components/items/DoneSection.svelte'
   import LocationPermissionCard from '$lib/components/stores/LocationPermissionCard.svelte'
+  import ShoppingModeBanner from '$lib/components/stores/ShoppingModeBanner.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
   import {
     beginLocationExplanation,
     cancelLocationExplanation,
     confirmAutomaticStore,
+    dismissShoppingMode,
     locationSession,
     refreshLocationStores,
     retryLocationDetection,
@@ -62,6 +64,7 @@
   let barcodeLookupResult = $state<BarcodeSheetModel | null>(null)
   let barcodeLookupEan = $state<string | null>(null)
   let rememberedQueryText = $state('')
+  let isManuallySelected = $state(false)
 
   const queryClient = useQueryClient()
 
@@ -154,6 +157,10 @@
     const found = storesQuery.data?.find((store) => store.id === locationSession.detectedStoreId)
     return found ? storeDisplayName(found.chain, found.location_name) : null
   })
+  const activeShoppingStore = $derived.by(() => {
+    if (!locationSession.shoppingModeActive || !locationSession.detectedStoreId) return null
+    return storesQuery.data?.find((store) => store.id === locationSession.detectedStoreId) ?? null
+  })
 
   $effect(() => {
     setActiveList({ id: data.listId, name: data.listName })
@@ -164,11 +171,18 @@
   })
 
   $effect(() => {
-    if (
-      locationSession.detectedStoreId !== null &&
-      locationSession.detectedStoreId !== selectedStoreId
-    ) {
+    if (locationSession.shoppingModeActive && locationSession.detectedStoreId) {
       selectedStoreId = locationSession.detectedStoreId
+      isManuallySelected = false
+    } else if (!locationSession.shoppingModeActive && !isManuallySelected) {
+      if (
+        locationSession.shoppingModeSuppressedStoreId !== null &&
+        locationSession.detectedStoreId === locationSession.shoppingModeSuppressedStoreId
+      ) {
+        selectedStoreId = null
+      } else {
+        selectedStoreId = locationSession.detectedStoreId
+      }
     }
   })
 
@@ -227,17 +241,23 @@
     )
   }
 
+  function handleManualStoreSelect(id: string | null) {
+    selectedStoreId = id
+    isManuallySelected = id !== null
+  }
+
   function handleUncheck(itemId: string) {
     const item = doneItems.find((i) => i.id === itemId)
     if (item) {
+      const shouldAttributeStore = locationSession.shoppingModeActive || isManuallySelected
       checkOffMutation.mutate({
         itemId,
         isChecked: false,
         itemName: item.name,
         historyContext: {
           listName: data.listName,
-          storeId: selectedStoreId,
-          storeName: selectedStoreName,
+          storeId: shouldAttributeStore ? selectedStoreId : null,
+          storeName: shouldAttributeStore ? selectedStoreName : null,
         },
       })
     }
@@ -266,14 +286,15 @@
   function handleGroupToggle(itemId: string, checked: boolean) {
     const item = activeItems.find((entry) => entry.id === itemId)
     if (item) {
+      const shouldAttributeStore = locationSession.shoppingModeActive || isManuallySelected
       checkOffMutation.mutate({
         itemId,
         isChecked: checked,
         itemName: item.name,
         historyContext: {
           listName: data.listName,
-          storeId: selectedStoreId,
-          storeName: selectedStoreName,
+          storeId: shouldAttributeStore ? selectedStoreId : null,
+          storeName: shouldAttributeStore ? selectedStoreName : null,
         },
       })
     }
@@ -398,20 +419,28 @@
   {/if}
 
   <div class="mb-4 space-y-3">
-    <LocationPermissionCard
-      state={locationSession.status}
-      {detectedStoreName}
-      showSettingsHint={locationSession.showSettingsHint}
-      onStart={beginLocationExplanation}
-      onConfirm={() => void confirmAutomaticStore(detectableStores)}
-      onCancel={cancelLocationExplanation}
-      onRetry={() => void retryLocationDetection(detectableStores)}
-    />
-    <StoreSelector
-      stores={storesQuery.data ?? []}
-      {selectedStoreId}
-      onSelect={(id) => (selectedStoreId = id)}
-    />
+    {#if locationSession.shoppingModeActive && activeShoppingStore}
+      <ShoppingModeBanner
+        storeName={storeDisplayName(activeShoppingStore.chain, activeShoppingStore.location_name)}
+        chain={activeShoppingStore.chain}
+        onDismiss={dismissShoppingMode}
+      />
+    {:else}
+      <LocationPermissionCard
+        state={locationSession.status}
+        {detectedStoreName}
+        showSettingsHint={locationSession.showSettingsHint}
+        onStart={beginLocationExplanation}
+        onConfirm={() => void confirmAutomaticStore(detectableStores)}
+        onCancel={cancelLocationExplanation}
+        onRetry={() => void retryLocationDetection(detectableStores)}
+      />
+      <StoreSelector
+        stores={storesQuery.data ?? []}
+        {selectedStoreId}
+        onSelect={handleManualStoreSelect}
+      />
+    {/if}
   </div>
 
   <!-- Active items -->

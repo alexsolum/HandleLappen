@@ -26,6 +26,7 @@ export const locationSession = $state({
   shoppingModeActive: false,
   dwellStartedAt: null as number | null,
   dwellLastInRangeAt: null as number | null,
+  shoppingModeSuppressedStoreId: null as string | null,
 })
 
 let activeStores: DetectableStore[] = []
@@ -99,6 +100,7 @@ function applyDetectedStore(sample: LocationSample) {
 function activateShoppingMode() {
   locationSession.shoppingModeActive = true
   locationSession.dwellStartedAt = null
+  locationSession.shoppingModeSuppressedStoreId = null
   // List page reacts via $effect watching shoppingModeActive.
 }
 
@@ -106,6 +108,7 @@ function exitShoppingMode() {
   locationSession.shoppingModeActive = false
   locationSession.dwellStartedAt = null
   locationSession.dwellLastInRangeAt = null
+  locationSession.shoppingModeSuppressedStoreId = locationSession.detectedStoreId
   // List page reacts via $effect -- resets selectedStoreId to null.
 }
 
@@ -293,4 +296,5 @@ export function stopLocationSession(): void {
   locationSession.shoppingModeActive = false
   locationSession.dwellStartedAt = null
   locationSession.dwellLastInRangeAt = null
+  locationSession.shoppingModeSuppressedStoreId = null
 }
