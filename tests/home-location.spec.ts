@@ -137,7 +137,7 @@ test.describe('Home location settings', () => {
     }
   })
 
-  test('saved home at-home cleanup does not create history and shows toast', async ({ page }) => {
+  test('saved home within 100m at-home cleanup does not create history and shows toast', async ({ page }) => {
     const email = `saved-home-${Date.now()}@test.example`
     const password = 'password123'
     const { user, household } = await createHouseholdUser(email, password)
@@ -208,7 +208,7 @@ test.describe('Home location settings', () => {
     }
   })
 
-  test('delete home location makes former home fall back to normal history', async ({ page }) => {
+  test('delete home location makes former home within 100m fall back to normal history', async ({ page }) => {
     const email = `delete-home-${Date.now()}@test.example`
     const password = 'password123'
     const { user, household } = await createHouseholdUser(email, password)

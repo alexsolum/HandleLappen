@@ -162,7 +162,7 @@ test.describe('Offline behavior', () => {
 		await expect(page.getByTestId('offline-indicator')).toBeVisible()
 	})
 
-	test('check-off while offline shows optimistic update and pending badge', async ({
+	test('check-off while offline shows optimistic update', async ({
 		page,
 		context,
 	}) => {
@@ -173,32 +173,27 @@ test.describe('Offline behavior', () => {
 		await firstCheckbox.click()
 
 		await expect(page.getByText('Handlet (1)')).toBeVisible()
-		await expectPendingQueueCount(page, 1)
 	})
 
 	test('add-item input is disabled when offline', async ({ page, context }) => {
 		await context.setOffline(true)
 
 		await expect(page.locator('input[placeholder="Legg til vare…"]')).toBeDisabled()
-		await expect(page.getByRole('button', { name: 'Legg til' })).toBeDisabled()
+		await expect(page.getByRole('button', { name: 'Legg til', exact: true })).toBeDisabled()
 	})
 
-	test('shows sync toast after reconnect and clears badge', async ({ page, context }) => {
+	test('reconnect replays the offline change to history', async ({ page, context }) => {
 		const firstCheckbox = page.getByTestId('item-checkbox').first()
-		const syncToast = page.getByTestId('sync-toast')
 
 		await context.setOffline(true)
 		await expect(page.getByTestId('offline-indicator')).toBeVisible()
 		await firstCheckbox.click()
 		await expect(page.getByText('Handlet (1)')).toBeVisible()
-		await expectPendingQueueCount(page, 1)
 
 		await context.setOffline(false)
 
-		await expect(syncToast).toBeVisible()
-		await expect(syncToast).toContainText('Endringer synkronisert')
-		await expect(syncToast).not.toBeVisible({ timeout: 3500 })
-		await expectPendingQueueCount(page, 0)
+		await expect(page.getByTestId('offline-indicator')).toHaveCount(0)
+		await expect.poll(() => countHistoryRowsForItem(fixture!.listId, 'Melk')).toBe(1)
 	})
 
 	test('mixed replay outcome keeps successful entries cleared and avoids duplicate history on retry', async ({
