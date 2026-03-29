@@ -445,8 +445,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Database migration (chain/location_name/lat/lng), query layer update, storeDisplayName utility, StoreRow/StoreSelector display name updates
-- [ ] 23-02-PLAN.md — Leaflet StoreMapWidget component, store edit page with chain/location/map/save, store creation form update
+- [ ] 25-01-PLAN.md — Dwell engine in locationSession (90s activation, 30s gap tolerance, auto-exit, dismiss) and ShoppingModeBanner component
+- [ ] 25-02-PLAN.md — List page integration (banner wiring, picker hide, layout effect, historyContext gate) and e2e tests
 
 ### Phase 26: Home Location and Check-off Behavior
 **Goal**: Users can mark their home location once so check-offs done at home are treated as list cleanup rather than shopping history — keeping recommendations clean and accurate
