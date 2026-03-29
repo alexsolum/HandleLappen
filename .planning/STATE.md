@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 24-02-PLAN.md
-last_updated: "2026-03-29T13:42:38.303Z"
+stopped_at: Phase 25 context gathered
+last_updated: "2026-03-29T14:01:08.581Z"
 progress:
   total_phases: 26
   completed_phases: 15
@@ -28,9 +28,9 @@ Plan: not started
 
 ## Session
 
-**Last session:** 2026-03-29T13:35:24.836Z
-**Stopped At:** Phase 24 complete
-**Resume File:** .planning/ROADMAP.md
+**Last session:** 2026-03-29T14:01:08.574Z
+**Stopped At:** Phase 25 context gathered
+**Resume File:** .planning/phases/25-shopping-mode/25-CONTEXT.md
 
 ## Performance Metrics
 
