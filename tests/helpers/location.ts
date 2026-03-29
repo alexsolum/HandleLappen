@@ -16,6 +16,7 @@ export type GeolocationMockMode =
   | 'no-nearby-store'
   | 'permission-denied'
   | 'position-unavailable'
+  | 'in-store-dwell'
 
 type SeededStoreRow = {
   id: string
@@ -78,6 +79,11 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
   await page.addInitScript((selectedMode: GeolocationMockMode) => {
     type MockWindow = Window & {
       __HANDLEAPPEN_LOCATION_REQUESTS__?: number
+      __HANDLEAPPEN_GEOLOCATION_OVERRIDE__?: {
+        latitude: number
+        longitude: number
+        accuracy: number
+      }
     }
 
     const mockWindow = window as MockWindow
@@ -85,6 +91,10 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
 
     const responses = {
       'nearby-success': {
+        kind: 'success',
+        coords: { latitude: 59.9139, longitude: 10.7522, accuracy: 25 },
+      },
+      'in-store-dwell': {
         kind: 'success',
         coords: { latitude: 59.9139, longitude: 10.7522, accuracy: 25 },
       },
@@ -122,6 +132,31 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
       ) {
         mockWindow.__HANDLEAPPEN_LOCATION_REQUESTS__ =
           (mockWindow.__HANDLEAPPEN_LOCATION_REQUESTS__ ?? 0) + 1
+
+        const overrideCoords = mockWindow.__HANDLEAPPEN_GEOLOCATION_OVERRIDE__
+        if (overrideCoords) {
+          setTimeout(() => {
+            success({
+              coords: {
+                latitude: overrideCoords.latitude,
+                longitude: overrideCoords.longitude,
+                accuracy: overrideCoords.accuracy ?? 25,
+                altitude: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+                toJSON() {
+                  return this
+                },
+              },
+              timestamp: Date.now(),
+              toJSON() {
+                return this
+              },
+            } as GeolocationPosition)
+          }, 0)
+          return
+        }
 
         const response = responses[selectedMode]
         setTimeout(() => {
@@ -166,6 +201,28 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
       value: geolocation,
     })
   }, mode)
+}
+
+export async function switchGeolocationCoords(
+  page: Page,
+  coords: { latitude: number; longitude: number; accuracy?: number }
+) {
+  await page.evaluate((newCoords) => {
+    type MockWindow = Window & {
+      __HANDLEAPPEN_GEOLOCATION_OVERRIDE__?: {
+        latitude: number
+        longitude: number
+        accuracy: number
+      }
+    }
+
+    const w = window as MockWindow
+    w.__HANDLEAPPEN_GEOLOCATION_OVERRIDE__ = {
+      latitude: newCoords.latitude,
+      longitude: newCoords.longitude,
+      accuracy: newCoords.accuracy ?? 25,
+    }
+  }, coords)
 }
 
 export async function setDocumentVisibility(page: Page, state: 'hidden' | 'visible') {
