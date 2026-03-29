@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 26-home-location-and-check-off-behavior-01-PLAN.md
-last_updated: "2026-03-29T19:11:52.603Z"
+stopped_at: Completed 26-home-location-and-check-off-behavior-02-PLAN.md
+last_updated: "2026-03-29T19:48:32.711Z"
 progress:
   total_phases: 26
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 63
-  completed_plans: 55
+  completed_plans: 56
 ---
 
 # Project State
@@ -23,13 +23,13 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 26 (home-location-and-check-off-behavior) — EXECUTING
-Plan: 2 of 2
+Phase: 26 (home-location-and-check-off-behavior) — COMPLETE
+Plan: 2 of 2 (completed)
 
 ## Session
 
-**Last session:** 2026-03-29T19:11:52.589Z
-**Stopped At:** Completed 26-home-location-and-check-off-behavior-01-PLAN.md
+**Last session:** 2026-03-29T19:48:32.699Z
+**Stopped At:** Completed 26-home-location-and-check-off-behavior-02-PLAN.md
 **Resume File:** None
 
 ## Performance Metrics
@@ -77,6 +77,7 @@ Plan: 2 of 2
 | Phase 24 P02 | 38min | 2 tasks | 6 files |
 | Phase 25 P01 | 4min | 2 tasks | 2 files |
 | Phase 26-home-location-and-check-off-behavior P01 | 16min | 3 tasks | 9 files |
+| Phase 26-home-location-and-check-off-behavior P02 | 33min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Plan: 2 of 2
 - [Phase 25]: Keep dismiss state in a module-level flag instead of locationSession to avoid extra reactive churn.
 - [Phase 26-home-location-and-check-off-behavior]: Home coordinates stay in public.user_home_locations with auth.uid()-scoped RLS instead of profiles.
 - [Phase 26-home-location-and-check-off-behavior]: Home-location reads stay on /admin/brukerinnstillinger via page load and are not added to protected layout data.
+- [Phase 26-home-location-and-check-off-behavior]: List-page load reads the signed-in user's home location directly from user_home_locations instead of widening protected layout data.
+- [Phase 26-home-location-and-check-off-behavior]: Offline check-off replay now uses explicit home-delete versus history-toggle queue entries so at-home cleanup never inserts item_history.
 
 ### Pending Todos
 

@@ -43,7 +43,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 23: Store Location Foundation** - Store coordinates saved via map pin in admin; Leaflet widget integrated; gates all proximity detection work (completed 2026-03-29)
 - [x] **Phase 24: Location Detection Foundation** - Battery-safe geolocation polling, iOS permission handling, and manual store-picker fallback all validated on physical device (completed 2026-03-29)
 - [x] **Phase 25: Shopping Mode** - Geofence engine, branded banner, store layout auto-selection, in-store check-off history recording, and dismiss control (completed 2026-03-29)
-- [ ] **Phase 26: Home Location and Check-off Behavior** - GDPR-safe home location setting in user settings; check-offs near home treated as deletions, not history
+- [x] **Phase 26: Home Location and Check-off Behavior** - GDPR-safe home location setting in user settings; check-offs near home treated as deletions, not history (completed 2026-03-29)
 
 ## Phase Details
 
@@ -501,4 +501,4 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 23. Store Location Foundation | 2/2 | Complete    | 2026-03-29 |
 | 24. Location Detection Foundation | 3/3 | Complete    | 2026-03-29 |
 | 25. Shopping Mode | 1/2 | Complete    | 2026-03-29 |
-| 26. Home Location and Check-off Behavior | 1/2 | In Progress|  |
+| 26. Home Location and Check-off Behavior | 2/2 | Complete   | 2026-03-29 |
