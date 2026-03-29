@@ -57,15 +57,18 @@ test.describe('Admin Hub Activation', () => {
     }
   })
 
-  test('Admin hub keeps Brukerinnstillinger stub disabled', async () => {
+  test('Admin hub shows Brukerinnstillinger link and opens settings page', async () => {
     const page = await authContext.newPage()
     try {
       await page.goto('/admin', { waitUntil: 'networkidle' })
 
-      const settingsStub = page.getByText('Brukerinnstillinger', { exact: true })
-      await expect(settingsStub).toBeVisible()
-      // Brukerinnstillinger should NOT be a link
-      await expect(page.locator('a:has-text("Brukerinnstillinger")')).toHaveCount(0)
+      const settingsLink = page.getByRole('link', { name: 'Brukerinnstillinger' })
+      await expect(settingsLink).toBeVisible()
+      await expect(settingsLink).toHaveAttribute('href', '/admin/brukerinnstillinger')
+
+      await settingsLink.click()
+      await page.waitForURL('**/admin/brukerinnstillinger')
+      await expect(page.getByRole('heading', { name: 'Brukerinnstillinger' })).toBeVisible()
     } finally {
       await page.close()
     }

@@ -18,6 +18,12 @@ export type GeolocationMockMode =
   | 'position-unavailable'
   | 'in-store-dwell'
 
+export type HomeLocationInput = {
+  userId: string
+  lat: number
+  lng: number
+}
+
 type SeededStoreRow = {
   id: string
   chain: string | null
@@ -35,6 +41,23 @@ function getAdminClient() {
   return createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
+}
+
+export async function createAuthenticatedLocationClient(email: string, password: string) {
+  const publishableKey = process.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? ''
+
+  if (!publishableKey) {
+    throw new Error('PUBLIC_SUPABASE_PUBLISHABLE_KEY is required for location test helpers')
+  }
+
+  const client = createClient(SUPABASE_URL, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+
+  const { error } = await client.auth.signInWithPassword({ email, password })
+  if (error) throw error
+
+  return client
 }
 
 export async function seedLocatedStore(householdId: string, input: LocatedStoreInput) {
@@ -73,6 +96,35 @@ export async function seedLocatedStore(householdId: string, input: LocatedStoreI
   }
 
   return store as SeededStoreRow
+}
+
+export async function seedHomeLocation(input: HomeLocationInput) {
+  const admin = getAdminClient()
+  const { data, error } = await admin
+    .from('user_home_locations')
+    .upsert(
+      {
+        user_id: input.userId,
+        lat_4dp: input.lat,
+        lng_4dp: input.lng,
+      },
+      { onConflict: 'user_id' }
+    )
+    .select('user_id, lat_4dp, lng_4dp')
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function setHomeLocation(input: HomeLocationInput) {
+  return seedHomeLocation(input)
+}
+
+export async function clearHomeLocation(userId: string) {
+  const admin = getAdminClient()
+  const { error } = await admin.from('user_home_locations').delete().eq('user_id', userId)
+  if (error) throw error
 }
 
 export async function installGeolocationMock(page: Page, mode: GeolocationMockMode) {
@@ -201,6 +253,13 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
       value: geolocation,
     })
   }, mode)
+}
+
+export async function mockCurrentHomePosition(
+  page: Page,
+  coords: { latitude: number; longitude: number; accuracy?: number }
+) {
+  await switchGeolocationCoords(page, coords)
 }
 
 export async function switchGeolocationCoords(
