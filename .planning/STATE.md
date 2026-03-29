@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 23-store-location-foundation-01-PLAN.md
-last_updated: "2026-03-28T21:23:15.724Z"
+stopped_at: Completed 23-store-location-foundation-02-PLAN.md
+last_updated: "2026-03-29T10:13:34.199Z"
 progress:
   total_phases: 26
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 56
-  completed_plans: 48
+  completed_plans: 49
 ---
 
 # Project State
@@ -28,8 +28,8 @@ Plan: 2 of 2
 
 ## Session
 
-**Last session:** 2026-03-28T21:23:15.705Z
-**Stopped At:** Completed 23-store-location-foundation-01-PLAN.md
+**Last session:** 2026-03-29T10:13:34.190Z
+**Stopped At:** Completed 23-store-location-foundation-02-PLAN.md
 **Resume File:** None
 
 ## Performance Metrics
@@ -72,6 +72,7 @@ Plan: 2 of 2
 | Phase 22 P03 | 11min | 3 tasks | 3 files |
 | Phase 22 P04 | 4min | 2 tasks | 2 files |
 | Phase 23-store-location-foundation P01 | 4min | 2 tasks | 5 files |
+| Phase 23-store-location-foundation P02 | 7min | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Plan: 2 of 2
 - [Phase 22]: Deterministic rerun evidence artifact used to close Phase 22 verification gap.
 - [Phase 23-store-location-foundation]: Store display naming is centralized in storeDisplayName(chain, locationName) across store UI surfaces.
 - [Phase 23-store-location-foundation]: Store updates persist chain, location_name, lat, and lng together through updateStoreMutation.
+- [Phase 23-store-location-foundation]: Leaflet map widget uses props-in/events-out so edit page owns coordinate persistence via updateStoreMutation.
+- [Phase 23-store-location-foundation]: Checkpoint Task 4 completed based on approved human verification of the full store location flow.
 
 ### Pending Todos
 

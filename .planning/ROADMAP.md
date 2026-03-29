@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 20: Client Image Display** - Product thumbnails and brand names visible in the scan result sheet, shopping list rows, Admin Items, and Varekatalog (completed 2026-03-16)
 - [x] **Phase 21: Offline Replay Integrity for History and Recommendations** - Make queue replay idempotent so successful offline check-offs are not replayed twice when later entries fail (completed 2026-03-28)
 - [x] **Phase 22: Milestone Verification Artifact Closure** - Add missing Phase 07 and 08 verification artifacts and rerun milestone audit gate checks (completed 2026-03-28)
-- [ ] **Phase 23: Store Location Foundation** - Store coordinates saved via map pin in admin; Leaflet widget integrated; gates all proximity detection work
+- [x] **Phase 23: Store Location Foundation** - Store coordinates saved via map pin in admin; Leaflet widget integrated; gates all proximity detection work (completed 2026-03-29)
 - [ ] **Phase 24: Location Detection Foundation** - Battery-safe geolocation polling, iOS permission handling, and manual store-picker fallback all validated on physical device
 - [ ] **Phase 25: Shopping Mode** - Geofence engine, branded banner, store layout auto-selection, in-store check-off history recording, and dismiss control
 - [ ] **Phase 26: Home Location and Check-off Behavior** - GDPR-safe home location setting in user settings; check-offs near home treated as deletions, not history
@@ -497,7 +497,7 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 20. Client Image Display | 4/4 | Complete    | 2026-03-16 |
 | 21. Offline Replay Integrity for History and Recommendations | 2/2 | Complete    | 2026-03-28 |
 | 22. Milestone Verification Artifact Closure | 4/4 | Complete    | 2026-03-28 |
-| 23. Store Location Foundation | 1/2 | In Progress|  |
+| 23. Store Location Foundation | 2/2 | Complete   | 2026-03-29 |
 | 24. Location Detection Foundation | 0/TBD | Not started | - |
 | 25. Shopping Mode | 0/TBD | Not started | - |
 | 26. Home Location and Check-off Behavior | 0/TBD | Not started | - |
