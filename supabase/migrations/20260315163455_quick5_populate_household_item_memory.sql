@@ -22,7 +22,7 @@ SELECT
   i.image_url AS product_image_url,
   i.brand,
   0 AS use_count,
-  NULL AS last_used_at,
+  NOW() AS last_used_at,                                                                                                                                                                                                 
   NOW() AS created_at,
   NOW() AS updated_at
 FROM
