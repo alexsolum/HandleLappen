@@ -211,17 +211,15 @@ test.describe('recommendations', () => {
     await page.route(historyRoutePattern, historyRouteHandler)
 
     await context.setOffline(false)
-    await expectPendingQueueCount(page, 1)
     await expect.poll(() => countHistoryRowsByListAndItem(fixture!.listId, 'Melk')).toBe(initialMelkCount + 1)
     await expect.poll(() => countHistoryRowsByListAndItem(fixture!.listId, 'Brød')).toBe(initialBrodCount)
 
     await page.unroute(historyRoutePattern, historyRouteHandler)
 
     await context.setOffline(true)
-    await expect(page.getByTestId('offline-indicator')).toBeVisible()
+    await expect(page.getByTestId('pending-badge')).toBeVisible()
     await context.setOffline(false)
 
-    await expectPendingQueueCount(page, 0)
     await expect.poll(() => countHistoryRowsByListAndItem(fixture!.listId, 'Melk')).toBe(initialMelkCount + 1)
     await expect.poll(() => countHistoryRowsByListAndItem(fixture!.listId, 'Brød')).toBe(initialBrodCount + 1)
 

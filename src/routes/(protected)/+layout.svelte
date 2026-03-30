@@ -1,14 +1,46 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
+  import { createBrowserClient } from '@supabase/ssr'
+  import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public'
   import { onMount } from 'svelte'
   import BottomNav from '$lib/components/lists/BottomNav.svelte'
   import { getAll, replayBatch, replaceQueue } from '$lib/offline/queue'
-  import { refreshPendingCount } from '$lib/stores/offline.svelte'
+  import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
 
   let { data, children } = $props()
+  const replaySupabase = browser
+    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+        cookies: {
+          getAll() {
+            const cookies: { name: string; value: string }[] = []
+            if (typeof document !== 'undefined') {
+              document.cookie.split('; ').forEach((c) => {
+                const [name, ...rest] = c.split('=')
+                cookies.push({ name, value: rest.join('=') })
+              })
+            }
+            return cookies
+          },
+          setAll(cookiesToSet) {
+            if (typeof document !== 'undefined') {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                const cookieStr = `${name}=${value}; path=${options?.path || '/'}${
+                  options?.maxAge ? `; max-age=${options.maxAge}` : ''
+                }${options?.expires ? `; expires=${options.expires.toUTCString()}` : ''}${
+                  options?.secure ? '; secure' : ''
+                }${options?.sameSite ? `; samesite=${options.sameSite}` : ''}`
+                document.cookie = cookieStr
+              })
+            }
+          },
+        },
+      })
+    : data.supabase
   let syncToast = $state(false)
   let drainingQueue = false
+  let lastDrainAt = 0
+  let scheduledDrain: ReturnType<typeof setTimeout> | null = null
   let syncToastTimeout: ReturnType<typeof setTimeout> | null = null
 
   const queryClient = new QueryClient({
@@ -23,12 +55,26 @@
 
   async function drainQueue() {
     if (!browser || drainingQueue) return
+    const now = Date.now()
+    const sinceLast = now - lastDrainAt
+    if (sinceLast < 2000) {
+      if (!scheduledDrain) {
+        scheduledDrain = setTimeout(() => {
+          scheduledDrain = null
+          void drainQueue()
+        }, 2000 - sinceLast)
+      }
+      return
+    }
+    lastDrainAt = now
 
     await refreshPendingCount()
 
-    if (!navigator.onLine) {
+    if (isOfflineMode()) {
       return
     }
+
+    await new Promise((resolve) => setTimeout(resolve, 250))
 
     const queued = await getAll()
     if (queued.length === 0) return
@@ -36,7 +82,14 @@
     drainingQueue = true
 
     try {
-      const result = await replayBatch(data.supabase, queued)
+      const {
+        data: { session },
+      } = await data.supabase.auth.getSession()
+      if (session) {
+        await replaySupabase.auth.setSession(session)
+      }
+
+      const result = await replayBatch(replaySupabase, queued)
       await replaceQueue(result.survivors)
       await refreshPendingCount()
 
