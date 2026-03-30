@@ -56,6 +56,7 @@ test.describe('lists', () => {
       await page.fill('[type=password]', 'password123')
       await page.click('button:has-text("Logg inn")')
       await page.waitForURL('/')
+      await page.waitForLoadState('networkidle')
 
       await page.click('button:has-text("Ny liste")')
       await page.waitForSelector('input[placeholder="Navn på lista"]', { timeout: 5000 })

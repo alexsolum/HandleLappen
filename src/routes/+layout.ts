@@ -8,7 +8,6 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 
   const supabase = isBrowser()
     ? createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-        global: { fetch },
         cookies: {
           getAll() {
             const cookies: { name: string; value: string }[] = []

@@ -1,9 +1,1136 @@
 
 > handleappen@0.0.1 dev
-> vite dev --host 127.0.0.1
+> vite dev --host 127.0.0.1 --port 4173 --strictPort
 
 
-  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m2065[22m[2m[0m ms[22m
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m5870[22m[2m[0m ms[22m
 
-  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4173[22m/[39m
 [2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/0.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/1.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/app.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/server/internal.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/20.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/app.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/matchers.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/server/internal.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.svelte[22m
+[2m12:08:29[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.svelte[22m
+12:17:04 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:15:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:04 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:34:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:04 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:35:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:04 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:36:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:04 [vite-plugin-svelte] src/lib/components/lists/ListCreateRow.svelte:40:8 Avoid using autofocus
+https://svelte.dev/e/a11y_autofocus
+12:17:05 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:15:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:05 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:34:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:05 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:35:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:05 [vite-plugin-svelte] src/routes/(protected)/+page.svelte:36:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:05 [vite-plugin-svelte] src/lib/components/lists/ListCreateRow.svelte:40:8 Avoid using autofocus
+https://svelte.dev/e/a11y_autofocus
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:8:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:8:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:9:45 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:9:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:10:45 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:10 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:10:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:58:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:59:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:66:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:83:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:84:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:86:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:88:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:88:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/lib/components/items/CategorySection.svelte:25:7 This reference only captures the initial value of `onLongPress`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:58:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:59:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:66:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:83:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:84:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:86:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:88:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:88:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:14 [vite-plugin-svelte] src/lib/components/items/CategorySection.svelte:25:7 This reference only captures the initial value of `onLongPress`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:8:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:8:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:9:45 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:9:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:10:45 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:17:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/+page.svelte:10:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:19:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:19:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:20:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:20:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:21:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:21:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:22:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:22:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:23:59 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:23:74 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/lib/components/stores/DraggableCategoryRow.svelte:11:25 This reference only captures the initial value of `category`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:19:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:19:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:20:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:20:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:21:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:21:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:22:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:22:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:23:59 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/standard/+page.svelte:23:74 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12:18:09 [vite-plugin-svelte] src/lib/components/stores/DraggableCategoryRow.svelte:11:25 This reference only captures the initial value of `category`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:59:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:60:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:67:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:84:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:85:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:87:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:33 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:59:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:60:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:67:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:84:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:85:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:87:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:59:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:60:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:67:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:79:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:80:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:82:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:84:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:85:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:87:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:89:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:90:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:03:34 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m15:03:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m15:03:34[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+[2m15:03:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m15:03:34[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:70:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:71:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:10:54 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m15:10:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m15:10:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+[2m15:10:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/lib/components/stores/StoreSelector.svelte, /src/app.css[22m
+[2m15:10:54[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/components/stores/StoreSelector.svelte[22m
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:70:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:71:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:58 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:70:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:71:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:78:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:91:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:92:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:93:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:101:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:103:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:11:59 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m15:12:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/lib/components/stores/StoreSelector.svelte, /src/app.css[22m
+[2m15:12:49[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/components/stores/StoreSelector.svelte[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/0.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/1.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/2.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/3.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/4.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/5.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/6.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/app.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/14.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/20.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/server/internal.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/matchers.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m15:21:44[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.svelte[22m
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:15:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:16:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:16:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:17:57 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:17:81 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:18:45 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/routes/(protected)/admin/butikker/[id]/+page.svelte:18:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/lib/components/stores/StoreMapWidget.svelte:17:22 This reference only captures the initial value of `lat`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/lib/components/stores/StoreMapWidget.svelte:17:38 This reference only captures the initial value of `lng`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15:31:36 [vite-plugin-svelte] src/lib/components/stores/StoreMapWidget.svelte:12:6 `mapEl` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+[2m18:11:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m18:11:32[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/location/session.svelte.ts[22m
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:19:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m18:19:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m18:19:24[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+18:21:55 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/0.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/1.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/2.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/3.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/4.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/5.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/6.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/7.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/14.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/app.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/server/internal.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/nodes/20.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/client/matchers.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.js[22m
+[2m19:20:53[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2m.svelte-kit/generated/root.svelte[22m
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:10 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m19:27:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m19:27:10[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:27:30 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m19:39:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m19:39:53[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/location/session.svelte.ts[22m
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:39:57 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+[2m19:39:58[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/routes/(protected)/lister/[id]/+page.svelte, /src/app.css[22m
+[2m19:39:58[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/(protected)/lister/[id]/+page.svelte[22m
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:73:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:74:27 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:81:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:38 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:94:53 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:95:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:96:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:40 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:97:55 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:99:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:100:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:102:4 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:48 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:104:63 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:105:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:106:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:50 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:65 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:107:78 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:62 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:108:77 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:54 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:109:69 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:110:60 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+19:40:23 [vite-plugin-svelte] src/routes/(protected)/lister/[id]/+page.svelte:111:12 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally

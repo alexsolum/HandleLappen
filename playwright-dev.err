@@ -1,0 +1,3 @@
+
+[1;31m[404] GET /favicon.ico[0m
+Avoid calling `fetch` eagerly during server-side rendering — put your `fetch` calls inside `onMount` or a `load` function instead

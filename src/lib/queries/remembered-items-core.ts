@@ -19,7 +19,7 @@ export function normalizeRememberedItemQuery(value: string) {
 export async function searchRememberedItems(
   supabase: SupabaseClient<Database>,
   query: string,
-  householdId: string
+  _householdId: string
 ): Promise<RememberedItem[]> {
   const normalizedQuery = normalizeRememberedItemQuery(query)
   if (normalizedQuery.length === 0) {
@@ -27,8 +27,8 @@ export async function searchRememberedItems(
   }
 
   const { data, error } = await supabase.rpc('search_household_item_memory', {
-    p_household_id: householdId,
-    p_search_term: normalizedQuery,
+    p_query: normalizedQuery,
+    p_limit: 5,
   })
 
   if (error) {
@@ -36,8 +36,8 @@ export async function searchRememberedItems(
   }
 
   return ((data ?? []) as RememberedItemRpcRow[]).map((row) => ({
-    itemName: row.display_name,
-    normalizedName: row.display_name.toLowerCase(),
+    itemName: row.item_name,
+    normalizedName: row.normalized_name,
     lastCategoryId: row.last_category_id,
     useCount: row.use_count,
     lastUsedAt: row.last_used_at,

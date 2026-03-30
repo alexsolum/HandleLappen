@@ -23,7 +23,8 @@ function syncOnlineState() {
 
 export function isOfflineMode(): boolean {
 	if (typeof window === 'undefined') return false
-	return !syncOnlineState()
+	if (typeof navigator !== 'undefined' && navigator.onLine === false) return true
+	return !offlineStore.isOnline
 }
 
 export function initOfflineStore(): void {

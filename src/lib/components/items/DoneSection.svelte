@@ -6,7 +6,7 @@
 
   let { items, onUncheck }: Props = $props()
 
-  let expanded = $state(false)
+  let expanded = $state(true)
 
   function toggleExpanded() {
     expanded = !expanded
@@ -34,6 +34,9 @@
             type="button"
             class="flex w-full items-center gap-3 bg-white px-4 py-3 text-left"
             onclick={() => onUncheck(item.id)}
+            role="checkbox"
+            aria-checked="true"
+            aria-label={item.name}
           >
             <!-- Checked indicator -->
             <div

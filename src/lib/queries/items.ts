@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { enqueue } from '$lib/offline/queue'
 import type { LocationSample } from '$lib/location/geolocation'
 import { isWithinHomeDetectionRadius } from '$lib/location/proximity'
-import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
+import { offlineStore, isOfflineMode } from '$lib/stores/offline.svelte'
 import { rememberedItemsBaseKey } from '$lib/queries/remembered-items'
 
 type Item = {
@@ -266,6 +266,7 @@ export function createChangeQuantityMutation(supabase: SupabaseClient, listId: s
 export function createCheckOffMutation(supabase: SupabaseClient, listId: string, userId: string) {
   const queryClient = useQueryClient()
   const queryKey = itemsQueryKey(listId)
+  const offlineEnqueued = new Set<string>()
 
   function shouldDeleteAsHomeCleanup({
     isChecked,
@@ -289,8 +290,10 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
   ) {
     const timestamp = new Date().toISOString()
 
+    let nextCount = 0
+
     if (mode === 'home-delete') {
-      await enqueue({
+      nextCount = await enqueue({
         id: itemId,
         type: 'home-delete',
         payload: {
@@ -304,7 +307,7 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
         enqueuedAt: timestamp,
       })
     } else {
-      await enqueue({
+      nextCount = await enqueue({
         id: itemId,
         type: 'toggle',
         payload: {
@@ -321,7 +324,10 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
       })
     }
 
-    await refreshPendingCount()
+    if (typeof window !== 'undefined') {
+      offlineStore.pendingCount = nextCount
+      ;(window as Window & { __pendingQueueCount?: number }).__pendingQueueCount = nextCount
+    }
   }
 
   async function runOnlineHomeCleanup(itemId: string) {
@@ -384,6 +390,10 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
       const mode = atHomeCleanup ? 'home-delete' : 'history-toggle'
 
       if (isOfflineMode()) {
+        if (offlineEnqueued.has(itemId)) {
+          offlineEnqueued.delete(itemId)
+          return { queued: true, mode }
+        }
         await enqueueMutation(itemId, isChecked, itemName, mode, historyContext)
         return { queued: true, mode }
       }
@@ -403,7 +413,7 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
       }
     },
     onMutate: async (variables) => {
-      const { itemId, isChecked } = variables
+      const { itemId, isChecked, itemName, historyContext } = variables
       const atHomeCleanup = shouldDeleteAsHomeCleanup(variables)
 
       await queryClient.cancelQueries({ queryKey })
@@ -419,6 +429,12 @@ export function createCheckOffMutation(supabase: SupabaseClient, listId: string,
             : item
         )
       })
+      if (isOfflineMode()) {
+        const mode = atHomeCleanup ? 'home-delete' : 'history-toggle'
+        offlineEnqueued.add(itemId)
+        await enqueueMutation(itemId, isChecked, itemName, mode, historyContext)
+      }
+
       return { previous }
     },
     onError: (_err: unknown, _vars: unknown, context: any) => {

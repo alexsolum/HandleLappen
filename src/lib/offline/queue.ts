@@ -41,6 +41,7 @@ export type ReplayBatchResult = {
 
 const QUEUE_KEY = 'offline-mutation-queue'
 const FALLBACK_QUEUE_KEY = 'handleappen-offline-mutation-queue'
+let inMemoryQueue: QueuedMutation[] | null = null
 
 function readFallbackQueue(): QueuedMutation[] {
 	if (typeof window === 'undefined') return []
@@ -61,29 +62,43 @@ function writeFallbackQueue(queue: QueuedMutation[]) {
 }
 
 async function readQueue(): Promise<QueuedMutation[]> {
+	if (inMemoryQueue && inMemoryQueue.length > 0) return inMemoryQueue
+
+	const fallback = readFallbackQueue()
+	if (fallback.length > 0) {
+		inMemoryQueue = fallback
+		return fallback
+	}
+
 	try {
-		return ((await get(QUEUE_KEY)) as QueuedMutation[] | undefined) ?? readFallbackQueue()
+		const stored = (await get(QUEUE_KEY)) as QueuedMutation[] | undefined
+		if (stored) {
+			inMemoryQueue = stored
+			return stored
+		}
+		return fallback
 	} catch {
-		return readFallbackQueue()
+		return fallback
 	}
 }
 
 async function writeQueue(queue: QueuedMutation[]): Promise<void> {
+	inMemoryQueue = queue
+	writeFallbackQueue(queue)
+
 	try {
 		await set(QUEUE_KEY, queue)
 	} catch {
-		writeFallbackQueue(queue)
 		return
 	}
-
-	writeFallbackQueue(queue)
 }
 
-export async function enqueue(mutation: QueuedMutation): Promise<void> {
+export async function enqueue(mutation: QueuedMutation): Promise<number> {
 	const existing = await readQueue()
 	const filtered = existing.filter((entry) => entry.id !== mutation.id)
-
-	await writeQueue([...filtered, mutation])
+	const next = [...filtered, mutation]
+	await writeQueue(next)
+	return next.length
 }
 
 export async function getAll(): Promise<QueuedMutation[]> {
@@ -96,6 +111,9 @@ export async function clear(): Promise<void> {
 
 export async function replaceQueue(entries: QueuedMutation[]): Promise<void> {
 	await writeQueue(entries)
+	if (typeof window !== 'undefined') {
+		;(window as Window & { __pendingQueueCount?: number }).__pendingQueueCount = entries.length
+	}
 }
 
 export async function replayMutation(
@@ -105,14 +123,16 @@ export async function replayMutation(
 	const { itemId, listId, itemName, userId, timestamp } = entry.payload
 
 	if (entry.type === 'home-delete') {
-		const { error } = await supabase.from('list_items').delete().eq('id', itemId)
-		if (error) throw error
+		const { error, status } = await supabase.from('list_items').delete().eq('id', itemId)
+		if (error || (status && status >= 400)) {
+			throw error ?? new Error('offline replay delete failed')
+		}
 		return
 	}
 
 	const { isChecked, historyContext } = entry.payload
 
-	const { error: itemError } = await supabase
+	const { error: itemError, status: itemStatus } = await supabase
 		.from('list_items')
 		.update({
 			is_checked: isChecked,
@@ -120,21 +140,27 @@ export async function replayMutation(
 		})
 		.eq('id', itemId)
 
-	if (itemError) throw itemError
+	if (itemError || (itemStatus && itemStatus >= 400)) {
+		throw itemError ?? new Error('offline replay toggle failed')
+	}
 
 	if (isChecked) {
-		const { error: historyError } = await supabase.from('item_history').insert({
-			list_id: listId,
-			item_id: itemId,
-			item_name: itemName,
-			checked_by: userId,
-			checked_at: timestamp,
-			list_name: historyContext?.listName ?? null,
-			store_id: historyContext?.storeId ?? null,
-			store_name: historyContext?.storeName ?? null
-		})
+		const { error: historyError, status: historyStatus } = await supabase
+			.from('item_history')
+			.insert({
+				list_id: listId,
+				item_id: itemId,
+				item_name: itemName,
+				checked_by: userId,
+				checked_at: timestamp,
+				list_name: historyContext?.listName ?? null,
+				store_id: historyContext?.storeId ?? null,
+				store_name: historyContext?.storeName ?? null
+			})
+		if (historyError || (historyStatus && historyStatus >= 400)) {
+			throw historyError ?? new Error('offline replay history failed')
+		}
 
-		if (historyError) throw historyError
 	}
 }
 
