@@ -41,8 +41,12 @@ async function toggleItem(page: Page, name: string) {
 }
 
 async function startListLocation(page: Page) {
-  await page.getByRole('button', { name: /Slå på automatisk butikkvalg/i }).click()
-  await page.getByRole('button', { name: 'Fortsett' }).click()
+  const startButton = page.getByRole('button', { name: /Slå på automatisk butikkvalg/i })
+
+  if ((await startButton.count()) > 0) {
+    await startButton.click()
+    await page.getByRole('button', { name: 'Fortsett' }).click()
+  }
 }
 
 async function listItemExists(listId: string, itemName: string) {

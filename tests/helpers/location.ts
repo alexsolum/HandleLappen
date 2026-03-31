@@ -131,6 +131,7 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
   await page.addInitScript((selectedMode: GeolocationMockMode) => {
     type MockWindow = Window & {
       __HANDLEAPPEN_LOCATION_REQUESTS__?: number
+      __HANDLEAPPEN_GEOLOCATION_MODE__?: GeolocationMockMode
       __HANDLEAPPEN_GEOLOCATION_OVERRIDE__?: {
         latitude: number
         longitude: number
@@ -140,6 +141,7 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
 
     const mockWindow = window as MockWindow
     mockWindow.__HANDLEAPPEN_LOCATION_REQUESTS__ = 0
+    mockWindow.__HANDLEAPPEN_GEOLOCATION_MODE__ = selectedMode
 
     const responses = {
       'nearby-success': {
@@ -210,7 +212,7 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
           return
         }
 
-        const response = responses[selectedMode]
+        const response = responses[mockWindow.__HANDLEAPPEN_GEOLOCATION_MODE__ ?? selectedMode]
         setTimeout(() => {
           if (response.kind === 'success') {
             success({
@@ -252,6 +254,24 @@ export async function installGeolocationMock(page: Page, mode: GeolocationMockMo
       configurable: true,
       value: geolocation,
     })
+  }, mode)
+}
+
+export async function switchGeolocationMode(page: Page, mode: GeolocationMockMode) {
+  await page.addInitScript((nextMode: GeolocationMockMode) => {
+    type MockWindow = Window & {
+      __HANDLEAPPEN_GEOLOCATION_MODE__?: GeolocationMockMode
+    }
+
+    ;(window as MockWindow).__HANDLEAPPEN_GEOLOCATION_MODE__ = nextMode
+  }, mode)
+
+  await page.evaluate((nextMode: GeolocationMockMode) => {
+    type MockWindow = Window & {
+      __HANDLEAPPEN_GEOLOCATION_MODE__?: GeolocationMockMode
+    }
+
+    ;(window as MockWindow).__HANDLEAPPEN_GEOLOCATION_MODE__ = nextMode
   }, mode)
 }
 

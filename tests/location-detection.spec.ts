@@ -5,6 +5,7 @@ import {
   installGeolocationMock,
   seedLocatedStore,
   setDocumentVisibility,
+  switchGeolocationMode,
   type GeolocationMockMode,
 } from './helpers/location'
 
@@ -80,6 +81,44 @@ test.describe('Phase 24 location detection scaffolding', () => {
     await expect.poll(() => locationRequestCount(page)).toBe(2)
     await expect(page.getByText('Automatisk valgt butikk: Rema 1000 Majorstua')).toBeVisible()
     await expect(page.getByRole('button', { name: /Butikk:\s*Rema 1000 Majorstua/i })).toBeVisible()
+  })
+
+  test('remembered consent resumes automatic store detection on later list visits', async ({ page }) => {
+    const prepared = await prepareLocationFlow(page, 'nearby-success')
+
+    await page.getByRole('button', { name: /Slå på automatisk butikkvalg/i }).click()
+    await page.getByRole('button', { name: 'Fortsett' }).click()
+    await expect(page.getByText('Automatisk valgt butikk: Rema 1000 Majorstua')).toBeVisible()
+
+    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto(`/lister/${prepared.listId}`, { waitUntil: 'networkidle' })
+
+    await expect(page.getByRole('button', { name: /Slå på automatisk butikkvalg/i })).toHaveCount(0)
+    await expect.poll(() => locationRequestCount(page)).toBe(1)
+    await expect(page.getByText('Automatisk valgt butikk: Rema 1000 Majorstua')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Butikk:\s*Rema 1000 Majorstua/i })).toBeVisible()
+  })
+
+  test('remembered consent still leaves manual fallback available when resumed detection cannot locate user', async ({
+    page,
+  }) => {
+    const prepared = await prepareLocationFlow(page, 'nearby-success')
+
+    await page.getByRole('button', { name: /Slå på automatisk butikkvalg/i }).click()
+    await page.getByRole('button', { name: 'Fortsett' }).click()
+    await expect(page.getByText('Automatisk valgt butikk: Rema 1000 Majorstua')).toBeVisible()
+
+    await switchGeolocationMode(page, 'position-unavailable')
+    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto(`/lister/${prepared.listId}`, { waitUntil: 'networkidle' })
+
+    await expect(page.getByRole('button', { name: /Slå på automatisk butikkvalg/i })).toHaveCount(0)
+    await expect.poll(() => locationRequestCount(page)).toBe(1)
+    await expect(
+      page.getByText('Vi fant ikke posisjonen din akkurat nå. Velg butikk manuelt eller prøv igjen.')
+    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Prøv igjen' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Butikk:\s*Velg butikk manuelt/i })).toBeVisible()
   })
 
   test('manual picker fallback stays available when location is denied or unavailable', async ({
