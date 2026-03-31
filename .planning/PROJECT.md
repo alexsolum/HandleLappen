@@ -32,6 +32,8 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - ✓ Offline replay now uses survivor-only retry so mixed reconnect outcomes do not duplicate history rows or skew recommendations — validated in Phase 21 (2026-03-28)
 - ✓ Phase 22 closed milestone audit verification artifacts with deterministic rerun evidence and passed verification — validated in Phase 22 (2026-03-28)
 - ✓ Phase 24 added explanation-gated foreground location detection with approved installed-iPhone PWA fallback validation and always-visible manual store selection — validated in Phase 24 (2026-03-29)
+- ✓ Check-offs at home are treated as deletions (not shopping history) — validated in Phase 26 (2026-03-31)
+- ✓ User can set home location once in settings — validated in Phase 26 (2026-03-31)
 
 ### Active
 
@@ -39,8 +41,6 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 - [ ] Shopping mode shows a branded banner with store logo and color
 - [ ] Store layout is auto-selected when shopping mode activates
 - [ ] Check-offs near a store are recorded as shopping history
-- [ ] Check-offs at home are treated as deletions (not shopping history)
-- [ ] User can set home location once in settings
 - [ ] Store locations can be saved via map pin or address in admin
 
 ### Out of Scope
@@ -61,10 +61,9 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 
 ## Current State
 
-- Phase 24 (`location-detection-foundation`) is complete as of 2026-03-29.
-- The list page now uses foreground-only location polling, explicit explanation-first permission flow, and automatic nearby-store selection without calling geolocation on mount.
-- `Velg butikk manuelt` stays available before permission and after denied or unavailable states, and the installed-iPhone PWA flow has been manually approved.
-- Next planned work is Phase 25 (`shopping-mode`), which can build on the validated detection foundation for banner, layout, and history behavior.
+- Phase 26 (`home-location-and-check-off-behavior`) is complete as of 2026-03-31.
+- Home location can be set in user settings and at-home check-offs now perform list cleanup instead of shopping history writes.
+- Location-aware shopping mode remains the next active focus items for v2.2.
 
 ## Constraints
 
@@ -90,4 +89,4 @@ The list is sorted the way the store is laid out — so shopping is fast, never 
 | v2.2 adds location-aware shopping mode | Store layout auto-selection and history accuracy depend on knowing where the user is shopping | — Pending |
 
 ---
-*Last updated: 2026-03-29 after Phase 24 completion*
+*Last updated: 2026-03-31 after Phase 26 completion*
