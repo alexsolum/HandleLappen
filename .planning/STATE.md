@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Milestone complete
-stopped_at: Completed 26-home-location-and-check-off-behavior-02-PLAN.md
-last_updated: "2026-03-31T05:54:13.412Z"
+stopped_at: Completed quick task 260331-kte
+last_updated: "2026-03-31T13:28:36.267Z"
 progress:
   total_phases: 26
   completed_phases: 17
@@ -28,8 +28,8 @@ Plan: Not started
 
 ## Session
 
-**Last session:** 2026-03-29T19:48:32.699Z
-**Stopped At:** Completed 26-home-location-and-check-off-behavior-02-PLAN.md
+**Last session:** 2026-03-31T13:28:36.267Z
+**Stopped At:** Completed quick task 260331-kte
 **Resume File:** None
 
 ## Performance Metrics
@@ -114,7 +114,6 @@ Plan: Not started
 
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
 - Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
-- Remember store auto-selection consent so list entry does not require re-enabling location each time.
 
 ### Blockers/Concerns
 
@@ -128,3 +127,4 @@ Plan: Not started
 | 2 | Improve app categories from grocery_categories.md and sync Supabase | 2026-03-12 | c8c7f59 | [2-improve-app-categories-from-grocery-cate](./quick/2-improve-app-categories-from-grocery-cate/) |
 | 3 | Add item administration and Varekatalog management | 2026-03-14 | 7f44449 | [3-add-item-administration-in-the-admin-ite](./quick/3-add-item-administration-in-the-admin-ite/) |
 | 5 | Fill items database with top products from Kassal | 2026-03-15 | cc04372 | [5-fill-items-database-with-top-products-fr](./quick/5-fill-items-database-with-top-products-fr/) |
+| 260331-kte | Remember store auto-selection consent so returning users do not have to re-enable location-driven store auto-selection every time they open a list. | 2026-03-31 | c9613f1 | [260331-kte-remember-store-auto-selection-consent-so](./quick/260331-kte-remember-store-auto-selection-consent-so/) |
