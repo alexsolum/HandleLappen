@@ -37,6 +37,10 @@ let inFlight = false
 let deniedCount = 0
 let dismissedForSession = false
 
+type LocationStartOptions = {
+  beforeDetect?: () => Promise<void>
+}
+
 function clearPollTimer() {
   if (pollTimer) {
     clearTimeout(pollTimer)
@@ -225,7 +229,10 @@ export function beginLocationExplanation(): void {
   locationSession.showSettingsHint = false
 }
 
-export async function confirmAutomaticStore(stores: DetectableStore[]): Promise<void> {
+async function startLocationDetection(
+  stores: DetectableStore[],
+  options: LocationStartOptions = {}
+): Promise<void> {
   if (inFlight) return
 
   startPolling(stores)
@@ -235,6 +242,7 @@ export async function confirmAutomaticStore(stores: DetectableStore[]): Promise<
   inFlight = true
 
   try {
+    await options.beforeDetect?.()
     const sample = await getCurrentLocation()
     handleSuccessfulSample(sample)
   } catch (error) {
@@ -244,22 +252,19 @@ export async function confirmAutomaticStore(stores: DetectableStore[]): Promise<
   }
 }
 
+export async function confirmAutomaticStore(
+  stores: DetectableStore[],
+  options: LocationStartOptions = {}
+): Promise<void> {
+  await startLocationDetection(stores, options)
+}
+
+export async function resumeAutomaticStore(stores: DetectableStore[]): Promise<void> {
+  await startLocationDetection(stores)
+}
+
 export async function retryLocationDetection(stores: DetectableStore[]): Promise<void> {
-  if (inFlight) return
-
-  startPolling(stores)
-  locationSession.status = 'locating'
-  locationSession.lastFailure = null
-  inFlight = true
-
-  try {
-    const sample = await getCurrentLocation()
-    handleSuccessfulSample(sample)
-  } catch (error) {
-    handleFailure(classifyLocationError(error), true)
-  } finally {
-    inFlight = false
-  }
+  await startLocationDetection(stores)
 }
 
 export function cancelLocationExplanation(): void {
@@ -291,8 +296,10 @@ export function stopLocationSession(): void {
   activeStores = []
   dismissedForSession = false
   locationSession.status = 'idle'
+  locationSession.detectedStoreId = null
   locationSession.lastFailure = null
   locationSession.showSettingsHint = false
+  locationSession.lastSample = null
   locationSession.shoppingModeActive = false
   locationSession.dwellStartedAt = null
   locationSession.dwellLastInRangeAt = null

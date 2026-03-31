@@ -36,6 +36,7 @@
     dismissShoppingMode,
     locationSession,
     refreshLocationStores,
+    resumeAutomaticStore,
     retryLocationDetection,
     stopLocationSession,
   } from '$lib/location/session.svelte'
@@ -66,6 +67,8 @@
   let rememberedQueryText = $state('')
   let isManuallySelected = $state(false)
   let cleanupToastMessage = $state('')
+  let automaticStoreSelectionEnabled = $state(data.automaticStoreSelectionEnabled)
+  let resumedAutomaticStore = $state(false)
 
   const queryClient = useQueryClient()
 
@@ -162,9 +165,23 @@
     if (!locationSession.shoppingModeActive || !locationSession.detectedStoreId) return null
     return storesQuery.data?.find((store) => store.id === locationSession.detectedStoreId) ?? null
   })
+  const locationCardState = $derived.by(() => {
+    if (automaticStoreSelectionEnabled && !resumedAutomaticStore && locationSession.status === 'idle') {
+      return 'locating'
+    }
+
+    return locationSession.status
+  })
 
   $effect(() => {
     setActiveList({ id: data.listId, name: data.listName })
+  })
+
+  $effect(() => {
+    if (!automaticStoreSelectionEnabled || resumedAutomaticStore) return
+
+    resumedAutomaticStore = true
+    void resumeAutomaticStore(detectableStores)
   })
 
   $effect(() => {
@@ -245,6 +262,19 @@
   function handleManualStoreSelect(id: string | null) {
     selectedStoreId = id
     isManuallySelected = id !== null
+  }
+
+  async function persistAutomaticStoreSelectionConsent() {
+    const { error } = await data.supabase
+      .from('profiles')
+      .update({ automatic_store_selection_enabled: true })
+      .eq('id', data.user.id)
+
+    if (error) {
+      throw error
+    }
+
+    automaticStoreSelectionEnabled = true
   }
 
   function handleUncheck(itemId: string) {
@@ -439,11 +469,14 @@
       />
     {:else}
       <LocationPermissionCard
-        state={locationSession.status}
+        state={locationCardState}
         {detectedStoreName}
         showSettingsHint={locationSession.showSettingsHint}
         onStart={beginLocationExplanation}
-        onConfirm={() => void confirmAutomaticStore(detectableStores)}
+        onConfirm={() =>
+          void confirmAutomaticStore(detectableStores, {
+            beforeDetect: persistAutomaticStoreSelectionConsent,
+          })}
         onCancel={cancelLocationExplanation}
         onRetry={() => void retryLocationDetection(detectableStores)}
       />
