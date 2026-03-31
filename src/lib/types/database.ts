@@ -323,6 +323,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          automatic_store_selection_enabled: boolean
           avatar_url: string | null
           created_at: string | null
           display_name: string
@@ -330,6 +331,7 @@ export type Database = {
           id: string
         }
         Insert: {
+          automatic_store_selection_enabled?: boolean
           avatar_url?: string | null
           created_at?: string | null
           display_name: string
@@ -337,6 +339,7 @@ export type Database = {
           id: string
         }
         Update: {
+          automatic_store_selection_enabled?: boolean
           avatar_url?: string | null
           created_at?: string | null
           display_name?: string

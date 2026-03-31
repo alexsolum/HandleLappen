@@ -10,7 +10,7 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('household_id')
+    .select('household_id, automatic_store_selection_enabled')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -18,5 +18,9 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
     throw redirect(303, '/velkommen')
   }
 
-  return { user, householdId: profile.household_id }
+  return {
+    user,
+    householdId: profile.household_id,
+    automaticStoreSelectionEnabled: profile.automatic_store_selection_enabled,
+  }
 }
