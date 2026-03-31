@@ -114,6 +114,7 @@ Plan: Not started
 
 - Verify OffscreenCanvas compatibility on iOS 15 (Safari 15) before building image upload pipeline in Phase 15 — may need <canvas> fallback.
 - Phase 18 iOS fix must be verified on a real iPhone in installed PWA mode — simulator cannot reproduce the black screen.
+- Remember store auto-selection consent so list entry does not require re-enabling location each time.
 
 ### Blockers/Concerns
 
