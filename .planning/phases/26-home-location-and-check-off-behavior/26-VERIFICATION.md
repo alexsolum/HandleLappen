@@ -1,7 +1,7 @@
 ---
 phase: 26-home-location-and-check-off-behavior
-verified: 2026-03-30T05:23:39Z
-status: human_needed
+verified: 2026-03-31T05:53:37Z
+status: passed
 score: 4/4 must-haves verified
 human_verification:
   - test: "Real-device current-position permission flow"
@@ -15,8 +15,8 @@ human_verification:
 # Phase 26: Home Location and Check-off Behavior Verification Report
 
 **Phase Goal:** Users can mark their home location once so check-offs done at home are treated as list cleanup rather than shopping history, keeping recommendations clean and accurate.
-**Verified:** 2026-03-30T05:23:39Z
-**Status:** human_needed
+**Verified:** 2026-03-31T05:53:37Z
+**Status:** passed
 **Re-verification:** No, initial verification
 
 ## Goal Achievement
@@ -76,19 +76,9 @@ No orphaned Phase 26 requirement IDs were found in `.planning/REQUIREMENTS.md`; 
 
 No blocker or warning-level stub patterns were found in the Phase 26 implementation files. The touched files are substantive and wired; no `TODO`, placeholder UI, empty handler, or console-only implementation was detected in the verified artifacts.
 
-### Human Verification Required
+### Human Verification Completed
 
-### 1. Real-device current-position permission flow
-
-**Test:** Install the PWA on iPhone and Android, open `/admin/brukerinnstillinger`, tap `Bruk min posisjon`, and then inspect the pending coordinates before and after pressing `Lagre hjemmeposisjon`.
-**Expected:** Native permission prompt appears only after the tap; pending coordinates update immediately; no persistence happens until explicit save.
-**Why human:** Installed-PWA permission behavior and native prompt timing are device-specific.
-
-### 2. Real-device list cleanup feedback
-
-**Test:** On a mobile device near the saved home point, check off an item from `/lister/[id]`.
-**Expected:** The item disappears immediately and the `aria-live` cleanup toast is noticeable but subtle.
-**Why human:** Visual prominence, timing, and perceived UX quality are not verifiable from static inspection.
+User confirmed the device checks for the current-position permission flow and the near-home cleanup toast behavior on 2026-03-31.
 
 ### Gaps Summary
 
@@ -96,5 +86,5 @@ No implementation gaps were found in code for the Phase 26 goal. The remaining w
 
 ---
 
-_Verified: 2026-03-30T05:23:39Z_
+_Verified: 2026-03-31T05:53:37Z_
 _Verifier: Claude (gsd-verifier)_

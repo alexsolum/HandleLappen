@@ -461,7 +461,7 @@ Plans:
 
 Plans:
 - [ ] 26-01-PLAN.md — Private home-location schema, real brukerinnstillinger route, admin link activation, and privacy/settings test scaffolds
-- [ ] 26-02-PLAN.md — At-home check-off branching, offline queue semantics for home cleanup, subtle toast UX, and Phase 26 regression coverage
+- [x] 26-02-PLAN.md — At-home check-off branching, offline queue semantics for home cleanup, subtle toast UX, and Phase 26 regression coverage (completed 2026-03-31)
 
 ## Progress
 
@@ -501,4 +501,4 @@ v2.2 ordering: Phase 23 (store coordinates) must precede 24 (detection needs dat
 | 23. Store Location Foundation | 2/2 | Complete    | 2026-03-29 |
 | 24. Location Detection Foundation | 3/3 | Complete    | 2026-03-29 |
 | 25. Shopping Mode | 1/2 | Complete    | 2026-03-29 |
-| 26. Home Location and Check-off Behavior | 2/2 | Complete   | 2026-03-29 |
+| 26. Home Location and Check-off Behavior | 2/2 | Complete    | 2026-03-31 |
