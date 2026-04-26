@@ -1,42 +1,12 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
-  import { createBrowserClient } from '@supabase/ssr'
-  import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public'
   import { onMount } from 'svelte'
   import BottomNav from '$lib/components/lists/BottomNav.svelte'
   import { getAll, replayBatch, replaceQueue } from '$lib/offline/queue'
   import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
 
   let { data, children } = $props()
-  const replaySupabase = browser
-    ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-        cookies: {
-          getAll() {
-            const cookies: { name: string; value: string }[] = []
-            if (typeof document !== 'undefined') {
-              document.cookie.split('; ').forEach((c) => {
-                const [name, ...rest] = c.split('=')
-                cookies.push({ name, value: rest.join('=') })
-              })
-            }
-            return cookies
-          },
-          setAll(cookiesToSet) {
-            if (typeof document !== 'undefined') {
-              cookiesToSet.forEach(({ name, value, options }) => {
-                const cookieStr = `${name}=${value}; path=${options?.path || '/'}${
-                  options?.maxAge ? `; max-age=${options.maxAge}` : ''
-                }${options?.expires ? `; expires=${options.expires.toUTCString()}` : ''}${
-                  options?.secure ? '; secure' : ''
-                }${options?.sameSite ? `; samesite=${options.sameSite}` : ''}`
-                document.cookie = cookieStr
-              })
-            }
-          },
-        },
-      })
-    : data.supabase
   let syncToast = $state(false)
   let drainingQueue = false
   let lastDrainAt = 0
@@ -82,14 +52,7 @@
     drainingQueue = true
 
     try {
-      const {
-        data: { session },
-      } = await data.supabase.auth.getSession()
-      if (session) {
-        await replaySupabase.auth.setSession(session)
-      }
-
-      const result = await replayBatch(replaySupabase, queued)
+      const result = await replayBatch(data.supabase, queued)
       await replaceQueue(result.survivors)
       await refreshPendingCount()
 
@@ -114,7 +77,19 @@
   }
 
   onMount(() => {
-    void drainQueue()
+    // Defer the initial offline-queue drain so it doesn't compete with first paint.
+    // requestIdleCallback yields until the browser is genuinely idle; fall back to
+    // setTimeout for browsers that don't expose it (mainly older iOS Safari).
+    const ric =
+      typeof window !== 'undefined' &&
+      (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number })
+        .requestIdleCallback
+    let idleHandle: ReturnType<typeof setTimeout> | number | null = null
+    if (typeof ric === 'function') {
+      idleHandle = ric(() => void drainQueue(), { timeout: 2500 })
+    } else {
+      idleHandle = setTimeout(() => void drainQueue(), 1500)
+    }
 
     const handleOnline = () => {
       void drainQueue()
@@ -124,6 +99,16 @@
 
     return () => {
       window.removeEventListener('online', handleOnline)
+
+      if (idleHandle !== null) {
+        const cancelIdle = (window as Window & { cancelIdleCallback?: (h: number) => void })
+          .cancelIdleCallback
+        if (typeof cancelIdle === 'function' && typeof idleHandle === 'number') {
+          cancelIdle(idleHandle)
+        } else if (typeof idleHandle !== 'number') {
+          clearTimeout(idleHandle)
+        }
+      }
 
       if (syncToastTimeout) {
         clearTimeout(syncToastTimeout)
