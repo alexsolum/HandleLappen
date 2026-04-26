@@ -31,6 +31,8 @@ function resolveStoreId(storeId: MaybeStoreId) {
 export function createCategoriesQuery(supabase: SupabaseClient, householdId: string) {
   return createQuery(() => ({
     queryKey: categoriesQueryKey(householdId),
+    // Categories rarely change between page hops; let warm navigation reuse the cache.
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
@@ -47,6 +49,7 @@ export function createStoreLayoutQuery(supabase: SupabaseClient, storeId: MaybeS
   return createQuery(() => ({
     queryKey: storeLayoutQueryKey(resolveStoreId(storeId) ?? ''),
     enabled: resolveStoreId(storeId) != null,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const currentStoreId = resolveStoreId(storeId)
 
