@@ -65,6 +65,7 @@
   let barcodeLookupResult = $state<BarcodeSheetModel | null>(null)
   let barcodeLookupEan = $state<string | null>(null)
   let rememberedQueryText = $state('')
+  let debouncedRememberedQueryText = $state('')
   let isManuallySelected = $state(false)
   let cleanupToastMessage = $state('')
   let automaticStoreSelectionEnabled = $state(data.automaticStoreSelectionEnabled)
@@ -99,10 +100,22 @@
   const categoriesQuery = createCategoriesQuery(data.supabase, data.householdId)
   const storeLayoutQuery = createStoreLayoutQuery(data.supabase, () => selectedStoreId)
   const storesQuery = createStoresQuery(data.supabase, data.householdId)
+  // Debounce the search input: avoid firing the remembered-items RPC on every
+  // keystroke. 250 ms is short enough to feel live while collapsing typing
+  // bursts into a single round-trip.
+  $effect(() => {
+    const next = rememberedQueryText
+    if (next === debouncedRememberedQueryText) return
+    const handle = setTimeout(() => {
+      debouncedRememberedQueryText = next
+    }, 250)
+    return () => clearTimeout(handle)
+  })
+
   const rememberedItemsQuery = createRememberedItemsQuery(
     data.supabase,
     data.listId,
-    () => rememberedQueryText,
+    () => debouncedRememberedQueryText,
     data.householdId
   )
   const addItemMutation = createAddItemMutation(data.supabase, data.listId)

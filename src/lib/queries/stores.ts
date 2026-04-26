@@ -40,6 +40,8 @@ export function storesQueryKey(householdId: string) {
 export function createStoresQuery(supabase: SupabaseClient, householdId: string) {
   return createQuery(() => ({
     queryKey: storesQueryKey(householdId),
+    // Stores rarely change between page hops; let warm navigation reuse the cache.
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stores')

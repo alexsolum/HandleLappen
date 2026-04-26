@@ -1,6 +1,7 @@
 <script lang="ts">
   import { swipeLeft } from '$lib/actions/swipe'
   import { offlineStore } from '$lib/stores/offline.svelte'
+  import { transformedProductImage } from '$lib/utils/images'
   import { onDestroy } from 'svelte'
 
   interface Props {
@@ -21,6 +22,9 @@
   let { item, onToggle, onDelete, onIncrement, onDecrement, onLongPress }: Props = $props()
   let isOnline = $derived(offlineStore.isOnline)
   const displayQuantity = $derived(item.quantity ?? 1)
+  // Render thumbnail at 2× the displayed 40 px so retina screens stay sharp
+  // without paying for the full-resolution source image.
+  const thumbnailSrc = $derived(transformedProductImage(item.product_image_url, 80))
 
   let imgLoaded = $state(false)
   let imgError = $state(false)
@@ -175,15 +179,19 @@
 
       <!-- Product thumbnail (40x40, circular) -->
       <div class="relative h-10 w-10 flex-shrink-0">
-        {#if item.product_image_url && !imgError}
+        {#if thumbnailSrc && !imgError}
           <!-- Shimmer skeleton shown while image is loading -->
           {#if !imgLoaded}
             <div class="absolute inset-0 animate-pulse rounded-full bg-gray-200"></div>
           {/if}
           <img
-            src={item.product_image_url}
+            src={thumbnailSrc}
             alt=""
             aria-hidden="true"
+            width="40"
+            height="40"
+            loading="lazy"
+            decoding="async"
             class="h-10 w-10 rounded-full object-cover {imgLoaded ? 'opacity-100' : 'opacity-0'}"
             onload={() => { imgLoaded = true }}
             onerror={() => { imgError = true }}
