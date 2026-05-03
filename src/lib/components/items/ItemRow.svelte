@@ -1,8 +1,10 @@
 <script lang="ts">
   import { swipeLeft } from '$lib/actions/swipe'
+  import ProductThumbnail from '$lib/components/items/ProductThumbnail.svelte'
   import { offlineStore } from '$lib/stores/offline.svelte'
-  import { transformedProductImage } from '$lib/utils/images'
+  import { motionDuration } from '$lib/utils/motion.svelte'
   import { onDestroy } from 'svelte'
+  import { scale } from 'svelte/transition'
 
   interface Props {
     item: {
@@ -22,19 +24,6 @@
   let { item, onToggle, onDelete, onIncrement, onDecrement, onLongPress }: Props = $props()
   let isOnline = $derived(offlineStore.isOnline)
   const displayQuantity = $derived(item.quantity ?? 1)
-  // Render thumbnail at 2× the displayed 40 px so retina screens stay sharp
-  // without paying for the full-resolution source image.
-  const thumbnailSrc = $derived(transformedProductImage(item.product_image_url, 80))
-
-  let imgLoaded = $state(false)
-  let imgError = $state(false)
-
-  $effect(() => {
-    // Reset image state when item changes
-    void item.product_image_url
-    imgLoaded = false
-    imgError = false
-  })
 
   let longPressTimer: ReturnType<typeof setTimeout> | null = null
   let cleanupMove: (() => void) | null = null
@@ -166,48 +155,28 @@
     <div class="flex min-w-0 flex-1 items-center gap-3">
       <!-- Checkbox indicator -->
       <div
-        class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 {item.is_checked
+        class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 {item.is_checked
           ? 'border-green-500 bg-green-500'
           : 'border-gray-300'}"
       >
         {#if item.is_checked}
-          <svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <!-- motion: respect reduced-motion -->
+          <svg
+            class="h-3 w-3 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            transition:scale={{ duration: motionDuration(180), start: 0.4, opacity: 0 }}
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
           </svg>
         {/if}
       </div>
 
-      <!-- Product thumbnail (40x40, circular) -->
-      <div class="relative h-10 w-10 flex-shrink-0">
-        {#if thumbnailSrc && !imgError}
-          <!-- Shimmer skeleton shown while image is loading -->
-          {#if !imgLoaded}
-            <div class="absolute inset-0 animate-pulse rounded-full bg-gray-200"></div>
-          {/if}
-          <img
-            src={thumbnailSrc}
-            alt=""
-            aria-hidden="true"
-            width="40"
-            height="40"
-            loading="lazy"
-            decoding="async"
-            class="h-10 w-10 rounded-full object-cover {imgLoaded ? 'opacity-100' : 'opacity-0'}"
-            onload={() => { imgLoaded = true }}
-            onerror={() => { imgError = true }}
-          />
-        {:else}
-          <!-- Package icon fallback -->
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
-            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-            </svg>
-          </div>
-        {/if}
-      </div>
+      <ProductThumbnail imageUrl={item.product_image_url} size={40} />
 
       <!-- Item name -->
-      <span class="min-w-0 flex-1 truncate font-medium {item.is_checked ? 'text-gray-400 line-through' : 'text-gray-900'}">
+      <span class="min-w-0 flex-1 truncate font-medium transition-[color,opacity] duration-200 {item.is_checked ? 'text-gray-400 line-through' : 'text-gray-900'}">
         {item.name}
       </span>
     </div>

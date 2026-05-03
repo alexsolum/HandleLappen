@@ -1,5 +1,6 @@
 <script lang="ts">
   import BarcodeScannerSheet from '$lib/components/barcode/BarcodeScannerSheet.svelte'
+  import ProductThumbnail from '$lib/components/items/ProductThumbnail.svelte'
   import ManualEanEntrySheet from '$lib/components/barcode/ManualEanEntrySheet.svelte'
   import type { RememberedItem } from '$lib/queries/remembered-items-core'
   import { offlineStore } from '$lib/stores/offline.svelte'
@@ -252,11 +253,12 @@
           {#each visibleSuggestions as suggestion (suggestion.normalizedName)}
             <button
               type="button"
-              class="flex w-full items-center justify-between gap-3 border-b border-gray-100 px-3 py-3 text-left last:border-b-0 hover:bg-green-50"
+              class="flex w-full items-center gap-3 border-b border-gray-100 px-3 py-3 text-left last:border-b-0 hover:bg-green-50"
               data-testid="remembered-suggestion-row"
               onclick={() => handleSuggestionClick(suggestion)}
             >
-              <span class="min-w-0">
+              <ProductThumbnail imageUrl={suggestion.productImageUrl} size={32} />
+              <span class="min-w-0 flex-1">
                 <span class="block truncate text-sm font-medium text-gray-900">{suggestion.itemName}</span>
                 <span class="block text-xs text-gray-500">
                   {suggestion.useCount} tidligere {suggestion.useCount === 1 ? 'gang' : 'ganger'}

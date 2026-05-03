@@ -63,6 +63,7 @@
 
           <a
             href={href}
+            data-sveltekit-preload-data="tap"
             class={`relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-medium transition ${
               active
                 ? 'bg-green-50 text-green-700'

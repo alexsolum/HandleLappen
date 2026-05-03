@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { motionDuration } from '$lib/utils/motion.svelte'
+  import { slide } from 'svelte/transition'
+
   interface Props {
     items: Array<{ id: string; name: string; quantity: number | null }>
     onUncheck: (id: string) => void
@@ -28,7 +31,8 @@
     </button>
 
     {#if expanded}
-      <div class="divide-y divide-gray-100">
+      <!-- motion: respect reduced-motion -->
+      <div class="divide-y divide-gray-100" transition:slide={{ duration: motionDuration(200) }}>
         {#each items as item (item.id)}
           <button
             type="button"

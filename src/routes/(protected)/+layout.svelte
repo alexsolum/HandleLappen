@@ -5,6 +5,8 @@
   import BottomNav from '$lib/components/lists/BottomNav.svelte'
   import { getAll, replayBatch, replaceQueue } from '$lib/offline/queue'
   import { isOfflineMode, refreshPendingCount } from '$lib/stores/offline.svelte'
+  import { motionDuration } from '$lib/utils/motion.svelte'
+  import { fly } from 'svelte/transition'
 
   let { data, children } = $props()
   let syncToast = $state(false)
@@ -127,11 +129,13 @@
 
     <main class="overflow-x-clip pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
       {#if syncToast}
+        <!-- motion: respect reduced-motion -->
         <div
           class="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 rounded-full bg-gray-800 px-4 py-2 text-sm text-white shadow-lg"
           role="status"
           aria-live="polite"
           data-testid="sync-toast"
+          transition:fly={{ y: 50, duration: motionDuration(180) }}
         >
           Endringer synkronisert
         </div>
