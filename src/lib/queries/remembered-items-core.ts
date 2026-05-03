@@ -10,6 +10,7 @@ export type RememberedItem = {
   lastCategoryId: string | null
   useCount: number
   lastUsedAt: string
+  productImageUrl?: string | null
 }
 
 export function normalizeRememberedItemQuery(value: string) {
@@ -41,5 +42,6 @@ export async function searchRememberedItems(
     lastCategoryId: row.last_category_id,
     useCount: row.use_count,
     lastUsedAt: row.last_used_at,
+    productImageUrl: null,
   }))
 }

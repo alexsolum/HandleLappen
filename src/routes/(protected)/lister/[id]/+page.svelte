@@ -29,6 +29,7 @@
   import LocationPermissionCard from '$lib/components/stores/LocationPermissionCard.svelte'
   import ShoppingModeBanner from '$lib/components/stores/ShoppingModeBanner.svelte'
   import StoreSelector from '$lib/components/stores/StoreSelector.svelte'
+  import TripSummarySheet from '$lib/components/stores/TripSummarySheet.svelte'
   import {
     beginLocationExplanation,
     cancelLocationExplanation,
@@ -42,9 +43,11 @@
   } from '$lib/location/session.svelte'
   import type { DetectableStore } from '$lib/location/proximity'
   import { setActiveList } from '$lib/stores/active-list.svelte'
+  import { motionDuration } from '$lib/utils/motion.svelte'
   import { storeDisplayName } from '$lib/utils/stores'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { onDestroy } from 'svelte'
+  import { flip } from 'svelte/animate'
 
   type Item = {
     id: string
@@ -70,6 +73,14 @@
   let cleanupToastMessage = $state('')
   let automaticStoreSelectionEnabled = $state(data.automaticStoreSelectionEnabled)
   let resumedAutomaticStore = $state(false)
+  let manualShoppingStartedAt = $state<number | null>(null)
+  let tripSummary = $state<{
+    storeName: string
+    chain: string | null
+    itemsCount: number
+    elapsedMinutes: number
+  } | null>(null)
+  let prevActiveCount = 0
 
   const queryClient = useQueryClient()
 
@@ -130,11 +141,28 @@
   })
 
   const activeItems = $derived((itemsQuery.data?.filter((i) => !i.is_checked) ?? []) as Item[])
+  const enableListReflowAnimation = $derived(activeItems.length <= 100)
+  const groupFlipDuration = $derived(enableListReflowAnimation ? motionDuration(220) : 0)
   const doneItems = $derived(itemsQuery.data?.filter((i) => i.is_checked) ?? [])
   const barcodeSubmitting = $derived(
     barcodeLookupState !== 'closed' && (addItemMutation.isPending || assignCategoryMutation.isPending)
   )
-  const rememberedSuggestions = $derived(rememberedItemsQuery.data ?? [])
+  const rememberedSuggestions = $derived.by(() => {
+    const imageByName = new Map<string, string>()
+
+    for (const item of (itemsQuery.data ?? []) as Item[]) {
+      if (!item.product_image_url) continue
+      const normalizedName = item.name.trim().toLowerCase().replace(/\s+/g, ' ')
+      if (!imageByName.has(normalizedName)) {
+        imageByName.set(normalizedName, item.product_image_url)
+      }
+    }
+
+    return (rememberedItemsQuery.data ?? []).map((suggestion) => ({
+      ...suggestion,
+      productImageUrl: imageByName.get(suggestion.normalizedName) ?? null,
+    }))
+  })
   const groupingPending = $derived(
     categoriesQuery.isPending || (selectedStoreId != null && storeLayoutQuery.isPending)
   )
@@ -168,6 +196,9 @@
   const selectedStoreName = $derived.by(() => {
     const found = storesQuery.data?.find((store) => store.id === selectedStoreId)
     return found ? storeDisplayName(found.chain, found.location_name) : null
+  })
+  const selectedStore = $derived.by(() => {
+    return storesQuery.data?.find((store) => store.id === selectedStoreId) ?? null
   })
   const detectableStores = $derived((storesQuery.data ?? []) as DetectableStore[])
   const detectedStoreName = $derived.by(() => {
@@ -205,6 +236,7 @@
     if (locationSession.shoppingModeActive && locationSession.detectedStoreId) {
       selectedStoreId = locationSession.detectedStoreId
       isManuallySelected = false
+      manualShoppingStartedAt = null
     } else if (!locationSession.shoppingModeActive && !isManuallySelected) {
       if (
         locationSession.shoppingModeSuppressedStoreId !== null &&
@@ -215,6 +247,36 @@
         selectedStoreId = locationSession.detectedStoreId
       }
     }
+  })
+
+  $effect(() => {
+    if (selectedStoreId !== null) return
+
+    manualShoppingStartedAt = null
+    tripSummary = null
+  })
+
+  $effect(() => {
+    const activeCount = activeItems.length
+    const startTs = locationSession.shoppingStartedAt ?? manualShoppingStartedAt
+
+    if (
+      prevActiveCount > 0 &&
+      activeCount === 0 &&
+      selectedStoreId !== null &&
+      selectedStore !== null &&
+      startTs !== null &&
+      tripSummary === null
+    ) {
+      tripSummary = {
+        storeName: storeDisplayName(selectedStore.chain, selectedStore.location_name),
+        chain: selectedStore.chain,
+        itemsCount: Math.max(1, activeItems.length + doneItems.length),
+        elapsedMinutes: Math.max(1, Math.round((Date.now() - startTs) / 60000)),
+      }
+    }
+
+    prevActiveCount = activeCount
   })
 
   $effect(() => {
@@ -275,6 +337,15 @@
   function handleManualStoreSelect(id: string | null) {
     selectedStoreId = id
     isManuallySelected = id !== null
+    manualShoppingStartedAt = id !== null ? Date.now() : null
+  }
+
+  function handleTripSummaryClose() {
+    tripSummary = null
+    dismissShoppingMode()
+    selectedStoreId = null
+    isManuallySelected = false
+    manualShoppingStartedAt = null
   }
 
   async function persistAutomaticStoreSelectionConsent() {
@@ -526,15 +597,19 @@
         <div class="px-4 py-8 text-center text-sm text-gray-500">Laster kategorier…</div>
       {:else}
         {#each groupedItems as group (group.categoryId ?? 'andre')}
-          <CategorySection
-            categoryName={group.name}
-            items={group.items}
-            onToggle={handleGroupToggle}
-            onDelete={handleDelete}
-            onIncrement={handleIncrement}
-            onDecrement={handleDecrement}
-            onLongPress={(item) => (detailSheetItem = item)}
-          />
+          <!-- motion: respect reduced-motion; category groups only reflow, rows handle enter/exit. -->
+          <div animate:flip={{ duration: groupFlipDuration }}>
+            <CategorySection
+              categoryName={group.name}
+              items={group.items}
+              enableReflowAnimation={enableListReflowAnimation}
+              onToggle={handleGroupToggle}
+              onDelete={handleDelete}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+              onLongPress={(item) => (detailSheetItem = item)}
+            />
+          </div>
         {/each}
       {/if}
 
@@ -591,5 +666,16 @@
     categories={categoriesQuery.data ?? []}
     onSave={handleDetailSave}
     onClose={() => (detailSheetItem = null)}
+  />
+{/if}
+
+{#if tripSummary !== null}
+  <TripSummarySheet
+    open={true}
+    storeName={tripSummary.storeName}
+    chain={tripSummary.chain}
+    itemsCount={tripSummary.itemsCount}
+    elapsedMinutes={tripSummary.elapsedMinutes}
+    onClose={handleTripSummaryClose}
   />
 {/if}
